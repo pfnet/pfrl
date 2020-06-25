@@ -1,0 +1,109 @@
+configs {
+  key: "pfrl.gpu"
+  value {
+    requirement {
+      cpu: 10
+      memory: 30
+      gpu: 1
+    }
+    time_limit {
+      seconds: 1200
+    }
+    environment_variables { key: "GPU" value: "1" }
+    command: "bash .pfnci/script.sh gpu"
+  }
+}
+
+configs {
+  key: "pfrl.gpu.slow"
+  value {
+    requirement {
+      cpu: 10
+      memory: 30
+      gpu: 1
+    }
+    time_limit {
+      seconds: 2400
+    }
+    environment_variables { key: "GPU" value: "1" }
+    environment_variables { key: "SLOW" value: "1" }
+    command: "bash .pfnci/script.sh gpu"
+  }
+}
+
+configs {
+  key: "pfrl.gpu.examples"
+  value {
+    requirement {
+      cpu: 2
+      memory: 12
+      gpu: 1
+    }
+    time_limit {
+      seconds: 1200
+    }
+    environment_variables { key: "GPU" value: "1" }
+    environment_variables { key: "TEST_EXAMPLES" value: "1" }
+    command: "bash .pfnci/script.sh gpu"
+  }
+}
+
+configs {
+  key: "pfrl.cpu.slow"
+  value {
+    requirement {
+      cpu: 10
+      memory: 30
+    }
+    time_limit {
+      seconds: 2400
+    }
+    environment_variables { key: "SLOW" value: "1" }
+    command: "bash .pfnci/script.sh cpu"
+  }
+}
+
+# PFRL CPU-only unit tests.
+configs {
+  key: "pfrl.cpu"
+  value {
+    requirement {
+      cpu: 10
+      memory: 30
+    }
+    time_limit {
+      seconds: 1200
+    }
+    command: "bash .pfnci/script.sh cpu"
+  }
+}
+
+configs {
+  key: "pfrl.cpu.examples"
+  value {
+    requirement {
+      cpu: 2
+      memory: 12
+    }
+    time_limit {
+      seconds: 1200
+    }
+    environment_variables { key: "TEST_EXAMPLES" value: "1" }
+    command: "bash .pfnci/script.sh cpu"
+  }
+}
+
+# static code check
+configs {
+  key: "pfrl.lint"
+  value {
+    requirement {
+      cpu: 1
+      memory: 1
+    }
+    time_limit {
+      seconds: 1200
+    }
+    command: "bash .pfnci/lint.sh"
+  }
+}

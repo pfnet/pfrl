@@ -1,0 +1,9 @@
+-r requirements.txt
+autopep8
+atari_py
+flake8
+opencv-python
+pytest
+scipy
+sphinx
+sphinx_rtd_theme

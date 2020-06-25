@@ -1,0 +1,36 @@
+# hint.pbtxt is a config file for xpytest.
+#
+# Proto type: xpytest.proto.HintFile
+# https://github.com/chainer/xpytest/blob/master/proto/test_case.proto
+
+# Slow tests take 60+ seconds.
+rules { name: "agents_tests/test_ddpg.py" xdist: 4 deadline: 600 }
+rules { name: "agents_tests/test_reinforce.py" xdist: 4 deadline: 480 }
+rules { name: "agents_tests/test_dqn.py" xdist: 4 deadline: 480 }
+
+rules { name: "agents_tests/test_a2c.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_al.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_categorical_dqn.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_double_categorical_dqn.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_double_dqn.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_double_iqn.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_double_pal.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_dpp.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_iqn.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_ppo.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_pal.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_trpo.py" xdist: 4 deadline: 240 }
+
+rules { name: "agents_tests/test_a3c.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_agents.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_soft_actor_critic.py" xdist: 4 deadline: 240 }
+rules { name: "agents_tests/test_td3.py" xdist: 4 deadline: 240 }
+rules { name: "utils_tests/test_random.py" xdist: 4 deadline: 240 }
+
+# Slow tests take 10+ seconds.
+rules { name: "agents_tests/test_acer.py" }
+rules { name: "agents_tests/test_ale.py" }
+rules { name: "agents_tests/test_trpo.py" }
+rules { name: "policies_tests/test_deterministic_policy.py" }
+rules { name: "q_functions_tests/test_state_action_q_function.py" }
+rules { name: "tests/test_ale.py" }

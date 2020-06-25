@@ -1,0 +1,8 @@
+*.pyc
+.ipynb_checkpoints
+pfrl.egg-info
+build/
+dist/
+.idea/
+results/
+examples/gym/results/
