@@ -133,6 +133,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         recurrent (bool): If set to True, `model` is assumed to implement
             `pfrl.nn.Recurrent` and is updated in a recurrent
             manner.
+        max_grad_norm (float or None): Maximum L2 norm of the gradient used for
+            gradient clipping. If set to None, the gradient is not clipped.
     """
 
     saved_attributes = ("model", "target_model", "optimizer")
@@ -159,6 +161,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         logger=getLogger(__name__),
         batch_states=batch_states,
         recurrent=False,
+        max_grad_norm=None,
     ):
         self.model = q_function
         self.q_function = q_function  # For backward compatibility
@@ -203,6 +206,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.episodic_update_len = episodic_update_len
         self.replay_start_size = replay_start_size
         self.update_interval = update_interval
+        self.max_grad_norm = max_grad_norm
 
         assert (
             target_update_interval % update_interval == 0
@@ -320,6 +324,10 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
 
         self.optimizer.zero_grad()
         loss.backward()
+        if self.max_grad_norm is not None:
+            pfrl.utils.clip_l2_grad_norm_(
+                self.model.parameters(), self.max_grad_norm
+            )
         self.optimizer.step()
         self.optim_t += 1
 
@@ -337,6 +345,10 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.loss_record.append(float(loss.detach().cpu().numpy()))
         self.optimizer.zero_grad()
         loss.backward()
+        if self.max_grad_norm is not None:
+            pfrl.utils.clip_l2_grad_norm_(
+                self.model.parameters(), self.max_grad_norm
+            )
         self.optimizer.step()
         self.optim_t += 1
 
