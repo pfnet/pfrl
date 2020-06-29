@@ -46,12 +46,12 @@ Average return of last evaluation scores, averaged over 10 trials, are reported 
 Reported scores are roughly approximated from learning curves of "SAC (learned temperature)" of Figure 1 in [Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905).
 
 | Environment               | PFRL Score | Reported Score |
-| ------------------------- |:---------------:|:--------------:|
-| Hopper-v2                 |        N/A |          ~3300 |
-| HalfCheetah-v2            |        N/A |         ~15000 |
-| Walker2d-v2               |        N/A |          ~5600 |
-| Ant-v2                    |        N/A |          ~5800 |
-| Humanoid-v2               |        N/A |          ~8000 |
+| ------------------------- |:----------:|:--------------:|
+| Hopper-v2                 |    3279.25 |          ~3300 |
+| HalfCheetah-v2            |   15120.03 |         ~15000 |
+| Walker2d-v2               |    4875.88 |          ~5600 |
+| Ant-v2                    |    5953.15 |          ~5800 |
+| Humanoid-v2               |    7939.08 |          ~8000 |
 
 ### Learning Curves
 
