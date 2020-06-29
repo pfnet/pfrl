@@ -76,7 +76,7 @@ main() {
   # pytest does not run with attrs==19.2.0 (https://github.com/pytest-dev/pytest/issues/3280)  # NOQA
   "${PYTHON}" -m pip install \
       'pytest==4.1.1' 'attrs==19.1.0' 'pytest-xdist==1.26.1' \
-      'atari_py==0.1.1' 'opencv-python' 'zipp==1.0.0' 'pybullet==2.8.1'
+      'atari_py==0.1.1' 'opencv-python' 'zipp==1.0.0' 'pybullet==2.8.1' 'jupyterlab==2.1.5'
 
   git config --global user.email "you@example.com"
   git config --global user.name "Your Name"
@@ -90,7 +90,12 @@ main() {
         bash test_examples.sh -1
       else
         bash test_examples.sh 0
+        # Use gpu by replacing "gpu = -1" with "gpu = 0".
+        # Confirm that the file contains "gpu = -1" first.
+        grep "gpu = -1" examples/quickstart/quickstart.ipynb
+        sed -i -e 's/gpu = -1/gpu = 0/g' examples/quickstart/quickstart.ipynb
       fi
+      xvfb-run --server-args="-screen 0 1280x800x24" jupyter nbconvert --to notebook --execute examples/quickstart/quickstart.ipynb --ExecutePreprocessor.timeout=600
     )
   else
     xpytest_args=(
