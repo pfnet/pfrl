@@ -184,7 +184,7 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
             R *= self.gamma
             R += self.past_rewards[i]
             rev_returns.append(R)
-        batch_return = torch.as_tensor(list(reversed(rev_returns)))
+        batch_return = torch.as_tensor(list(reversed(rev_returns)), dtype=torch.float)
         batch_adv = batch_return - batch_v.detach().squeeze(-1)
         assert batch_log_prob.shape == (n,)
         assert batch_adv.shape == (n,)
