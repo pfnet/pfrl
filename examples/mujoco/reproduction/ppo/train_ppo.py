@@ -102,7 +102,7 @@ def main():
     logging.basicConfig(level=args.log_level)
 
     # Set a random seed used in PFRL
-    utils.set_random_seed(args.seed, gpus=(args.gpu,))
+    utils.set_random_seed(args.seed)
 
     # Set different random seeds for different subprocesses.
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].

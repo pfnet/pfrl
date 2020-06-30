@@ -197,7 +197,7 @@ def main():
     logging.basicConfig(level=args.log_level)
 
     # Set a random seed used in PFRL.
-    utils.set_random_seed(args.seed, gpus=(args.gpu,))
+    utils.set_random_seed(args.seed)
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed

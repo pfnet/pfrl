@@ -3,7 +3,7 @@ import torch
 import numpy as np
 
 
-def set_random_seed(seed, gpus=()):
+def set_random_seed(seed):
     """Set a given random seed to Pytorch's random number generator
 
     torch.manual_seed() seeds the RNG for all devices (both CPU and CUDA)
@@ -12,8 +12,6 @@ def set_random_seed(seed, gpus=()):
 
     Args:
         seed (int): Random seed [0, 2 ** 32).
-        gpus (tuple of ints): GPU device IDs to use. Negative values are
-            ignored.
     """
     # PFRL depends on random
     random.seed(seed)

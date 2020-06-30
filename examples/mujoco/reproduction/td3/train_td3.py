@@ -95,7 +95,7 @@ def main():
     print("Output files are saved in {}".format(args.outdir))
 
     # Set a random seed used in PFRL
-    utils.set_random_seed(args.seed, gpus=(args.gpu,))
+    utils.set_random_seed(args.seed)
 
     def make_env(test):
         env = gym.make(args.env)

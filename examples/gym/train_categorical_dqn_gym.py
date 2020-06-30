@@ -64,7 +64,7 @@ def main():
     args = parser.parse_args()
 
     # Set a random seed used in PFRL
-    utils.set_random_seed(args.seed, gpus=(args.gpu,))
+    utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
     print("Output files are saved in {}".format(args.outdir))
