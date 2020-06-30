@@ -91,7 +91,7 @@ def main():
     logging.basicConfig(level=args.log_level)
 
     # Set random seed
-    pfrl.utils.set_random_seed(args.seed, gpus=(args.gpu,))
+    pfrl.utils.set_random_seed(args.seed)
 
     args.outdir = pfrl.experiments.prepare_output_dir(args, args.outdir)
 
