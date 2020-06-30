@@ -86,3 +86,49 @@ class LinearDecayEpsilonGreedy(explorer.Explorer):
 
     def __repr__(self):
         return "LinearDecayEpsilonGreedy(epsilon={})".format(self.epsilon)
+
+
+class ExponentialDecayEpsilonGreedy(explorer.Explorer):
+    """Epsilon-greedy with exponentially decayed epsilon
+
+    Args:
+      start_epsilon: max value of epsilon
+      end_epsilon: min value of epsilon
+      decay: epsilon decay factor
+      random_action_func: function with no argument that returns action
+      logger: logger used
+    """
+
+    def __init__(
+        self,
+        start_epsilon,
+        end_epsilon,
+        decay,
+        random_action_func,
+        logger=getLogger(__name__),
+    ):
+        assert 0 <= start_epsilon <= 1
+        assert 0 <= end_epsilon <= 1
+        assert 0 < decay < 1
+        self.start_epsilon = start_epsilon
+        self.end_epsilon = end_epsilon
+        self.decay = decay
+        self.random_action_func = random_action_func
+        self.logger = logger
+        self.epsilon = start_epsilon
+
+    def compute_epsilon(self, t):
+        epsilon = self.start_epsilon * (self.decay ** t)
+        return max(epsilon, self.end_epsilon)
+
+    def select_action(self, t, greedy_action_func, action_value=None):
+        self.epsilon = self.compute_epsilon(t)
+        a, greedy = select_action_epsilon_greedily(
+            self.epsilon, self.random_action_func, greedy_action_func
+        )
+        greedy_str = "greedy" if greedy else "non-greedy"
+        self.logger.debug("t:%s a:%s %s", t, a, greedy_str)
+        return a
+
+    def __repr__(self):
+        return "ExponentialDecayEpsilonGreedy(epsilon={})".format(self.epsilon)
