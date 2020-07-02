@@ -1,4 +1,3 @@
-import torch
 from torch import distributions as dists
 from torch.distributions.utils import _sum_rightmost
 
