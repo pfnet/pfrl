@@ -91,10 +91,10 @@ def main():
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--noisy-net-sigma", type=float, default=0.1)
-    parser.add_argument("--steps", type=int, default=10 ** 6)
+    parser.add_argument("--steps", type=int, default=2 * 10 ** 6)
     parser.add_argument("--replay-start-size", type=int, default=1600)
     parser.add_argument("--eval-n-episodes", type=int, default=1000)
-    parser.add_argument("--eval-interval", type=int, default=50000)
+    parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument(
         "--log-level",
         type=int,
