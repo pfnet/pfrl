@@ -1,4 +1,3 @@
-import torch
 from torch import distributions as dists
 from torch.distributions.utils import _sum_rightmost
 
@@ -8,9 +7,13 @@ def _sample_with_log_prob_transform(distrib, use_rsample=False):
     base_dist = distrib.base_dist
     x = base_dist.rsample() if use_rsample else base_dist.sample()
     base_log_prob = base_dist.log_prob(x)
-    y = distrib.transforms[0](x)
-    log_probs = base_log_prob - distrib.transforms[0].log_abs_det_jacobian(x, y)
-    return y, torch.sum(log_probs, dim=len(log_probs.shape) - 1)
+    transform = distrib.transforms[0]
+    y = transform(x)
+    event_dim = len(distrib.event_shape)
+    log_probs = base_log_prob - _sum_rightmost(
+        transform.log_abs_det_jacobian(x, y), event_dim - transform.event_dim,
+    )
+    return y, log_probs
 
 
 def sample_with_log_prob(distrib, use_rsample=False):
