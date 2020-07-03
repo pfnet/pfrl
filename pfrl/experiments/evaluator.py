@@ -396,11 +396,11 @@ class Evaluator(object):
             self.tb_writer = SummaryWriter(log_dir=outdir)
             layout = {
                 "Aggregate Charts": {
-                    "Mean w/ Min-Max": [
+                    "mean w/ min-max": [
                         "Margin",
                         ["eval/mean", "eval/min", "eval/max"],
                     ],
-                    "Mean +/- std": [
+                    "mean +/- std": [
                         "Margin",
                         ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
                     ],
@@ -513,11 +513,11 @@ class AsyncEvaluator(object):
             self.tb_writer = SummaryWriter(log_dir=outdir)
             layout = {
                 "Aggregate Charts": {
-                    "Mean w/ Min-Max": [
+                    "mean w/ min-max": [
                         "Margin",
                         ["eval/mean", "eval/min", "eval/max"],
                     ],
-                    "Mean +/- std": [
+                    "mean +/- std": [
                         "Margin",
                         ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
                     ],
