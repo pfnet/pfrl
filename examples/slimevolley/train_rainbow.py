@@ -1,6 +1,4 @@
 import argparse
-import json
-import os
 
 import gym
 import gym.spaces
@@ -14,9 +12,7 @@ from pfrl import experiments
 from pfrl import explorers
 from pfrl import nn as pnn
 from pfrl import utils
-from pfrl.q_functions import DistributionalDuelingDQN
 from pfrl import replay_buffers
-from pfrl.wrappers import atari_wrappers
 
 
 class MultiBinaryAsDiscreteAction(gym.ActionWrapper):
@@ -136,7 +132,7 @@ def main():
 
     def make_env(test):
         # You need to install slimevolleygym
-        import slimevolleygym
+        import slimevolleygym  # NOQA
 
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
