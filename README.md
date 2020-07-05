@@ -8,6 +8,7 @@ PFRL is a deep reinforcement learning library that implements various state-of-t
 ![Humanoid](assets/humanoid.gif)
 ![Grasping](assets/grasping.gif)
 ![Atlas](examples/atlas/assets/atlas.gif)
+![SlimeVolley](examples/slimevolley/assets/slimevolley.gif)
 
 ## Installation
 
