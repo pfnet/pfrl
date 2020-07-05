@@ -2,6 +2,7 @@ import copy
 import collections
 import time
 import multiprocessing as mp
+import multiprocessing.synchronize
 from typing import Any
 from typing import Callable
 from typing import Dict
@@ -19,6 +20,7 @@ import numpy as np
 import pfrl
 from pfrl import agent
 from pfrl.action_value import ActionValue
+from pfrl.explorer import Explorer
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.contexts import evaluating
 from pfrl.utils.copy_param import synchronize_parameters
@@ -177,7 +179,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         optimizer: torch.optim.Optimizer,  # type: ignore  # somehow mypy complains
         replay_buffer: pfrl.replay_buffer.AbstractReplayBuffer,
         gamma: float,
-        explorer: pfrl.explorer.Explorer,
+        explorer: Explorer,
         gpu: Optional[int] = None,
         replay_start_size: int = 50000,
         minibatch_size: int = 32,

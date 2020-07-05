@@ -84,7 +84,8 @@ class AbstractReplayBuffer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def capacity(self) -> Optional[int]:
         """Returns the capacity of the buffer in number of transitions.
 
