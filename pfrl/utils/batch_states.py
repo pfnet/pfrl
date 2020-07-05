@@ -1,7 +1,12 @@
+from typing import Any
+from typing import Callable
+from typing import Sequence
+
 import torch
+from torch.utils.data._utils.collate import default_collate
 
 
-def _to_recursive(batched, device):
+def _to_recursive(batched: Any, device: torch.device) -> Any:
     if isinstance(batched, torch.Tensor):
         return batched.to(device)
     elif isinstance(batched, list):
@@ -12,7 +17,9 @@ def _to_recursive(batched, device):
         raise TypeError("Unsupported type of data")
 
 
-def batch_states(states, device, phi):
+def batch_states(
+    states: Sequence[Any], device: torch.device, phi: Callable[[Any], Any]
+) -> Any:
     """The default method for making batch of observations.
 
     Args:
@@ -25,6 +32,4 @@ def batch_states(states, device, phi):
     """
     features = [phi(s) for s in states]
     # return concat_examples(features, device=device)
-    return _to_recursive(
-        torch.utils.data._utils.collate.default_collate(features), device
-    )
+    return _to_recursive(default_collate(features), device)
