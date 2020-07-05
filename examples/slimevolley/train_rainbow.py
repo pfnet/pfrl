@@ -131,8 +131,9 @@ def main():
     print("Output files are saved in {}".format(args.outdir))
 
     def make_env(test):
-        # You need to install slimevolleygym
-        import slimevolleygym  # NOQA
+        if "SlimeVolley" in args.env:
+            # You need to install slimevolleygym
+            import slimevolleygym  # NOQA
 
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
