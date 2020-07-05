@@ -325,9 +325,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.optimizer.zero_grad()
         loss.backward()
         if self.max_grad_norm is not None:
-            pfrl.utils.clip_l2_grad_norm_(
-                self.model.parameters(), self.max_grad_norm
-            )
+            pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
 
@@ -346,9 +344,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.optimizer.zero_grad()
         loss.backward()
         if self.max_grad_norm is not None:
-            pfrl.utils.clip_l2_grad_norm_(
-                self.model.parameters(), self.max_grad_norm
-            )
+            pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
 
