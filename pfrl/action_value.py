@@ -38,7 +38,7 @@ class ActionValue(object, metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-    def __getitem__(self, i) -> ActionValue:
+    def __getitem__(self, i) -> "ActionValue":
         """ActionValue is expected to be indexable."""
         raise NotImplementedError()
 
