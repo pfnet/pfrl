@@ -26,7 +26,7 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
         assert num_steps > 0
         self.num_steps = num_steps
         self.memory = RandomAccessQueue(maxlen=capacity)
-        self.last_n_transitions = collections.defaultdict(
+        self.last_n_transitions: collections.defaultdict = collections.defaultdict(
             lambda: collections.deque([], maxlen=num_steps)
         )
 
