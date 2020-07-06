@@ -165,8 +165,10 @@ class TestSoftActorCritic:
             base_distribution = distributions.Independent(
                 distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
             )
+            # cache_size=1 is required for numerical stability
             return distributions.transformed_distribution.TransformedDistribution(
-                base_distribution, [distributions.transforms.TanhTransform()]
+                base_distribution,
+                [distributions.transforms.TanhTransform(cache_size=1)],
             )
 
         policy = nn.Sequential(

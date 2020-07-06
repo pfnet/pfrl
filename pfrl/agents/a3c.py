@@ -43,7 +43,7 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
     """
 
     process_idx = None
-    saved_attributes = ["model", "optimizer"]
+    saved_attributes = ("model", "optimizer")
 
     def __init__(
         self,
