@@ -138,7 +138,10 @@ class AsyncAgent(Agent, metaclass=ABCMeta):
 
     @abstractproperty
     def process_idx(self) -> Optional[int]:
-        """Index of process as integer, 0 for the representative process."""
+        """Index of process as integer, 0 for the representative process.
+
+        The returned value can be None if it is not assgined yet.
+        """
         pass
 
     @abstractproperty
