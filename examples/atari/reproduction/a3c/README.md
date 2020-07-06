@@ -125,9 +125,11 @@ Our evaluation protocol is designed to mirror the evaluation protocol of the ori
 
 We trained with 16 CPUs and no GPU.
 
+
 | Training time (in hours) across all runs (# domains x # seeds) | |
 | ------------- |:-------------:|
 | Mean        |  12.66 |
-| Fastest time (all runs) | 10.968|
-| Slowest time (all runs) | 15.212|
-| Standard deviation (all runs) | 0.876|
+| Standard deviation | 0.876|
+| Fastest run | 10.968|
+| Slowest run | 15.212|
+
