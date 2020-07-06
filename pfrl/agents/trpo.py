@@ -159,7 +159,7 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
             It's updated after the policy is updated.
     """
 
-    saved_attributes = ["policy", "vf", "vf_optimizer", "obs_normalizer"]
+    saved_attributes = ("policy", "vf", "vf_optimizer", "obs_normalizer")
 
     def __init__(
         self,
