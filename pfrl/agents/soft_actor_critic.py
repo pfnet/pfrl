@@ -13,7 +13,6 @@ from pfrl.agent import BatchAgent
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
 from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.utils.sample_with_log_prob import sample_with_log_prob
 from pfrl.replay_buffer import batch_experiences
 from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
@@ -229,9 +228,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
             self.target_q_func1
         ), pfrl.utils.evaluating(self.target_q_func2):
             next_action_distrib = self.policy(batch_next_state)
-            next_actions, next_log_prob = sample_with_log_prob(
-                next_action_distrib, False
-            )
+            next_actions = next_action_distrib.sample()
+            next_log_prob = next_action_distrib.log_prob(next_actions)
             next_q1 = self.target_q_func1((batch_next_state, next_actions))
             next_q2 = self.target_q_func2((batch_next_state, next_actions))
             next_q = torch.min(next_q1, next_q2)
@@ -281,7 +279,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         batch_state = batch["state"]
 
         action_distrib = self.policy(batch_state)
-        actions, log_prob = sample_with_log_prob(action_distrib, True)
+        actions = action_distrib.rsample()
+        log_prob = action_distrib.log_prob(actions)
         q1 = self.q_func1((batch_state, actions))
         q2 = self.q_func2((batch_state, actions))
         q = torch.min(q1, q2)
