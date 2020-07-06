@@ -25,7 +25,7 @@ To view the full list of options, either view the code or run the example with t
 
 
 ## Results
-These results reflect PFRL commit hash: `e64ec53f`. The reported results are compared against the scores from the [Noisy Networks Paper](https://arxiv.org/abs/1706.10295), since the original paper does not report scores for the no-op evaluation protocol.
+These results reflect PFRL commit hash: `39918e2`. The reported results are compared against the scores from the [Noisy Networks Paper](https://arxiv.org/abs/1706.10295), since the original paper does not report scores for the no-op evaluation protocol.
 
 
 | Results Summary ||
