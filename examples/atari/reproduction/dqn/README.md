@@ -26,82 +26,83 @@ python train_dqn.py [options]
 To view the full list of options, either view the code or run the example with the `--help` option.
 
 ## Results
-**NOTE: These results reflect scores from our predecessor library, ChainerRL. We will release benchmarks for PFRL in the future.**
+These results reflect PFRL commit: `TODO`.
 
-These results reflect ChainerRL  `v0.6.0`.
-
-The summary of the results is as follows:
- - These results are averaged over 5 runs per domain
- - We ran this example on 59 Atari domains. 
- - The original DQN paper paper ran results on 49 Atari domains. Within these 49 domains the results are as follows:
- 	- On 26 domains, the scores reported in the DQN paper are higher than the scores achieved by ChainerRL.
- 	- On 22 domains, our DQN implementation outscores the reported results from the DQN paper.
- 	- On 1 domain, our implementation ties the reported score from the DQN paper.
- - Note that the scores reported in the DQN paper are from a single run on each domain, and might not be an accurate reflection of the DQN's true performance.
- - The "Original Reported Scores" are obtained from _Extended Data Table 2_ in [Human-level control through Deep Reinforcement Learning](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
+ Note that the scores reported in the DQN paper are from a single run on each domain, and might not be an accurate reflection of the DQN's true performance.
 
 
-| Game        | ChainerRL Score           | Original Reported Scores |
+| Results Summary ||
+| ------------- |:-------------:|
+| Reporting Protocol | A re-evaluation of the best intermediate agent |
+| Number of seeds | 6 |
+| Number of common domains | 49 |
+| Number of domains where paper scores higher | 21 |
+| Number of domains where PFRL scores higher | 28 |
+| Number of ties between paper and PFRL | 0 | 
+
+ The "Original Reported Scores" are obtained from _Extended Data Table 2_ in [Human-level control through Deep Reinforcement Learning](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf)
+
+| Game        | PFRL Score           | Original Reported Scores |
 | ------------- |:-------------:|:-------------:|
-| AirRaid | 6450.5| N/A|
-| Alien | 1713.1| **3069**|
-| Amidar | **986.7**| 739.5|
-| Assault | 3317.2| **3359**|
-| Asterix | 5936.7| **6012**|
-| Asteroids | 1584.5| **1629**|
-| Atlantis | **96456.0**| 85641|
-| BankHeist | **645.0**| 429.7|
-| BattleZone | 5313.3| **26300**|
-| BeamRider | **7042.9**| 6846|
-| Berzerk | 707.2| N/A|
-| Bowling | **52.3**| 42.4|
-| Boxing | **89.6**| 71.8|
-| Breakout | 364.9| **401.2**|
-| Carnival | 5222.0| N/A|
-| Centipede | 5112.6| **8309**|
-| ChopperCommand | 6170.0| **6687**|
-| CrazyClimber | 108472.7| **114103**|
-| DemonAttack | 9044.3| **9711**|
-| DoubleDunk | **-9.7**| -18.1|
-| Enduro | 298.2| **301.8**|
-| FishingDerby | **11.6**| -0.8|
-| Freeway | 8.1| **30.3**|
-| Frostbite | **1093.9**| 328.3|
-| Gopher | 8370.0| **8520**|
-| Gravitar | **445.7**| 306.7|
-| Hero | **20538.7**| 19950|
-| IceHockey | -2.4| **-1.6**|
-| Jamesbond | **851.7**| 576.7|
-| JourneyEscape | -1894.0| N/A|
-| Kangaroo | **8831.3**| 6740|
-| Krull | **6215.0**| 3805|
-| KungFuMaster | **27616.7**| 23270|
-| MontezumaRevenge | **0.0**| **0.0**|
-| MsPacman | **2526.6**| 2311|
-| NameThisGame | 7046.5| **7257**|
-| Phoenix | 7054.4| N/A|
-| Pitfall | -28.3| N/A|
-| Pong | **20.1**| 18.9|
-| Pooyan | 3118.7| N/A|
-| PrivateEye | 1538.3| **1788**|
-| Qbert | 10516.0| **10596**|
-| Riverraid | 7784.1| **8316**|
-| RoadRunner | **37092.0**| 18257|
-| Robotank | 47.4| **51.6**|
-| Seaquest | **6075.7**| 5286|
-| Skiing | -13030.2| N/A|
-| Solaris | 1565.1| N/A|
-| SpaceInvaders | 1583.2| **1976**|
-| StarGunner | 56685.3| **57997**|
-| Tennis | -5.4| **-2.5**|
-| TimePilot | 5738.7| **5947**|
-| Tutankham | 141.9| **186.7**|
-| UpNDown | **11821.5**| 8456|
-| Venture | **656.7**| 380.0|
-| VideoPinball | 9194.5| **42684**|
-| WizardOfWor | 1957.3| **3393**|
-| YarsRevenge | 4397.3| N/A|
-| Zaxxon | **5698.7**| 4977|
+| AirRaid | 6020.3| N/A|
+| Alien | 1976.3| **3069**|
+| Amidar | **976.6**| 739.5|
+| Assault | **3542.6**| 3359|
+| Asterix | 5715.3| **6012**|
+| Asteroids | 1596.0| **1629**|
+| Atlantis | **97512.8**| 85641|
+| BankHeist | **663.2**| 429.7|
+| BattleZone | 5144.4| **26300**|
+| BeamRider | **7146.6**| 6846|
+| Berzerk | 658.8| N/A|
+| Bowling | **55.5**| 42.4|
+| Boxing | **89.3**| 71.8|
+| Breakout | 352.5| **401.2**|
+| Carnival | 5249.2| N/A|
+| Centipede | 5058.7| **8309**|
+| ChopperCommand | 4737.2| **6687**|
+| CrazyClimber | 103234.4| **114103**|
+| DemonAttack | 9208.2| **9711**|
+| DoubleDunk | **-10.9**| -18.1|
+| Enduro | **307.4**| 301.8|
+| FishingDerby | **14.3**| -0.8|
+| Freeway | 20.6| **30.3**|
+| Frostbite | **1388.4**| 328.3|
+| Gopher | 7947.2| **8520**|
+| Gravitar | **471.9**| 306.7|
+| Hero | 19588.2| **19950**|
+| IceHockey | -2.7| **-1.6**|
+| Jamesbond | **765.8**| 576.7|
+| JourneyEscape | -1713.3| N/A|
+| Kangaroo | **8345.6**| 6740|
+| Krull | **5679.2**| 3805|
+| KungFuMaster | **27362.2**| 23270|
+| MontezumaRevenge | **0.6**| 0.0|
+| MsPacman | **2776.4**| 2311|
+| NameThisGame | **7279.9**| 7257|
+| Phoenix | 9406.4| N/A|
+| Pitfall | -4.7| N/A|
+| Pong | **20.0**| 18.9|
+| Pooyan | 3446.6| N/A|
+| PrivateEye | **2196.5**| 1788|
+| Qbert | **10675.1**| 10596|
+| Riverraid | 7554.0| **8316**|
+| RoadRunner | **36572.8**| 18257|
+| Robotank | 47.5| **51.6**|
+| Seaquest | **6252.0**| 5286|
+| Skiing | -12426.3| N/A|
+| Solaris | 1396.3| N/A|
+| SpaceInvaders | 1609.8| **1976**|
+| StarGunner | 57293.9| **57997**|
+| Tennis | **-1.8**| -2.5|
+| TimePilot | 5802.8| **5947**|
+| Tutankham | 148.2| **186.7**|
+| UpNDown | **11110.7**| 8456|
+| Venture | **517.8**| 380.0|
+| VideoPinball | 14376.7| **42684**|
+| WizardOfWor | 2202.2| **3393**|
+| YarsRevenge | 6602.9| N/A|
+| Zaxxon | **6191.1**| 4977|
 
 
 ## Evaluation Protocol
@@ -118,5 +119,11 @@ Our evaluation protocol is designed to mirror the evaluation protocol of the ori
 
 
 ## Training times
+All jobs were ran on a single GPU.
 
-We ran this DQN example 5 times for each of 59 Atari domains, for a total of 295 runs. Over these 295 runs, on average our implementation took **4.23 days** on a single GPU. Looking at the average training time for individual domains (over 5 runs for that domain), we find that YarsRevenge finishes the most quickly, taking only **3.23 days** on average. The slowest domain was UpNDown, which took **4.67 days** to complete on average.
+| Training time (in days) across all runs (# domains x # seeds) | |
+| ------------- |:-------------:|
+| Mean        |  3.613 |
+| Standard deviation | 0.212|
+| Fastest time | 2.767|
+| Slowest time | 4.2|
