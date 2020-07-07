@@ -48,6 +48,7 @@ def train_agent(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
+    statistics = []  # List of episode stats dict
     episode_len = 0
     try:
         while t < steps:
@@ -73,9 +74,13 @@ def train_agent(
                     episode_idx,
                     episode_r,
                 )
-                logger.info("statistics:%s", agent.get_statistics())
+                stats = agent.get_statistics()
+                statistics.append(dict(stats))
+                logger.info("statistics:%s", stats)
                 if evaluator is not None:
-                    evaluator.evaluate_if_necessary(t=t, episodes=episode_idx + 1)
+                    eval_score = evaluator.evaluate_if_necessary(
+                        t=t, episodes=episode_idx + 1)
+                    statistics[-1]['eval_score'] = eval_score  # float or Nnoe
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
@@ -98,6 +103,8 @@ def train_agent(
 
     # Save the final model
     save_agent(agent, t, outdir, logger, suffix="_finish")
+
+    return statistics
 
 
 def train_agent_with_evaluation(
@@ -143,6 +150,9 @@ def train_agent_with_evaluation(
             phase, if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
         logger (logging.Logger): Logger used in this function.
+    Returns:
+        agent: Trained agent.
+        statistics: List of episode-wise stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -168,7 +178,7 @@ def train_agent_with_evaluation(
         logger=logger,
     )
 
-    train_agent(
+    statistics = train_agent(
         agent,
         env,
         steps,
@@ -181,3 +191,5 @@ def train_agent_with_evaluation(
         step_hooks=step_hooks,
         logger=logger,
     )
+
+    return agent, statistics

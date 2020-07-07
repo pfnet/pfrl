@@ -365,7 +365,7 @@ class Evaluator(object):
             column_names = _basic_columns + custom_columns
             print("\t".join(column_names), file=f)
 
-    def evaluate_and_update_max_score(self, t, episodes):
+    def _evaluate_and_update_max_score(self, t, episodes):
         eval_stats = eval_performance(
             self.env,
             self.agent,
@@ -397,7 +397,7 @@ class Evaluator(object):
 
     def evaluate_if_necessary(self, t, episodes):
         if t >= self.prev_eval_t + self.eval_interval:
-            score = self.evaluate_and_update_max_score(t, episodes)
+            score = self._evaluate_and_update_max_score(t, episodes)
             self.prev_eval_t = t - t % self.eval_interval
             return score
         return None
@@ -461,7 +461,7 @@ class AsyncEvaluator(object):
             v = self._max_score.value
         return v
 
-    def evaluate_and_update_max_score(self, t, episodes, env, agent):
+    def _evaluate_and_update_max_score(self, t, episodes, env, agent):
         eval_stats = eval_performance(
             env,
             agent,
@@ -511,5 +511,5 @@ class AsyncEvaluator(object):
                 if not self.wrote_header.value:
                     self.write_header(agent)
                     self.wrote_header.value = True
-            return self.evaluate_and_update_max_score(t, episodes, env, agent)
+            return self._evaluate_and_update_max_score(t, episodes, env, agent)
         return None

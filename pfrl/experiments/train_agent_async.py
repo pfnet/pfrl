@@ -41,6 +41,7 @@ def train_loop(
     successful_score=None,
     logger=None,
     global_step_hooks=[],
+    statistics_queue=None,
 ):
 
     logger = logger or logging.getLogger(__name__)
@@ -86,6 +87,7 @@ def train_loop(
                 hook(env, agent, global_t)
 
             if done or reset or global_t >= steps or stop_event.is_set():
+                stats = None
                 if process_idx == 0:
                     logger.info(
                         "outdir:%s global_step:%s local_step:%s R:%s",
@@ -94,24 +96,34 @@ def train_loop(
                         local_t,
                         episode_r,
                     )
-                    logger.info("statistics:%s", agent.get_statistics())
+                    stats = agent.get_statistics()
+                    logger.info("statistics:%s", stats)
+                    stats = dict(stats)
 
                 # Evaluate the current agent
                 if evaluator is not None:
                     eval_score = evaluator.evaluate_if_necessary(
                         t=global_t, episodes=global_episodes, env=eval_env, agent=agent
                     )
+                    if eval_score is not None:
+                        if process_idx == 0:
+                            stats['eval_score'] = eval_score
+                        if (
+                            successful_score is not None
+                            and eval_score >= successful_score
+                        ):
+                            stop_event.set()
+                            successful = True  # will break while-loop
 
-                    if (
-                        eval_score is not None
-                        and successful_score is not None
-                        and eval_score >= successful_score
-                    ):
-                        stop_event.set()
-                        successful = True
-                        # Break immediately in order to avoid an additional
-                        # call of agent.act_and_train
-                        break
+                if process_idx == 0:
+                    assert stats is not None
+                    if statistics_queue is not None:
+                        statistics_queue.put(stats)
+
+                if successful:
+                    # Break immediately in order to avoid an additional
+                    # call of agent.act_and_train
+                    break
 
                 with episodes_counter.get_lock():
                     episodes_counter.value += 1
@@ -207,7 +219,8 @@ def train_agent_async(
             If set to None, a new Event object is created and used internally.
 
     Returns:
-        Trained agent.
+        agent: Trained agent.
+        statistics: List of episode-wise stats dict, collected on process_idx==0.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -217,6 +230,7 @@ def train_agent_async(
 
     counter = mp.Value("l", 0)
     episodes_counter = mp.Value("l", 0)
+    statistics_queue = mp.Queue()
 
     if stop_event is None:
         stop_event = mp.Event()
@@ -291,6 +305,7 @@ def train_agent_async(
                 eval_env=eval_env,
                 global_step_hooks=global_step_hooks,
                 logger=logger,
+                statistics_queue=statistics_queue,
             )
 
         if profile:
@@ -310,4 +325,8 @@ def train_agent_async(
 
     stop_event.set()
 
-    return agent
+    statistics = []
+    while not statistics_queue.empty():
+        statistics.append(statistics_queue.get())
+
+    return agent, statistics
