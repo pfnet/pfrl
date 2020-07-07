@@ -4,7 +4,7 @@
 
 PFRL is a deep reinforcement learning library that implements various state-of-the-art deep reinforcement algorithms in Python using [PyTorch](https://github.com/pytorch/pytorch).
 
-![Breakout](assets/breakout.gif)
+![Boxing](assets/boxing.gif)
 ![Humanoid](assets/humanoid.gif)
 ![Grasping](assets/grasping.gif)
 ![Atlas](examples/atlas/assets/atlas.gif)
