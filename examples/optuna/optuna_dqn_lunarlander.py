@@ -1,41 +1,254 @@
-"""An example of training DQN against OpenAI Gym Envs.
+"""An example of training DQN, with Optuna-powered hyper-parameters tuning.
 
-This script is an example of training a DQN agent against OpenAI Gym envs.
-Both discrete and continuous action spaces are supported. For continuous action
-spaces, A NAF (Normalized Advantage Function) is used to approximate Q-values.
-
-To solve CartPole-v0, run:
-    python train_dqn_gym.py --env CartPole-v0
-
-To solve Pendulum-v0, run:
-    python train_dqn_gym.py --env Pendulum-v0
+An example script of training a DQN agent against the LunarLander-v2 environment,
+with [Optuna](https://github.com/optuna/optuna)-powered hyper-parameters tuning.
 """
 
-import argparse
-import sys
+import logging
 import os
+import argparse
+import random
+import json
 
 import torch.optim as optim
 import gym
-from gym import spaces
-import numpy as np
+import optuna
 
 import pfrl
 from pfrl.agents.dqn import DQN
 from pfrl import experiments
 from pfrl import explorers
-from pfrl import nn as pnn
 from pfrl import utils
 from pfrl import q_functions
 from pfrl import replay_buffers
+from pfrl.nn.mlp import MLP
+
+# meta parameters
+ENV_ID = "LunarLander-v2"
+BATCH_SIZE = 64  # should be tuned?
+TRAIN_MAX_EPISODE_LEN = 1000
+STEPS = 400 * TRAIN_MAX_EPISODE_LEN
+EVAL_N_EPISODES = 3
+EVAL_INTERVAL = STEPS // 10
+
+
+def _objective_core(
+    trial,
+    # meta parameters
+    outdir,
+    seed,
+    monitor,
+    gpu,
+    hyper_params,
+):
+    # Set a random seed used in PFRL
+    utils.set_random_seed(seed)
+
+    # Set different random seeds for train and test envs.
+    train_seed = seed
+    test_seed = 2 ** 31 - 1 - seed
+
+    def make_env(test=False):
+        env = gym.make(ENV_ID)
+        env_seed = test_seed if test else train_seed
+        env.seed(env_seed)
+        # Cast observations to float32 because our model uses float32
+        env = pfrl.wrappers.CastObservationToFloat32(env)
+        if monitor:
+            env = pfrl.wrappers.Monitor(env, outdir)
+        if not test:
+            # Scale rewards (and thus returns) to a reasonable range so that
+            # training is easier
+            env = pfrl.wrappers.ScaleReward(env, hyper_params['reward_scale_factor'])
+        return env
+
+    env = make_env(test=False)
+    obs_space = env.observation_space
+    obs_size = obs_space.low.size
+    action_space = env.action_space
+    n_actions = action_space.n
+
+    # create model & q_function
+    model = MLP(
+        in_size=obs_size, out_size=n_actions, hidden_sizes=hyper_params['hidden_sizes'])
+    q_func = q_functions.SingleModelStateQFunctionWithDiscreteAction(model=model)
+
+    # Use epsilon-greedy for exploration
+    if hyper_params['explorer_args']['explorer'] == 'ExponentialDecayEpsilonGreedy':
+        explorer = explorers.ExponentialDecayEpsilonGreedy(
+            hyper_params['explorer_args']['start_epsilon'],
+            hyper_params['explorer_args']['end_epsilon'],
+            hyper_params['explorer_args']['epsilon_decay'],
+            action_space.sample,
+        )
+    elif hyper_params['explorer_args']['explorer'] == 'LinearDecayEpsilonGreedy':
+        explorer = explorers.LinearDecayEpsilonGreedy(
+            hyper_params['explorer_args']['start_epsilon'],
+            hyper_params['explorer_args']['end_epsilon'],
+            hyper_params['explorer_args']['decay_steps'],
+            action_space.sample,
+        )
+    else:
+        raise ValueError(
+            'Unknown explorer: {}'.format(hyper_params['explorer_args']['explorer']))
+
+    opt = optim.Adam(q_func.parameters(), lr=hyper_params['lr'])
+
+    rbuf = replay_buffers.ReplayBuffer(hyper_params['rbuf_capacity'])
+
+    agent = DQN(
+        q_func,
+        opt,
+        rbuf,
+        gpu=gpu,
+        gamma=hyper_params['gamma'],
+        explorer=explorer,
+        replay_start_size=hyper_params['replay_start_size'],
+        target_update_interval=hyper_params['target_update_interval'],
+        update_interval=hyper_params['update_interval'],
+        minibatch_size=BATCH_SIZE,
+    )
+
+    eval_env = make_env(test=True)
+
+    _, statistics = experiments.train_agent_with_evaluation(
+        agent=agent,
+        env=env,
+        steps=STEPS,
+        eval_n_steps=None,
+        eval_n_episodes=EVAL_N_EPISODES,
+        eval_interval=EVAL_INTERVAL,
+        outdir=outdir,
+        eval_env=eval_env,
+        train_max_episode_len=TRAIN_MAX_EPISODE_LEN,
+    )
+
+    score = _get_score_from_statistics(statistics)
+
+    return score
+
+
+def _get_score_from_statistics(statistics, agg='last', target='eval_score'):
+    final_score = None
+    if agg == 'last':
+        for stats in reversed(statistics):
+            if target in stats:
+                final_score = stats[target]
+                break
+    elif agg == 'mean':
+        scores = []
+        for stats in statistics:
+            if target in stats:
+                score = stats[target]
+                if score is not None:
+                    scores.append(score)
+        final_score = sum(scores) / len(scores)
+    elif agg == 'best':
+        scores = []
+        for stats in statistics:
+            if target in stats:
+                score = stats[target]
+                if score is not None:
+                    scores.append(score)
+        final_score = max(scores)
+    else:
+        raise ValueError('Unknown agg method: {}'.format(agg))
+
+    if final_score is None:
+        final_score = float('NaN')
+    return final_score
+
+
+def _configure_logger(outdir):
+    # We'd like to configure the logger in one process more than once...
+    # Imitates `basicConfig(force=True)` behaviour introduced in Python3.8
+    # See https://github.com/python/cpython/blob/3.8/Lib/logging/__init__.py#L1958-L1961
+    root = logging.RootLogger(logging.WARNING)
+    for h in root.handlers[:]:
+        root.removeHandler(h)
+        h.close()
+
+    file_handler = logging.FileHandler(filename=os.path.join(outdir, 'console.log'))
+    console_handler = logging.StreamHandler()
+    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
+
+
+def suggest(trial):
+    hyper_params = {}
+
+    hyper_params['reward_scale_factor'] = trial.suggest_loguniform(
+        'reward_scale_factor', 1e-5, 10)
+    n_hidden_layers = trial.suggest_int('n_hidden_layers', 1, 3)  # hyper-hyper-param
+    hyper_params['hidden_sizes'] = []
+    for l in range(n_hidden_layers):
+        c = trial.suggest_int(
+            'n_hidden_layers_{}_n_channels_{}'.format(n_hidden_layers, l),
+            10, 200
+        )
+        hyper_params['hidden_sizes'].append(c)
+    hyper_params['explorer_args'] = {}
+    hyper_params['explorer_args']['explorer'] = trial.suggest_categorical(
+        'explorer', ['ExponentialDecayEpsilonGreedy', 'LinearDecayEpsilonGreedy'])
+    if hyper_params['explorer_args']['explorer'] == 'ExponentialDecayEpsilonGreedy':
+        hyper_params['explorer_args']['start_epsilon'] = trial.suggest_uniform(
+            'ExponentialDecayEpsilonGreedy_start_epsilon', 0.5, 1.0)
+        hyper_params['explorer_args']['end_epsilon'] = trial.suggest_uniform(
+            'ExponentialDecayEpsilonGreedy_end_epsilon', 0.0001, 0.3)
+        hyper_params['explorer_args']['epsilon_decay'] = trial.suggest_uniform(
+            'ExponentialDecayEpsilonGreedy_epsilon_decay', 0.9, 0.999)
+    elif hyper_params['explorer_args']['explorer'] == 'LinearDecayEpsilonGreedy':
+        hyper_params['explorer_args']['start_epsilon'] = trial.suggest_uniform(
+            'LinearDecayEpsilonGreedy_start_epsilon', 0.5, 1.0)
+        hyper_params['explorer_args']['end_epsilon'] = trial.suggest_uniform(
+            'LinearDecayEpsilonGreedy_end_epsilon', 0.0, 0.3)
+        # low, high of this parameter is determined by
+        # ExponentialDecayEpsilonGreedy's parameter
+        # 0.5 * 0.9^low = 0.3
+        # 1.0 * 0.999^high = 0.0001
+        hyper_params['explorer_args']['decay_steps'] = trial.suggest_int(
+            'LinearDecayEpsilonGreedy_decay_steps', 5, 9206)
+    hyper_params['lr'] = trial.suggest_loguniform('lr', 1e-4, 1e-2)
+    # note that the maximum training step size = 4e5
+    hyper_params['rbuf_capacity'] = trial.suggest_int('rbuf_capacity', 1e4, 1e6)
+    hyper_params['gamma'] = trial.suggest_uniform('gamma', 0.9, 1.0)
+    hyper_params['replay_start_size'] = trial.suggest_int(
+        'replay_start_size', BATCH_SIZE, 1e3)
+    # target_update_interval should be a multiple of update_interval
+    hyper_params['update_interval'] = trial.suggest_int('update_interval', 1, 8)
+    target_update_interval_coef = trial.suggest_int('target_update_interval_coef', 1, 4)
+    hyper_params['target_update_interval'] = \
+        hyper_params['update_interval'] * target_update_interval_coef
+
+    return hyper_params
 
 
 def main():
-    import logging
-
-    logging.basicConfig(level=logging.INFO)
-
     parser = argparse.ArgumentParser()
+
+    # Optuna related args
+    parser.add_argument(
+        "--optuna-study-name",
+        type=str,
+        default="dqn_lunarlander",
+        help="Name for Optuna Study.",
+    )
+    parser.add_argument(
+        "--optuna-storage",
+        type=str,
+        default="sqlite:///example.db",
+        help=(
+            "DB URL for Optuna Study. Be sure to create one beforehand: "
+            "optuna create-study --study-name <name> --storage <storage> --direction maximize"  # noqa
+        )
+    )
+    parser.add_argument(
+        "--optuna-n-trials",
+        type=int,
+        default=100,
+        help="The number of trials for Optuna. See https://optuna.readthedocs.io/en/stable/reference/study.html#optuna.study.Study.optimize",  # noqa
+    )
+
+    # PFRL related args
     parser.add_argument(
         "--outdir",
         type=str,
@@ -45,226 +258,58 @@ def main():
             " If it does not exist, it will be created."
         ),
     )
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
-    parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
-    parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--final-exploration-steps", type=int, default=10 ** 4)
-    parser.add_argument("--start-epsilon", type=float, default=1.0)
-    parser.add_argument("--end-epsilon", type=float, default=0.1)
-    parser.add_argument("--noisy-net-sigma", type=float, default=None)
-    parser.add_argument("--demo", action="store_true", default=False)
-    parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--steps", type=int, default=10 ** 5)
-    parser.add_argument("--prioritized-replay", action="store_true")
-    parser.add_argument("--replay-start-size", type=int, default=1000)
-    parser.add_argument("--target-update-interval", type=int, default=10 ** 2)
-    parser.add_argument("--target-update-method", type=str, default="hard")
-    parser.add_argument("--soft-update-tau", type=float, default=1e-2)
-    parser.add_argument("--update-interval", type=int, default=1)
-    parser.add_argument("--eval-n-runs", type=int, default=100)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
-    parser.add_argument("--n-hidden-channels", type=int, default=100)
-    parser.add_argument("--n-hidden-layers", type=int, default=2)
-    parser.add_argument("--gamma", type=float, default=0.99)
-    parser.add_argument("--minibatch-size", type=int, default=None)
-    parser.add_argument("--render-train", action="store_true")
-    parser.add_argument("--render-eval", action="store_true")
-    parser.add_argument("--monitor", action="store_true")
-    parser.add_argument("--reward-scale-factor", type=float, default=1e-3)
     parser.add_argument(
-        "--actor-learner",
-        action="store_true",
-        help="Enable asynchronous sampling with asynchronous actor(s)",
-    )  # NOQA
-    parser.add_argument(
-        "--num-envs",
+        "--seed",
         type=int,
-        default=1,
+        default=0,
+        help="Random seed for randomizer.",
+    )
+    parser.add_argument(
+        "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
+    )
+    parser.add_argument(
+        "--monitor",
+        action="store_true",
+        default=False,
         help=(
-            "The number of environments for sampling (only effective with"
-            " --actor-learner enabled)"
+            "Monitor env. Videos and additional information are saved as output files."
         ),
-    )  # NOQA
-    args = parser.parse_args()
-
-    # Set a random seed used in PFRL
-    utils.set_random_seed(args.seed)
-
-    args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
-    print("Output files are saved in {}".format(args.outdir))
-
-    # Set a random seed used in PFRL.
-    utils.set_random_seed(args.seed)
-
-    # Set different random seeds for different subprocesses.
-    # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
-    # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
-    process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 32
-
-    def clip_action_filter(a):
-        return np.clip(a, action_space.low, action_space.high)
-
-    def make_env(idx=0, test=False):
-        env = gym.make(args.env)
-        # Use different random seeds for train and test envs
-        process_seed = int(process_seeds[idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
-        utils.set_random_seed(env_seed)
-        # Cast observations to float32 because our model uses float32
-        env = pfrl.wrappers.CastObservationToFloat32(env)
-        if args.monitor:
-            env = pfrl.wrappers.Monitor(env, args.outdir)
-        if isinstance(env.action_space, spaces.Box):
-            utils.env_modifiers.make_action_filtered(env, clip_action_filter)
-        if not test:
-            # Scale rewards (and thus returns) to a reasonable range so that
-            # training is easier
-            env = pfrl.wrappers.ScaleReward(env, args.reward_scale_factor)
-        if (args.render_eval and test) or (args.render_train and not test):
-            env = pfrl.wrappers.Render(env)
-        return env
-
-    env = make_env(test=False)
-    timestep_limit = env.spec.max_episode_steps
-    obs_space = env.observation_space
-    obs_size = obs_space.low.size
-    action_space = env.action_space
-
-    if isinstance(action_space, spaces.Box):
-        action_size = action_space.low.size
-        # Use NAF to apply DQN to continuous action spaces
-        q_func = q_functions.FCQuadraticStateQFunction(
-            obs_size,
-            action_size,
-            n_hidden_channels=args.n_hidden_channels,
-            n_hidden_layers=args.n_hidden_layers,
-            action_space=action_space,
-        )
-        # Use the Ornstein-Uhlenbeck process for exploration
-        ou_sigma = (action_space.high - action_space.low) * 0.2
-        explorer = explorers.AdditiveOU(sigma=ou_sigma)
-    else:
-        n_actions = action_space.n
-        q_func = q_functions.FCStateQFunctionWithDiscreteAction(
-            obs_size,
-            n_actions,
-            n_hidden_channels=args.n_hidden_channels,
-            n_hidden_layers=args.n_hidden_layers,
-        )
-        # Use epsilon-greedy for exploration
-        explorer = explorers.LinearDecayEpsilonGreedy(
-            args.start_epsilon,
-            args.end_epsilon,
-            args.final_exploration_steps,
-            action_space.sample,
-        )
-
-    if args.noisy_net_sigma is not None:
-        pnn.to_factorized_noisy(q_func, sigma_scale=args.noisy_net_sigma)
-        # Turn off explorer
-        explorer = explorers.Greedy()
-
-    opt = optim.Adam(q_func.parameters())
-
-    rbuf_capacity = 5 * 10 ** 5
-    if args.minibatch_size is None:
-        args.minibatch_size = 32
-    if args.prioritized_replay:
-        betasteps = (args.steps - args.replay_start_size) // args.update_interval
-        rbuf = replay_buffers.PrioritizedReplayBuffer(
-            rbuf_capacity, betasteps=betasteps
-        )
-    else:
-        rbuf = replay_buffers.ReplayBuffer(rbuf_capacity)
-
-    agent = DQN(
-        q_func,
-        opt,
-        rbuf,
-        gpu=args.gpu,
-        gamma=args.gamma,
-        explorer=explorer,
-        replay_start_size=args.replay_start_size,
-        target_update_interval=args.target_update_interval,
-        update_interval=args.update_interval,
-        minibatch_size=args.minibatch_size,
-        target_update_method=args.target_update_method,
-        soft_update_tau=args.soft_update_tau,
     )
 
-    if args.load:
-        agent.load(args.load)
+    args = parser.parse_args()
 
-    eval_env = make_env(test=True)
+    randomizer = random.Random(args.seed)
 
-    if args.demo:
-        eval_stats = experiments.eval_performance(
-            env=eval_env,
-            agent=agent,
-            n_steps=None,
-            n_episodes=args.eval_n_runs,
-            max_episode_len=timestep_limit,
-        )
-        print(
-            "n_runs: {} mean: {} median: {} stdev {}".format(
-                args.eval_n_runs,
-                eval_stats["mean"],
-                eval_stats["median"],
-                eval_stats["stdev"],
-            )
-        )
+    def objective(trial):
+        # setup meta paremeters...
+        outdir = experiments.prepare_output_dir(args=args, basedir=args.outdir)
+        print("Output files are saved in {}".format(outdir))
+        _configure_logger(outdir)
 
-    elif not args.actor_learner:
+        seed = randomizer.randint(0, 2 ** 31 - 1)
 
-        experiments.train_agent_with_evaluation(
-            agent=agent,
-            env=env,
-            steps=args.steps,
-            eval_n_steps=None,
-            eval_n_episodes=args.eval_n_runs,
-            eval_interval=args.eval_interval,
-            outdir=args.outdir,
-            eval_env=eval_env,
-            train_max_episode_len=timestep_limit,
-        )
-    else:
-        # using impala mode when given num of envs
+        # suggest parameters from Optuna
+        hyper_params = suggest(trial)
 
-        # When we use multiple envs, it is critical to ensure each env
-        # can occupy a CPU core to get the best performance.
-        # Therefore, we need to prevent potential CPU over-provision caused by
-        # multi-threading in Openmp and Numpy.
-        # Disable the multi-threading on Openmp and Numpy.
-        os.environ["OMP_NUM_THREADS"] = "1"  # NOQA
+        # seed is generated for each objective
+        additional_args = dict(seed=seed, **hyper_params)
+        with open(os.path.join(outdir, 'additional_args.txt'), 'w') as f:
+            json.dump(additional_args, f)
 
-        (
-            make_actor,
-            learner,
-            poller,
-            exception_event,
-        ) = agent.setup_actor_learner_training(args.num_envs)
-
-        poller.start()
-        learner.start()
-
-        experiments.train_agent_async(
-            processes=args.num_envs,
-            make_agent=make_actor,
-            make_env=make_env,
-            steps=args.steps,
-            eval_n_steps=None,
-            eval_n_episodes=args.eval_n_runs,
-            eval_interval=args.eval_interval,
-            outdir=args.outdir,
-            stop_event=learner.stop_event,
-            exception_event=exception_event,
+        return _objective_core(
+            trial,
+            # meta parameters
+            outdir=outdir,
+            seed=seed,
+            monitor=args.monitor,
+            gpu=args.gpu,
+            hyper_params=hyper_params,
         )
 
-        poller.stop()
-        learner.stop()
-        poller.join()
-        learner.join()
+    sampler = optuna.samplers.TPESampler(seed=args.seed)
+    study = optuna.load_study(
+        study_name=args.optuna_study_name, storage=args.optuna_storage, sampler=sampler)
+    study.optimize(objective, n_trials=args.optuna_n_trials)
 
 
 if __name__ == "__main__":
