@@ -26,7 +26,7 @@ python train_dqn.py [options]
 To view the full list of options, either view the code or run the example with the `--help` option.
 
 ## Results
-These results reflect PFRL commit hash: `TODO`.
+These results reflect PFRL commit hash: `e9a761f`.
 
  Note that the scores reported in the DQN paper are from a single run on each domain, and might not be an accurate reflection of the DQN's true performance.
 
