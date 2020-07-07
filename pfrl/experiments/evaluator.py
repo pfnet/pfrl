@@ -490,6 +490,7 @@ class AsyncEvaluator(object):
         self.n_episodes = n_episodes
         self.eval_interval = eval_interval
         self.outdir = outdir
+        self.use_tensorboard = use_tensorboard
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
         self.save_best_so_far_agent = save_best_so_far_agent
