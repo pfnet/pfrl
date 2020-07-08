@@ -59,7 +59,7 @@ def _objective_core(
         if not test:
             # Scale rewards (and thus returns) to a reasonable range so that
             # training is easier
-            env = pfrl.wrappers.ScaleReward(env, hyper_params['reward_scale_factor'])
+            env = pfrl.wrappers.ScaleReward(env, hyper_params["reward_scale_factor"])
         return env
 
     env = make_env(test=False)
@@ -70,42 +70,44 @@ def _objective_core(
 
     # create model & q_function
     model = MLP(
-        in_size=obs_size, out_size=n_actions, hidden_sizes=hyper_params['hidden_sizes'])
+        in_size=obs_size, out_size=n_actions, hidden_sizes=hyper_params["hidden_sizes"]
+    )
     q_func = q_functions.SingleModelStateQFunctionWithDiscreteAction(model=model)
 
     # Use epsilon-greedy for exploration
-    if hyper_params['explorer_args']['explorer'] == 'ExponentialDecayEpsilonGreedy':
+    if hyper_params["explorer_args"]["explorer"] == "ExponentialDecayEpsilonGreedy":
         explorer = explorers.ExponentialDecayEpsilonGreedy(
-            hyper_params['explorer_args']['start_epsilon'],
-            hyper_params['explorer_args']['end_epsilon'],
-            hyper_params['explorer_args']['epsilon_decay'],
+            hyper_params["explorer_args"]["start_epsilon"],
+            hyper_params["explorer_args"]["end_epsilon"],
+            hyper_params["explorer_args"]["epsilon_decay"],
             action_space.sample,
         )
-    elif hyper_params['explorer_args']['explorer'] == 'LinearDecayEpsilonGreedy':
+    elif hyper_params["explorer_args"]["explorer"] == "LinearDecayEpsilonGreedy":
         explorer = explorers.LinearDecayEpsilonGreedy(
-            hyper_params['explorer_args']['start_epsilon'],
-            hyper_params['explorer_args']['end_epsilon'],
-            hyper_params['explorer_args']['decay_steps'],
+            hyper_params["explorer_args"]["start_epsilon"],
+            hyper_params["explorer_args"]["end_epsilon"],
+            hyper_params["explorer_args"]["decay_steps"],
             action_space.sample,
         )
     else:
         raise ValueError(
-            'Unknown explorer: {}'.format(hyper_params['explorer_args']['explorer']))
+            "Unknown explorer: {}".format(hyper_params["explorer_args"]["explorer"])
+        )
 
-    opt = optim.Adam(q_func.parameters(), lr=hyper_params['lr'])
+    opt = optim.Adam(q_func.parameters(), lr=hyper_params["lr"])
 
-    rbuf = replay_buffers.ReplayBuffer(hyper_params['rbuf_capacity'])
+    rbuf = replay_buffers.ReplayBuffer(hyper_params["rbuf_capacity"])
 
     agent = DQN(
         q_func,
         opt,
         rbuf,
         gpu=gpu,
-        gamma=hyper_params['gamma'],
+        gamma=hyper_params["gamma"],
         explorer=explorer,
-        replay_start_size=hyper_params['replay_start_size'],
-        target_update_interval=hyper_params['target_update_interval'],
-        update_interval=hyper_params['update_interval'],
+        replay_start_size=hyper_params["replay_start_size"],
+        target_update_interval=hyper_params["target_update_interval"],
+        update_interval=hyper_params["update_interval"],
         minibatch_size=BATCH_SIZE,
     )
 
@@ -128,14 +130,14 @@ def _objective_core(
     return score
 
 
-def _get_score_from_statistics(statistics, agg='last', target='eval_score'):
+def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
     final_score = None
-    if agg == 'last':
+    if agg == "last":
         for stats in reversed(statistics):
             if target in stats:
                 final_score = stats[target]
                 break
-    elif agg == 'mean':
+    elif agg == "mean":
         scores = []
         for stats in statistics:
             if target in stats:
@@ -143,7 +145,7 @@ def _get_score_from_statistics(statistics, agg='last', target='eval_score'):
                 if score is not None:
                     scores.append(score)
         final_score = sum(scores) / len(scores)
-    elif agg == 'best':
+    elif agg == "best":
         scores = []
         for stats in statistics:
             if target in stats:
@@ -152,10 +154,10 @@ def _get_score_from_statistics(statistics, agg='last', target='eval_score'):
                     scores.append(score)
         final_score = max(scores)
     else:
-        raise ValueError('Unknown agg method: {}'.format(agg))
+        raise ValueError("Unknown agg method: {}".format(agg))
 
     if final_score is None:
-        final_score = float('NaN')
+        final_score = float("NaN")
     return final_score
 
 
@@ -168,7 +170,7 @@ def _configure_logger(outdir):
         root.removeHandler(h)
         h.close()
 
-    file_handler = logging.FileHandler(filename=os.path.join(outdir, 'console.log'))
+    file_handler = logging.FileHandler(filename=os.path.join(outdir, "console.log"))
     console_handler = logging.StreamHandler()
     logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
 
@@ -176,48 +178,57 @@ def _configure_logger(outdir):
 def suggest(trial):
     hyper_params = {}
 
-    hyper_params['reward_scale_factor'] = trial.suggest_loguniform(
-        'reward_scale_factor', 1e-5, 10)
-    n_hidden_layers = trial.suggest_int('n_hidden_layers', 1, 3)  # hyper-hyper-param
-    hyper_params['hidden_sizes'] = []
+    hyper_params["reward_scale_factor"] = trial.suggest_loguniform(
+        "reward_scale_factor", 1e-5, 10
+    )
+    n_hidden_layers = trial.suggest_int("n_hidden_layers", 1, 3)  # hyper-hyper-param
+    hyper_params["hidden_sizes"] = []
     for l in range(n_hidden_layers):
         c = trial.suggest_int(
-            'n_hidden_layers_{}_n_channels_{}'.format(n_hidden_layers, l),
-            10, 200
+            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 10, 200
         )
-        hyper_params['hidden_sizes'].append(c)
-    hyper_params['explorer_args'] = {}
-    hyper_params['explorer_args']['explorer'] = trial.suggest_categorical(
-        'explorer', ['ExponentialDecayEpsilonGreedy', 'LinearDecayEpsilonGreedy'])
-    if hyper_params['explorer_args']['explorer'] == 'ExponentialDecayEpsilonGreedy':
-        hyper_params['explorer_args']['start_epsilon'] = trial.suggest_uniform(
-            'ExponentialDecayEpsilonGreedy_start_epsilon', 0.5, 1.0)
-        hyper_params['explorer_args']['end_epsilon'] = trial.suggest_uniform(
-            'ExponentialDecayEpsilonGreedy_end_epsilon', 0.0001, 0.3)
-        hyper_params['explorer_args']['epsilon_decay'] = trial.suggest_uniform(
-            'ExponentialDecayEpsilonGreedy_epsilon_decay', 0.9, 0.999)
-    elif hyper_params['explorer_args']['explorer'] == 'LinearDecayEpsilonGreedy':
-        hyper_params['explorer_args']['start_epsilon'] = trial.suggest_uniform(
-            'LinearDecayEpsilonGreedy_start_epsilon', 0.5, 1.0)
-        hyper_params['explorer_args']['end_epsilon'] = trial.suggest_uniform(
-            'LinearDecayEpsilonGreedy_end_epsilon', 0.0, 0.3)
+        hyper_params["hidden_sizes"].append(c)
+    hyper_params["explorer_args"] = {}
+    hyper_params["explorer_args"]["explorer"] = trial.suggest_categorical(
+        "explorer", ["ExponentialDecayEpsilonGreedy", "LinearDecayEpsilonGreedy"]
+    )
+    if hyper_params["explorer_args"]["explorer"] == "ExponentialDecayEpsilonGreedy":
+        hyper_params["explorer_args"]["start_epsilon"] = trial.suggest_uniform(
+            "ExponentialDecayEpsilonGreedy_start_epsilon", 0.5, 1.0
+        )
+        hyper_params["explorer_args"]["end_epsilon"] = trial.suggest_uniform(
+            "ExponentialDecayEpsilonGreedy_end_epsilon", 0.0001, 0.3
+        )
+        hyper_params["explorer_args"]["epsilon_decay"] = trial.suggest_uniform(
+            "ExponentialDecayEpsilonGreedy_epsilon_decay", 0.9, 0.999
+        )
+    elif hyper_params["explorer_args"]["explorer"] == "LinearDecayEpsilonGreedy":
+        hyper_params["explorer_args"]["start_epsilon"] = trial.suggest_uniform(
+            "LinearDecayEpsilonGreedy_start_epsilon", 0.5, 1.0
+        )
+        hyper_params["explorer_args"]["end_epsilon"] = trial.suggest_uniform(
+            "LinearDecayEpsilonGreedy_end_epsilon", 0.0, 0.3
+        )
         # low, high of this parameter is determined by
         # ExponentialDecayEpsilonGreedy's parameter
         # 0.5 * 0.9^low = 0.3
         # 1.0 * 0.999^high = 0.0001
-        hyper_params['explorer_args']['decay_steps'] = trial.suggest_int(
-            'LinearDecayEpsilonGreedy_decay_steps', 5, 9206)
-    hyper_params['lr'] = trial.suggest_loguniform('lr', 1e-4, 1e-2)
+        hyper_params["explorer_args"]["decay_steps"] = trial.suggest_int(
+            "LinearDecayEpsilonGreedy_decay_steps", 5, 9206
+        )
+    hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
     # note that the maximum training step size = 4e5
-    hyper_params['rbuf_capacity'] = trial.suggest_int('rbuf_capacity', 1e4, 1e6)
-    hyper_params['gamma'] = trial.suggest_uniform('gamma', 0.9, 1.0)
-    hyper_params['replay_start_size'] = trial.suggest_int(
-        'replay_start_size', BATCH_SIZE, 1e3)
+    hyper_params["rbuf_capacity"] = trial.suggest_int("rbuf_capacity", 1e4, 1e6)
+    hyper_params["gamma"] = trial.suggest_uniform("gamma", 0.9, 1.0)
+    hyper_params["replay_start_size"] = trial.suggest_int(
+        "replay_start_size", BATCH_SIZE, 1e3
+    )
     # target_update_interval should be a multiple of update_interval
-    hyper_params['update_interval'] = trial.suggest_int('update_interval', 1, 8)
-    target_update_interval_coef = trial.suggest_int('target_update_interval_coef', 1, 4)
-    hyper_params['target_update_interval'] = \
-        hyper_params['update_interval'] * target_update_interval_coef
+    hyper_params["update_interval"] = trial.suggest_int("update_interval", 1, 8)
+    target_update_interval_coef = trial.suggest_int("target_update_interval_coef", 1, 4)
+    hyper_params["target_update_interval"] = (
+        hyper_params["update_interval"] * target_update_interval_coef
+    )
 
     return hyper_params
 
@@ -239,7 +250,7 @@ def main():
         help=(
             "DB URL for Optuna Study. Be sure to create one beforehand: "
             "optuna create-study --study-name <name> --storage <storage> --direction maximize"  # noqa
-        )
+        ),
     )
     parser.add_argument(
         "--optuna-n-trials",
@@ -259,10 +270,7 @@ def main():
         ),
     )
     parser.add_argument(
-        "--seed",
-        type=int,
-        default=0,
-        help="Random seed for randomizer.",
+        "--seed", type=int, default=0, help="Random seed for randomizer.",
     )
     parser.add_argument(
         "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
@@ -293,7 +301,7 @@ def main():
 
         # seed is generated for each objective
         additional_args = dict(seed=seed, **hyper_params)
-        with open(os.path.join(outdir, 'additional_args.txt'), 'w') as f:
+        with open(os.path.join(outdir, "additional_args.txt"), "w") as f:
             json.dump(additional_args, f)
 
         return _objective_core(
@@ -308,7 +316,8 @@ def main():
 
     sampler = optuna.samplers.TPESampler(seed=args.seed)
     study = optuna.load_study(
-        study_name=args.optuna_study_name, storage=args.optuna_storage, sampler=sampler)
+        study_name=args.optuna_study_name, storage=args.optuna_storage, sampler=sampler
+    )
     study.optimize(objective, n_trials=args.optuna_n_trials)
 
 
