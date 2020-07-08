@@ -19,7 +19,7 @@ class MultiBinaryAsDiscreteAction(gym.ActionWrapper):
     """Transforms MultiBinary action space to Discrete.
 
     If the action space of a given env is `gym.spaces.MultiBinary(n)`, then
-    the action space of the wrapped env will be `gym.spaces.Discrete(n**2)`,
+    the action space of the wrapped env will be `gym.spaces.Discrete(2**n)`,
     which covers all the combinations of the original action space.
 
     Args:
@@ -30,7 +30,7 @@ class MultiBinaryAsDiscreteAction(gym.ActionWrapper):
         super().__init__(env)
         assert isinstance(env.action_space, gym.spaces.MultiBinary)
         self.orig_action_space = env.action_space
-        self.action_space = gym.spaces.Discrete(env.action_space.n ** 2)
+        self.action_space = gym.spaces.Discrete(2 ** env.action_space.n)
 
     def action(self, action):
         return [(action >> i) % 2 for i in range(self.orig_action_space.n)]
