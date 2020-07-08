@@ -329,7 +329,7 @@ def train_agent_async(
             if eval_env is not env:
                 eval_env.close()
         finally:
-            wait_tolerance_sec = 1.0
+            wait_tolerance_sec = 3.0
             if not process0_end_event.wait(wait_tolerance_sec):
                 # Avoid infinite loop when process0 failed unexpectedly.
                 warnings.warn(
