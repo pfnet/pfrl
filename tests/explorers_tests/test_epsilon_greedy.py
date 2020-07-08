@@ -76,6 +76,8 @@ class TestEpsilonGreedy:
         for t in range(100):
             explorer.select_action(t, greedy_action_func)
 
+        assert random_action_func_count[0] + greedy_action_func_count[0] == 100
+
         assert pytest.approx(explorer.epsilon) == 0.1
 
     def test_constant_epsilon_greedy(self):
@@ -100,5 +102,7 @@ class TestEpsilonGreedy:
 
         for t in range(100):
             explorer.select_action(t, greedy_action_func)
+
+        assert random_action_func_count[0] + greedy_action_func_count[0] == 100
 
         assert pytest.approx(explorer.epsilon) == 0.1
