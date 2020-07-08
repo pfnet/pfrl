@@ -8,7 +8,6 @@ import logging
 import os
 import argparse
 import random
-import json
 
 import torch.optim as optim
 import gym
@@ -155,20 +154,6 @@ def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
     return final_score
 
 
-def _configure_logger(outdir):
-    # We'd like to configure the logger in one process more than once...
-    # Imitates `basicConfig(force=True)` behaviour introduced in Python3.8
-    # See https://github.com/python/cpython/blob/3.8/Lib/logging/__init__.py#L1958-L1961
-    root = logging.RootLogger(logging.WARNING)
-    for h in root.handlers[:]:
-        root.removeHandler(h)
-        h.close()
-
-    file_handler = logging.FileHandler(filename=os.path.join(outdir, "console.log"))
-    console_handler = logging.StreamHandler()
-    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
-
-
 def suggest(trial):
     hyper_params = {}
 
@@ -261,23 +246,23 @@ def main():
 
     args = parser.parse_args()
 
+    rootdir = experiments.prepare_output_dir(args=args, basedir=args.outdir)
+    file_handler = logging.FileHandler(filename=os.path.join(rootdir, "console.log"))
+    console_handler = logging.StreamHandler()
+    logging.basicConfig(level=logging.INFO, handlers=[file_handler, console_handler])
+
     randomizer = random.Random(args.seed)
 
     def objective(trial):
-        # setup meta paremeters...
-        outdir = experiments.prepare_output_dir(args=args, basedir=args.outdir)
-        print("Output files are saved in {}".format(outdir))
-        _configure_logger(outdir)
-
-        seed = randomizer.randint(0, 2 ** 31 - 1)
-
         # suggest parameters from Optuna
         hyper_params = suggest(trial)
 
         # seed is generated for each objective
+        seed = randomizer.randint(0, 2 ** 31 - 1)
         additional_args = dict(seed=seed, **hyper_params)
-        with open(os.path.join(outdir, "additional_args.txt"), "w") as f:
-            json.dump(additional_args, f)
+
+        outdir = experiments.prepare_output_dir(args=additional_args, basedir=rootdir)
+        print("Output files are saved in {}".format(outdir))
 
         return _objective_core(
             trial,
