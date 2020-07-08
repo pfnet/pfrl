@@ -191,7 +191,10 @@ def suggest(trial):
     hyper_params["adam_eps"] = trial.suggest_uniform("adam_eps", 1e-8, 1e-3)
     inv_gamma = trial.suggest_loguniform("inv_gamma", 1e-3, 1e-1)
     hyper_params["gamma"] = 1 - inv_gamma
-    hyper_params["replay_start_size"] = trial.suggest_int("replay_start_size", 1e3, 1e4)
+    # decaying epsilon without training does not make much sense.
+    hyper_params["replay_start_size"] = trial.suggest_int(
+        "replay_start_size", 1e3, max(1e3, hyper_params["decay_steps"] // 2),
+    )
     # target_update_interval should be a multiple of update_interval
     hyper_params["update_interval"] = trial.suggest_int("update_interval", 1, 8)
     target_update_interval_coef = trial.suggest_int("target_update_interval_coef", 1, 4)
