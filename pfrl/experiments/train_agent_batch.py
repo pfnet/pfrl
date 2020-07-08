@@ -129,9 +129,10 @@ def train_agent_batch(
                     t=t, episodes=np.sum(episode_idx)
                 )
                 if eval_score is not None:
-                    # Note that the priod of log_interval and evaluation is not synced.
-                    # The eval_score may overwrite an existing record.
-                    statistics[-1]["eval_score"] = eval_score
+                    if len(statistics) > 0:
+                        # The priod of log_interval and evaluation is not synced.
+                        # The eval_score may overwrite an existing record.
+                        statistics[-1]["eval_score"] = eval_score
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
