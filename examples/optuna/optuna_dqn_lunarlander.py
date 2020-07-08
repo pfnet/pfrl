@@ -25,11 +25,15 @@ from pfrl.nn.mlp import MLP
 
 # meta parameters
 ENV_ID = "LunarLander-v2"
-BATCH_SIZE = 64  # should be tuned?
+
 TRAIN_MAX_EPISODE_LEN = 1000
 STEPS = 400 * TRAIN_MAX_EPISODE_LEN
-EVAL_N_EPISODES = 3
+EVAL_N_EPISODES = 10
 EVAL_INTERVAL = STEPS // 10
+
+BATCH_SIZE = 64
+START_EPSILON = 1
+RBUF_CAPACITY = STEPS
 
 
 def _objective_core(
@@ -75,28 +79,18 @@ def _objective_core(
     q_func = q_functions.SingleModelStateQFunctionWithDiscreteAction(model=model)
 
     # Use epsilon-greedy for exploration
-    if hyper_params["explorer_args"]["explorer"] == "ExponentialDecayEpsilonGreedy":
-        explorer = explorers.ExponentialDecayEpsilonGreedy(
-            hyper_params["explorer_args"]["start_epsilon"],
-            hyper_params["explorer_args"]["end_epsilon"],
-            hyper_params["explorer_args"]["epsilon_decay"],
-            action_space.sample,
-        )
-    elif hyper_params["explorer_args"]["explorer"] == "LinearDecayEpsilonGreedy":
-        explorer = explorers.LinearDecayEpsilonGreedy(
-            hyper_params["explorer_args"]["start_epsilon"],
-            hyper_params["explorer_args"]["end_epsilon"],
-            hyper_params["explorer_args"]["decay_steps"],
-            action_space.sample,
-        )
-    else:
-        raise ValueError(
-            "Unknown explorer: {}".format(hyper_params["explorer_args"]["explorer"])
-        )
+    explorer = explorers.LinearDecayEpsilonGreedy(
+        start_epsilon=START_EPSILON,
+        end_epsilon=hyper_params["end_epsilon"],
+        decay_steps=hyper_params["decay_steps"],
+        random_action_func=action_space.sample,
+    )
 
-    opt = optim.Adam(q_func.parameters(), lr=hyper_params["lr"])
+    opt = optim.Adam(
+        q_func.parameters(), lr=hyper_params["lr"], eps=hyper_params["adam_eps"]
+    )
 
-    rbuf = replay_buffers.ReplayBuffer(hyper_params["rbuf_capacity"])
+    rbuf = replay_buffers.ReplayBuffer(RBUF_CAPACITY)
 
     agent = DQN(
         q_func,
@@ -185,44 +179,19 @@ def suggest(trial):
     hyper_params["hidden_sizes"] = []
     for l in range(n_hidden_layers):
         c = trial.suggest_int(
-            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 10, 200
+            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 50, 200
         )
         hyper_params["hidden_sizes"].append(c)
-    hyper_params["explorer_args"] = {}
-    hyper_params["explorer_args"]["explorer"] = trial.suggest_categorical(
-        "explorer", ["ExponentialDecayEpsilonGreedy", "LinearDecayEpsilonGreedy"]
-    )
-    if hyper_params["explorer_args"]["explorer"] == "ExponentialDecayEpsilonGreedy":
-        hyper_params["explorer_args"]["start_epsilon"] = trial.suggest_uniform(
-            "ExponentialDecayEpsilonGreedy_start_epsilon", 0.5, 1.0
-        )
-        hyper_params["explorer_args"]["end_epsilon"] = trial.suggest_uniform(
-            "ExponentialDecayEpsilonGreedy_end_epsilon", 0.0001, 0.3
-        )
-        hyper_params["explorer_args"]["epsilon_decay"] = trial.suggest_uniform(
-            "ExponentialDecayEpsilonGreedy_epsilon_decay", 0.9, 0.999
-        )
-    elif hyper_params["explorer_args"]["explorer"] == "LinearDecayEpsilonGreedy":
-        hyper_params["explorer_args"]["start_epsilon"] = trial.suggest_uniform(
-            "LinearDecayEpsilonGreedy_start_epsilon", 0.5, 1.0
-        )
-        hyper_params["explorer_args"]["end_epsilon"] = trial.suggest_uniform(
-            "LinearDecayEpsilonGreedy_end_epsilon", 0.0, 0.3
-        )
-        # low, high of this parameter is determined by
-        # ExponentialDecayEpsilonGreedy's parameter
-        # 0.5 * 0.9^low = 0.3
-        # 1.0 * 0.999^high = 0.0001
-        hyper_params["explorer_args"]["decay_steps"] = trial.suggest_int(
-            "LinearDecayEpsilonGreedy_decay_steps", 5, 9206
-        )
-    hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
+    hyper_params["end_epsilon"] = trial.suggest_uniform("end_epsilon", 0.0, 0.3)
     # note that the maximum training step size = 4e5
-    hyper_params["rbuf_capacity"] = trial.suggest_int("rbuf_capacity", 1e4, 1e6)
-    hyper_params["gamma"] = trial.suggest_uniform("gamma", 0.9, 1.0)
-    hyper_params["replay_start_size"] = trial.suggest_int(
-        "replay_start_size", BATCH_SIZE, 1e3
-    )
+    hyper_params["decay_steps"] = trial.suggest_int("decay_steps", 1e3, 3e5)
+    hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
+    # Adam's default eps==1e-8 but larger eps oftens helps.
+    # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
+    hyper_params["adam_eps"] = trial.suggest_uniform("adam_eps", 1e-8, 1e-3)
+    inv_gamma = trial.suggest_loguniform("inv_gamma", 1e-3, 1e-1)
+    hyper_params["gamma"] = 1 - inv_gamma
+    hyper_params["replay_start_size"] = trial.suggest_int("replay_start_size", 1e3, 1e4)
     # target_update_interval should be a multiple of update_interval
     hyper_params["update_interval"] = trial.suggest_int("update_interval", 1, 8)
     target_update_interval_coef = trial.suggest_int("target_update_interval_coef", 1, 4)
