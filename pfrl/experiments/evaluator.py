@@ -312,10 +312,10 @@ def create_tb_writer(outdir):
     tb_writer = SummaryWriter(log_dir=outdir)
     layout = {
         "Aggregate Charts": {
-            "mean w/ min-max": ["Margin", ["eval/mean", "eval/min", "eval/max"],],
+            "mean w/ min-max": ["Margin", ["agent/mean", "agent/min", "agent/max"],],
             "mean +/- std": [
                 "Margin",
-                ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
+                ["agent/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
             ],
         }
     }
@@ -327,11 +327,11 @@ def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
     cur_time = time.time()
 
     for stat, value in agent_stats:
-        summary_writer.add_scalar("eval/" + stat, value, t, cur_time)
+        summary_writer.add_scalar("agent/" + stat, value, t, cur_time)
 
     for stat in ("mean", "median", "max", "min", "stdev"):
         value = eval_stats[stat]
-        summary_writer.add_scalar("eval/" + stat, value, t, cur_time)
+        summary_writer.add_scalar("agent/" + stat, value, t, cur_time)
 
     summary_writer.add_scalar(
         "extras/meanplusstdev", eval_stats["mean"] + eval_stats["stdev"], t, cur_time
