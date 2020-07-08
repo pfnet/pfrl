@@ -304,6 +304,46 @@ def record_stats(outdir, values):
         print("\t".join(str(x) for x in values), file=f)
 
 
+def create_tb_writer(outdir):
+    """Return a tensorboard summarywriter with a custom scalar."""
+    # This conditional import will raise an error if tensorboard<1.14
+    from torch.utils.tensorboard import SummaryWriter
+
+    tb_writer = SummaryWriter(log_dir=outdir)
+    layout = {
+        "Aggregate Charts": {
+            "mean w/ min-max": ["Margin", ["eval/mean", "eval/min", "eval/max"],],
+            "mean +/- std": [
+                "Margin",
+                ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
+            ],
+        }
+    }
+    tb_writer.add_custom_scalars(layout)
+    return tb_writer
+
+
+def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
+    cur_time = time.time()
+
+    for stat, value in agent_stats:
+        summary_writer.add_scalar("agent/" + stat, value, t, cur_time)
+
+    for stat in ("mean", "median", "max", "min", "stdev"):
+        value = eval_stats[stat]
+        summary_writer.add_scalar("eval/" + stat, value, t, cur_time)
+
+    summary_writer.add_scalar(
+        "extras/meanplusstdev", eval_stats["mean"] + eval_stats["stdev"], t, cur_time
+    )
+    summary_writer.add_scalar(
+        "extras/meanminusstdev", eval_stats["mean"] - eval_stats["stdev"], t, cur_time
+    )
+
+    # manually flush to avoid loosing events on termination
+    summary_writer.flush()
+
+
 def save_agent(agent, t, outdir, logger, suffix=""):
     dirname = os.path.join(outdir, "{}{}".format(t, suffix))
     agent.save(dirname)
@@ -325,6 +365,7 @@ class Evaluator(object):
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean of returns in evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
+        use_tensorboard (bool): Additionally log eval stats to tensorboard
     """
 
     def __init__(
@@ -339,6 +380,7 @@ class Evaluator(object):
         step_offset=0,
         save_best_so_far_agent=True,
         logger=None,
+        use_tensorboard=False,
     ):
         assert (n_steps is None) != (n_episodes is None), (
             "One of n_steps or n_episodes must be None. "
@@ -353,6 +395,7 @@ class Evaluator(object):
         self.n_episodes = n_episodes
         self.eval_interval = eval_interval
         self.outdir = outdir
+        self.use_tensorboard = use_tensorboard
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
         self.prev_eval_t = self.step_offset - self.step_offset % self.eval_interval
@@ -375,7 +418,8 @@ class Evaluator(object):
             logger=self.logger,
         )
         elapsed = time.time() - self.start_time
-        custom_values = tuple(tup[1] for tup in self.agent.get_statistics())
+        agent_stats = self.agent.get_statistics()
+        custom_values = tuple(tup[1] for tup in agent_stats)
         mean = eval_stats["mean"]
         values = (
             t,
@@ -388,6 +432,10 @@ class Evaluator(object):
             eval_stats["min"],
         ) + custom_values
         record_stats(self.outdir, values)
+
+        if self.use_tensorboard:
+            record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
+
         if mean > self.max_score:
             self.logger.info("The best score is updated %s -> %s", self.max_score, mean)
             self.max_score = mean
@@ -416,6 +464,7 @@ class AsyncEvaluator(object):
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
+        use_tensorboard (bool): Additionally log eval stats to tensorboard
     """
 
     def __init__(
@@ -428,6 +477,7 @@ class AsyncEvaluator(object):
         step_offset=0,
         save_best_so_far_agent=True,
         logger=None,
+        use_tensorboard=False,
     ):
         assert (n_steps is None) != (n_episodes is None), (
             "One of n_steps or n_episodes must be None. "
@@ -439,6 +489,7 @@ class AsyncEvaluator(object):
         self.n_episodes = n_episodes
         self.eval_interval = eval_interval
         self.outdir = outdir
+        self.use_tensorboard = use_tensorboard
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
         self.save_best_so_far_agent = save_best_so_far_agent
@@ -454,6 +505,9 @@ class AsyncEvaluator(object):
         # Create scores.txt
         with open(os.path.join(self.outdir, "scores.txt"), "a"):
             pass
+
+        if use_tensorboard:
+            self.tb_writer = create_tb_writer(outdir)
 
     @property
     def max_score(self):
@@ -471,7 +525,8 @@ class AsyncEvaluator(object):
             logger=self.logger,
         )
         elapsed = time.time() - self.start_time
-        custom_values = tuple(tup[1] for tup in agent.get_statistics())
+        agent_stats = agent.get_statistics()
+        custom_values = tuple(tup[1] for tup in agent_stats)
         mean = eval_stats["mean"]
         values = (
             t,
@@ -484,6 +539,10 @@ class AsyncEvaluator(object):
             eval_stats["min"],
         ) + custom_values
         record_stats(self.outdir, values)
+
+        if self.use_tensorboard:
+            record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
+
         with self._max_score.get_lock():
             if mean > self._max_score.value:
                 self.logger.info(

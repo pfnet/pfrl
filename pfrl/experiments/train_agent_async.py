@@ -182,6 +182,7 @@ def train_agent_async(
     make_agent=None,
     global_step_hooks=[],
     save_best_so_far_agent=True,
+    use_tensorboard=False,
     logger=None,
     random_seeds=None,
     stop_event=None,
@@ -214,6 +215,7 @@ def train_agent_async(
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
+        use_tensorboard (bool): Additionally log eval stats to tensorboard
         logger (logging.Logger): Logger used in this function.
         random_seeds (array-like of ints or None): Random seeds for processes.
             If set to None, [0, 1, ..., processes-1] are used.
@@ -273,6 +275,7 @@ def train_agent_async(
             max_episode_len=max_episode_len,
             step_offset=step_offset,
             save_best_so_far_agent=save_best_so_far_agent,
+            use_tensorboard=use_tensorboard,
             logger=logger,
         )
 
