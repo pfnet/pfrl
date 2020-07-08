@@ -3,6 +3,7 @@ import torch.multiprocessing as mp
 import os
 import torch
 from torch import nn
+import warnings
 
 import numpy as np
 
@@ -35,6 +36,7 @@ def train_loop(
     episodes_counter,
     stop_event,
     exception_event,
+    process0_end_event,
     max_episode_len=None,
     evaluator=None,
     eval_env=None,
@@ -158,6 +160,9 @@ def train_loop(
         agent.save(dirname)
         logger.info("Saved the successful agent to %s", dirname)
 
+    if process_idx == 0:
+        process0_end_event.set()
+
 
 def train_agent_async(
     outdir,
@@ -231,6 +236,7 @@ def train_agent_async(
     counter = mp.Value("l", 0)
     episodes_counter = mp.Value("l", 0)
     statistics_queue = mp.Queue()
+    process0_end_event = mp.Event()
 
     if stop_event is None:
         stop_event = mp.Event()
@@ -273,59 +279,72 @@ def train_agent_async(
         random_seeds = np.arange(processes)
 
     def run_func(process_idx):
-        random_seed.set_random_seed(random_seeds[process_idx])
+        try:
+            random_seed.set_random_seed(random_seeds[process_idx])
 
-        env = make_env(process_idx, test=False)
-        if evaluator is None:
-            eval_env = env
-        else:
-            eval_env = make_env(process_idx, test=True)
-        if make_agent is not None:
-            local_agent = make_agent(process_idx)
-            for attr in agent.shared_attributes:
-                setattr(local_agent, attr, getattr(agent, attr))
-        else:
-            local_agent = agent
-        local_agent.process_idx = process_idx
+            env = make_env(process_idx, test=False)
+            if evaluator is None:
+                eval_env = env
+            else:
+                eval_env = make_env(process_idx, test=True)
+            if make_agent is not None:
+                local_agent = make_agent(process_idx)
+                for attr in agent.shared_attributes:
+                    setattr(local_agent, attr, getattr(agent, attr))
+            else:
+                local_agent = agent
+            local_agent.process_idx = process_idx
 
-        def f():
-            train_loop(
-                process_idx=process_idx,
-                counter=counter,
-                episodes_counter=episodes_counter,
-                agent=local_agent,
-                env=env,
-                steps=steps,
-                outdir=outdir,
-                max_episode_len=max_episode_len,
-                evaluator=evaluator,
-                successful_score=successful_score,
-                stop_event=stop_event,
-                exception_event=exception_event,
-                eval_env=eval_env,
-                global_step_hooks=global_step_hooks,
-                logger=logger,
-                statistics_queue=statistics_queue,
-            )
+            def f():
+                train_loop(
+                    process_idx=process_idx,
+                    counter=counter,
+                    episodes_counter=episodes_counter,
+                    agent=local_agent,
+                    env=env,
+                    steps=steps,
+                    outdir=outdir,
+                    max_episode_len=max_episode_len,
+                    evaluator=evaluator,
+                    successful_score=successful_score,
+                    stop_event=stop_event,
+                    exception_event=exception_event,
+                    process0_end_event=process0_end_event,
+                    eval_env=eval_env,
+                    global_step_hooks=global_step_hooks,
+                    logger=logger,
+                    statistics_queue=statistics_queue,
+                )
 
-        if profile:
-            import cProfile
+            if profile:
+                import cProfile
 
-            cProfile.runctx(
-                "f()", globals(), locals(), "profile-{}.out".format(os.getpid())
-            )
-        else:
-            f()
+                cProfile.runctx(
+                    "f()", globals(), locals(), "profile-{}.out".format(os.getpid())
+                )
+            else:
+                f()
 
-        env.close()
-        if eval_env is not env:
-            eval_env.close()
+            env.close()
+            if eval_env is not env:
+                eval_env.close()
+        finally:
+            wait_tolerance_sec = 1.0
+            if not process0_end_event.wait(wait_tolerance_sec):
+                # Avoid infinite loop when process0 failed unexpectedly.
+                warnings.warn(
+                    "The evaluation process (process_idx==0) did not set end_event "
+                    "properly (tolerance: {} sec). It might exit unexpectedly.".format(
+                        wait_tolerance_sec)
+                )
+                process0_end_event.set()
 
     async_.run_async(processes, run_func)
 
     stop_event.set()
 
     statistics = []
+    process0_end_event.wait()  # wait process_idx==0 put the last stats to queue...
     while not statistics_queue.empty():
         statistics.append(statistics_queue.get())
 

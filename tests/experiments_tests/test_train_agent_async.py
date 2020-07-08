@@ -62,10 +62,32 @@ def test_train_agent_async(num_envs, max_episode_len):
         with hook_lock:
             return hook(*args, **kwargs)
 
+    dummy_stats = [
+        ("average_q", 3.14),
+        ("average_loss", 2.7),
+        ("cumulative_steps", 42),
+        ("n_updates", 8),
+        ("rlen", 1),
+    ]
+    # Statistics will be collected when episodes end on process_idx==0.
+    # Since training is processed asynchronously, we can't determine the exact number of
+    # statistics collection (but upper bound is available).
+    # Note: The evaluator inside `train_agent_async` never evaluates scores (which
+    # invokes `agent.get_statistics()`) because default `eval_interval` (=10 ** 6) is
+    # larger than `steps`.
+    if max_episode_len is None:
+        n_resets_max = steps // 5  # 5: env reaches terminate state on step==5.
+        agent.get_statistics.side_effect = [dummy_stats] * n_resets_max
+    else:
+        # The env never teminates,
+        # but `reset` will be True for `episode_len == 2`.
+        n_resets_max = steps // max_episode_len
+        agent.get_statistics.side_effect = [dummy_stats] * n_resets_max
+
     with mock.patch(
         "torch.multiprocessing.Process", threading.Thread
     ), mock.patch.object(threading.Thread, "exitcode", create=True, new=0):
-        pfrl.experiments.train_agent_async(
+        ret_agent, statistics = pfrl.experiments.train_agent_async(
             processes=num_envs,
             agent=agent,
             make_env=make_env,
@@ -74,6 +96,11 @@ def test_train_agent_async(num_envs, max_episode_len):
             max_episode_len=max_episode_len,
             global_step_hooks=[hook_locked],
         )
+
+    assert ret_agent is agent
+    assert 1 <= len(statistics) <= n_resets_max
+    for stats in statistics:
+        assert stats == dict(dummy_stats)
 
     if num_envs == 1:
         assert agent.act.call_count == steps
@@ -129,10 +156,22 @@ class TestTrainLoop(unittest.TestCase):
             (("state", 7), 1, True, {}),
         ]
 
+        dummy_stats = [
+            ("average_q", 3.14),
+            ("average_loss", 2.7),
+            ("cumulative_steps", 42),
+            ("n_updates", 8),
+            ("rlen", 1),
+        ]
+        n_resets = 2  # Statistics will be collected when episodes end.
+        agent.get_statistics.side_effect = [dummy_stats] * n_resets
+
         counter = mp.Value("i", 0)
         episodes_counter = mp.Value("i", 0)
         stop_event = mp.Event()
         exception_event = mp.Event()
+        process0_end_event = mp.Event()
+        statistics_queue = mp.Queue()
         train_loop(
             process_idx=0,
             env=env,
@@ -143,7 +182,15 @@ class TestTrainLoop(unittest.TestCase):
             episodes_counter=episodes_counter,
             stop_event=stop_event,
             exception_event=exception_event,
+            process0_end_event=process0_end_event,
+            statistics_queue=statistics_queue,
         )
+
+        statistics = []
+        process0_end_event.wait()  # wait process_idx==0 put the last stats to queue...
+        while not statistics_queue.empty():
+            statistics.append(statistics_queue.get())
+        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_resets)])
 
         self.assertEqual(agent.act.call_count, 5)
         self.assertEqual(agent.observe.call_count, 5)

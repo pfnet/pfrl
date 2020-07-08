@@ -23,9 +23,21 @@ class TestTrainAgent(unittest.TestCase):
         ]
         hook = mock.Mock()
 
-        pfrl.experiments.train_agent(
+        n_resets = 1  # Statistics will be collected when episodes end.
+        dummy_stats = [
+            ("average_q", 3.14),
+            ("average_loss", 2.7),
+            ("cumulative_steps", 42),
+            ("n_updates", 8),
+            ("rlen", 1),
+        ]
+        agent.get_statistics.side_effect = [dummy_stats] * n_resets
+
+        statistics = pfrl.experiments.train_agent(
             agent=agent, env=env, steps=5, outdir=outdir, step_hooks=[hook]
         )
+
+        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_resets)])
 
         self.assertEqual(agent.act.call_count, 5)
         self.assertEqual(agent.observe.call_count, 5)
@@ -63,9 +75,21 @@ class TestTrainAgent(unittest.TestCase):
         ]
         hook = mock.Mock()
 
-        pfrl.experiments.train_agent(
+        n_resets = 2  # Statistics will be collected when episodes end.
+        dummy_stats = [
+            ("average_q", 3.14),
+            ("average_loss", 2.7),
+            ("cumulative_steps", 42),
+            ("n_updates", 8),
+            ("rlen", 1),
+        ]
+        agent.get_statistics.side_effect = [dummy_stats] * n_resets
+
+        statistics = pfrl.experiments.train_agent(
             agent=agent, env=env, steps=5, outdir=outdir, step_hooks=[hook]
         )
+
+        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_resets)])
 
         self.assertEqual(agent.act.call_count, 5)
         self.assertEqual(agent.observe.call_count, 5)

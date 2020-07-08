@@ -39,14 +39,28 @@ def test_train_agent_batch(num_envs, max_episode_len, steps):
 
     hook = mock.Mock()
 
-    pfrl.experiments.train_agent_batch(
+    log_interval = 5
+    n_logging = 1  # Since all envs will reach to done==True simultaneously.
+    dummy_stats = [
+        ("average_q", 3.14),
+        ("average_loss", 2.7),
+        ("cumulative_steps", 42),
+        ("n_updates", 8),
+        ("rlen", 1),
+    ]
+    agent.get_statistics.side_effect = [dummy_stats] * n_logging
+
+    statistics = pfrl.experiments.train_agent_batch(
         agent=agent,
         env=vec_env,
         steps=steps,
         outdir=outdir,
         max_episode_len=max_episode_len,
+        log_interval=log_interval,
         step_hooks=[hook],
     )
+
+    assert statistics == [dict(dummy_stats) for _ in range(n_logging)]
 
     iters = math.ceil(steps / num_envs)
     assert agent.batch_act.call_count == iters
@@ -133,9 +147,23 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
 
         vec_env = pfrl.envs.SerialVectorEnv([make_env(i) for i in range(2)])
 
-        pfrl.experiments.train_agent_batch(
+        log_interval = 5
+        n_logging = steps // log_interval
+        dummy_stats = [
+            ("average_q", 3.14),
+            ("average_loss", 2.7),
+            ("cumulative_steps", 42),
+            ("n_updates", 8),
+            ("rlen", 1),
+        ]
+        agent.get_statistics.side_effect = [dummy_stats] * n_logging
+
+        statistics = pfrl.experiments.train_agent_batch(
             agent=agent, env=vec_env, steps=steps, outdir=outdir,
+            log_interval=log_interval,
         )
+
+        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_logging)])
 
         self.assertEqual(vec_env.envs[0].reset.call_count, 2)
         self.assertEqual(vec_env.envs[0].step.call_count, 5)
