@@ -304,6 +304,25 @@ def record_stats(outdir, values):
         print("\t".join(str(x) for x in values), file=f)
 
 
+def create_tb_writer(outdir):
+    """Return a tensorboard summarywriter with a custom scalar."""
+    # This conditional import will raise an error if tensorboard<1.14
+    from torch.utils.tensorboard import SummaryWriter
+
+    tb_writer = SummaryWriter(log_dir=outdir)
+    layout = {
+        "Aggregate Charts": {
+            "mean w/ min-max": ["Margin", ["eval/mean", "eval/min", "eval/max"],],
+            "mean +/- std": [
+                "Margin",
+                ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
+            ],
+        }
+    }
+    tb_writer.add_custom_scalars(layout)
+    return tb_writer
+
+
 def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
     cur_time = time.time()
 
@@ -390,24 +409,7 @@ class Evaluator(object):
             print("\t".join(column_names), file=f)
 
         if use_tensorboard:
-            # This conditional import will raise an error if tensorboard<1.14
-            from torch.utils.tensorboard import SummaryWriter
-
-            self.tb_writer = SummaryWriter(log_dir=outdir)
-            layout = {
-                "Aggregate Charts": {
-                    "mean w/ min-max": [
-                        "Margin",
-                        ["eval/mean", "eval/min", "eval/max"],
-                    ],
-                    "mean +/- std": [
-                        "Margin",
-                        ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
-                    ],
-                }
-            }
-
-            self.tb_writer.add_custom_scalars(layout)
+            self.tb_writer = create_tb_writer(outdir)
 
     def evaluate_and_update_max_score(self, t, episodes):
         eval_stats = eval_performance(
@@ -508,24 +510,7 @@ class AsyncEvaluator(object):
             pass
 
         if use_tensorboard:
-            # This conditional import will raise an error if tensorboard<1.14
-            from torch.utils.tensorboard import SummaryWriter
-
-            self.tb_writer = SummaryWriter(log_dir=outdir)
-            layout = {
-                "Aggregate Charts": {
-                    "mean w/ min-max": [
-                        "Margin",
-                        ["eval/mean", "eval/min", "eval/max"],
-                    ],
-                    "mean +/- std": [
-                        "Margin",
-                        ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],
-                    ],
-                }
-            }
-
-            self.tb_writer.add_custom_scalars(layout)
+            self.tb_writer = create_tb_writer(outdir)
 
     @property
     def max_score(self):
