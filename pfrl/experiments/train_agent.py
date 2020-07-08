@@ -79,8 +79,9 @@ def train_agent(
                 logger.info("statistics:%s", stats)
                 if evaluator is not None:
                     eval_score = evaluator.evaluate_if_necessary(
-                        t=t, episodes=episode_idx + 1)
-                    statistics[-1]['eval_score'] = eval_score  # float or Nnoe
+                        t=t, episodes=episode_idx + 1
+                    )
+                    statistics[-1]["eval_score"] = eval_score  # float or Nnoe
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score

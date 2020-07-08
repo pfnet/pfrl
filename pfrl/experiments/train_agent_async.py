@@ -107,7 +107,7 @@ def train_loop(
                     )
                     if eval_score is not None:
                         if process_idx == 0:
-                            stats['eval_score'] = eval_score
+                            stats["eval_score"] = eval_score
                         if (
                             successful_score is not None
                             and eval_score >= successful_score
