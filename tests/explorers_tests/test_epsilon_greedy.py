@@ -9,9 +9,11 @@ from pfrl.explorers import epsilon_greedy
 @pytest.mark.parametrize("start_epsilon", [1.0, 0.5])
 @pytest.mark.parametrize("end_epsilon", [0.5, 0.1])
 @pytest.mark.parametrize("decay", [0.99, 0.1])
+@pytest.mark.parametrize("steps", [1, 100])
 class TestExponentialDecayEpsilonGreedy:
     @pytest.fixture(autouse=True)
-    def setUp(self, decay, end_epsilon, start_epsilon):
+    def setUp(self, steps, decay, end_epsilon, start_epsilon):
+        self.steps = steps
         self.decay = decay
         self.end_epsilon = end_epsilon
         self.start_epsilon = start_epsilon
@@ -37,10 +39,14 @@ class TestExponentialDecayEpsilonGreedy:
 
         assert pytest.approx(explorer.epsilon) == self.start_epsilon
 
-        for t in range(100):
+        for t in range(self.steps):
             explorer.select_action(t, greedy_action_func)
 
-        expected = max(self.start_epsilon * (self.decay ** 99), self.end_epsilon)
+        assert random_action_func_count[0] + greedy_action_func_count[0] == self.steps
+
+        expected = max(
+            self.start_epsilon * (self.decay ** (self.steps - 1)),
+            self.end_epsilon)
         assert pytest.approx(explorer.epsilon) == expected
 
 
