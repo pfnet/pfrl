@@ -26,9 +26,9 @@ python train_dqn.py [options]
 To view the full list of options, either view the code or run the example with the `--help` option.
 
 ## Results
-These results reflect PFRL commit hash: `e9a761f`.
+These results reflect PFRL commit hash: `a0ad6a7`.
 
- Note that the scores reported in the DQN paper are from a single run on each domain, and might not be an accurate reflection of the DQN's true performance.
+ Note that the scores reported in the DQN paper are from a single run on each domain.
 
 
 | Results Summary ||
@@ -125,5 +125,5 @@ All jobs were ran on a single GPU.
 | ------------- |:-------------:|
 | Mean        |  3.613 |
 | Standard deviation | 0.212|
-| Fastest time | 2.767|
-| Slowest time | 4.2|
+| Fastest run | 2.767|
+| Slowest run | 4.2|
