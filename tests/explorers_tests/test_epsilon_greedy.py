@@ -50,7 +50,7 @@ class TestExponentialDecayEpsilonGreedy:
         assert pytest.approx(explorer.epsilon) == expected
 
 
-class TestEpsilonGreedy(unittest.TestCase):
+class TestEpsilonGreedy:
     def test_linear_decay_epsilon_greedy(self):
 
         random_action_func_count = [0]
@@ -71,12 +71,12 @@ class TestEpsilonGreedy(unittest.TestCase):
         explorer.logger.addHandler(logging.StreamHandler())
         explorer.logger.setLevel(logging.DEBUG)
 
-        self.assertAlmostEqual(explorer.epsilon, 1.0)
+        assert pytest.approx(explorer.epsilon) == 1.0
 
         for t in range(100):
             explorer.select_action(t, greedy_action_func)
 
-        self.assertAlmostEqual(explorer.epsilon, 0.1)
+        assert pytest.approx(explorer.epsilon) == 0.1
 
     def test_constant_epsilon_greedy(self):
 
@@ -96,9 +96,9 @@ class TestEpsilonGreedy(unittest.TestCase):
         explorer.logger.addHandler(logging.StreamHandler())
         explorer.logger.setLevel(logging.DEBUG)
 
-        self.assertAlmostEqual(explorer.epsilon, 0.1)
+        assert pytest.approx(explorer.epsilon) == 0.1
 
         for t in range(100):
             explorer.select_action(t, greedy_action_func)
 
-        self.assertAlmostEqual(explorer.epsilon, 0.1)
+        assert pytest.approx(explorer.epsilon) == 0.1
