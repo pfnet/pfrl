@@ -161,7 +161,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         recurrent=False,
     ):
         self.model = q_function
-        self.q_function = q_function  # For backward compatibility
 
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -215,8 +214,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.last_action = None
         self.target_model = None
         self.sync_target_network()
-        # For backward compatibility
-        self.target_q_function = self.target_model
 
         # Statistics
         self.q_record = collections.deque(maxlen=1000)
