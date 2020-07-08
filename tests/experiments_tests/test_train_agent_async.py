@@ -3,6 +3,7 @@ import os
 import tempfile
 import unittest
 from unittest import mock
+import time
 
 import pytest
 
@@ -186,8 +187,11 @@ class TestTrainLoop(unittest.TestCase):
             statistics_queue=statistics_queue,
         )
 
+        # wait small amount of time to avoid missing last queue ite in some edge cases
+        time.sleep(0.5)
+        process0_end_event.wait()
+        self.assertEqual(agent.get_statistics.call_count, n_resets)
         statistics = []
-        process0_end_event.wait()  # wait process_idx==0 put the last stats to queue...
         while not statistics_queue.empty():
             statistics.append(statistics_queue.get())
         self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_resets)])
