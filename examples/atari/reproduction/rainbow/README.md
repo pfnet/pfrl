@@ -27,7 +27,7 @@ To view the full list of options, either view the code or run the example with t
 
 
 ## Results
-These results reflect PFRL commit hash:  `TODO`.
+These results reflect PFRL commit hash:  `a0ad6a7`.
 
 | Results Summary ||
 | ------------- |:-------------:|
@@ -125,8 +125,8 @@ All jobs were run on a single GPU.
 | ------------- |:-------------:|
 | Mean        |  7.173 |
 | Standard deviation | 0.166|
-| Fastest time | 6.764|
-| Slowest time | 7.612|
+| Fastest run | 6.764|
+| Slowest run | 7.612|
 
 
 
