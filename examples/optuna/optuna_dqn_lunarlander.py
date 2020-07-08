@@ -256,7 +256,10 @@ def main():
         "--optuna-n-trials",
         type=int,
         default=100,
-        help="The number of trials for Optuna. See https://optuna.readthedocs.io/en/stable/reference/study.html#optuna.study.Study.optimize",  # noqa
+        help=(  # noqa
+            "The number of trials for Optuna. See "
+            "https://optuna.readthedocs.io/en/stable/reference/study.html#optuna.study.Study.optimize"  # noqa
+        ),
     )
 
     # PFRL related args
