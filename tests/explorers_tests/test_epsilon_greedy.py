@@ -1,5 +1,4 @@
 import logging
-import unittest
 
 import pytest
 
@@ -45,8 +44,8 @@ class TestExponentialDecayEpsilonGreedy:
         assert random_action_func_count[0] + greedy_action_func_count[0] == self.steps
 
         expected = max(
-            self.start_epsilon * (self.decay ** (self.steps - 1)),
-            self.end_epsilon)
+            self.start_epsilon * (self.decay ** (self.steps - 1)), self.end_epsilon
+        )
         assert pytest.approx(explorer.epsilon) == expected
 
 
