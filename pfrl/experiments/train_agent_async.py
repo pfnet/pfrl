@@ -345,7 +345,8 @@ def train_agent_async(
         warnings.warn(
             "The evaluation process (process_idx==0) did not set end_event properly "
             "(tolerance: {} sec). It might exit unexpectedly.".format(
-                wait_tolerance_sec)
+                wait_tolerance_sec
+            )
         )
     while not statistics_queue.empty():
         statistics.append(statistics_queue.get())
