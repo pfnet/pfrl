@@ -13,6 +13,11 @@ To run the training example:
 python train_a3c.py [options]
 ```
 
+We have already trained models from this script for all the domains listed in the [results](#Results). To load a pretrained model:
+```
+python train_a3c.py --demo --load-pretrained --env BreakoutNoFrameskip-v4
+```
+
 ### Useful Options
 - `--env`. Specifies the environment. 
 - `--render`. Add this option to render the states in a GUI window.

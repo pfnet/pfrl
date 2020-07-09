@@ -14,6 +14,11 @@ To run the training example:
 ```
 python train_ddpg.py [options]
 ```
+We have already pretrained models from this script for all the domains listed in the [results](#Results) section. To load a pretrained model:
+
+```
+python train_ddpg.py --demo --load-pretrained --env HalfCheetah-v2 --pretrained-type best --gpu -1
+```
 
 ### Useful Options
 

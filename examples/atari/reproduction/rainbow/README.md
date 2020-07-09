@@ -13,6 +13,12 @@ To run the training example:
 python train_rainbow.py [options]
 ```
 
+We have already pretrained models from this script for all the domains listed in the [results](#Results) section. To load a pretrained model:
+
+```
+python train_rainbow.py --demo --load-pretrained --env BreakoutNoFrameskip-v4 --pretrained-type best --gpu -1
+```
+
 ### Useful Options
 - `--gpu`. Specifies the GPU. If you do not have a GPU on your machine, run the example with the option `--gpu -1`. E.g. `python train_rainbow.py --gpu -1`.
 - `--env`. Specifies the environment. 
