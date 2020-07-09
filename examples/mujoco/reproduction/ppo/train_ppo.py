@@ -207,14 +207,13 @@ def main():
     )
 
     if args.load or args.load_pretrained:
-        if args.load_pretrained:
-            raise Exception("Pretrained models are currently unsupported.")
         # either load or load_pretrained must be false
         assert not args.load or not args.load_pretrained
         if args.load:
             agent.load(args.load)
         else:
-            agent.load(utils.download_model("PPO", args.env, model_type="final")[0])
+            agent.load(utils.download_model("PPO", args.env,
+                                            model_type="final")[0])
 
     if args.demo:
         env = make_batch_env(True)

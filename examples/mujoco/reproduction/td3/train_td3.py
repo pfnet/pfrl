@@ -178,18 +178,14 @@ def main():
     )
 
     if len(args.load) > 0 or args.load_pretrained:
-        if args.load_pretrained:
-            raise Exception("Pretrained models are currently unsupported.")
         # either load or load_pretrained must be false
         assert not len(args.load) > 0 or not args.load_pretrained
         if len(args.load) > 0:
             agent.load(args.load)
         else:
             agent.load(
-                utils.download_model("TD3", args.env, model_type=args.pretrained_type)[
-                    0
-                ]
-            )
+                utils.download_model("TD3", args.env,
+                                     model_type=args.pretrained_type)[0])
 
     eval_env = make_env(test=True)
     if args.demo:
