@@ -25,6 +25,7 @@ python train_a3c.py --demo --load-pretrained --env BreakoutNoFrameskip-v4
 - `--outdir` This option specifies the output directory to which the results are written.
 - `--demo`. Runs an evaluation, instead of training the agent.
 - `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
+- `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
 
 To view the full list of options, either view the code or run the example with the `--help` option.
 
