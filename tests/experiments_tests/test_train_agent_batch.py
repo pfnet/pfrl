@@ -159,7 +159,10 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
         agent.get_statistics.side_effect = [dummy_stats] * n_logging
 
         statistics = pfrl.experiments.train_agent_batch(
-            agent=agent, env=vec_env, steps=steps, outdir=outdir,
+            agent=agent,
+            env=vec_env,
+            steps=steps,
+            outdir=outdir,
             log_interval=log_interval,
         )
 
