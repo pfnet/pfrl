@@ -165,9 +165,12 @@ def main():
         mean, log_scale = torch.chunk(x, 2, dim=1)
         log_scale = torch.clamp(log_scale, -20.0, 2.0)
         var = torch.exp(log_scale * 2)
-        base_distribution = distributions.Normal(loc=mean, scale=torch.sqrt(var))
+        base_distribution = distributions.Independent(
+            distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
+        )
+        # cache_size=1 is required for numerical stability
         return distributions.transformed_distribution.TransformedDistribution(
-            base_distribution, [distributions.transforms.TanhTransform()]
+            base_distribution, [distributions.transforms.TanhTransform(cache_size=1)]
         )
 
     policy = nn.Sequential(

@@ -301,7 +301,7 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
         explained_variance: Explained variance computed from the last batch.
     """
 
-    saved_attributes = ["model", "optimizer", "obs_normalizer"]
+    saved_attributes = ("model", "optimizer", "obs_normalizer")
 
     def __init__(
         self,

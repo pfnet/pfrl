@@ -3,6 +3,10 @@ from abc import abstractmethod
 from abc import abstractproperty
 import contextlib
 import os
+from typing import Any
+from typing import List
+from typing import Optional
+from typing import Sequence
 from typing import Tuple
 
 import torch
@@ -14,7 +18,7 @@ class Agent(object, metaclass=ABCMeta):
     training = True
 
     @abstractmethod
-    def act(self, obs):
+    def act(self, obs: Any) -> Any:
         """Select an action.
 
         Returns:
@@ -23,7 +27,7 @@ class Agent(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def observe(self, obs, reward, done, reset):
+    def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
         """Observe consequences of the last action.
 
         Returns:
@@ -32,7 +36,7 @@ class Agent(object, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def save(self, dirname):
+    def save(self, dirname: str) -> None:
         """Save internal states.
 
         Returns:
@@ -41,7 +45,7 @@ class Agent(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def load(self, dirname):
+    def load(self, dirname: str) -> None:
         """Load internal states.
 
         Returns:
@@ -50,7 +54,7 @@ class Agent(object, metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def get_statistics(self):
+    def get_statistics(self) -> List[Tuple[str, Any]]:
         """Get statistics of the agent.
 
         Returns:
@@ -76,15 +80,15 @@ class AttributeSavingMixin(object):
     """Mixin that provides save and load functionalities."""
 
     @abstractproperty
-    def saved_attributes(self):
+    def saved_attributes(self) -> Tuple[str, ...]:
         """Specify attribute names to save or load as a tuple of str."""
         pass
 
-    def save(self, dirname):
+    def save(self, dirname: str) -> None:
         """Save internal states."""
         self.__save(dirname, [])
 
-    def __save(self, dirname, ancestors):
+    def __save(self, dirname: str, ancestors: List[Any]):
         os.makedirs(dirname, exist_ok=True)
         ancestors.append(self)
         for attr in self.saved_attributes:
@@ -103,11 +107,11 @@ class AttributeSavingMixin(object):
                 )
         ancestors.pop()
 
-    def load(self, dirname):
+    def load(self, dirname: str) -> None:
         """Load internal states."""
         self.__load(dirname, [])
 
-    def __load(self, dirname, ancestors):
+    def __load(self, dirname: str, ancestors: List[Any]) -> None:
         map_location = torch.device("cpu") if not torch.cuda.is_available() else None
         ancestors.append(self)
         for attr in self.saved_attributes:
@@ -133,8 +137,11 @@ class AsyncAgent(Agent, metaclass=ABCMeta):
     """Abstract asynchronous agent class."""
 
     @abstractproperty
-    def process_idx(self):
-        """Index of process as integer, 0 for the representative process."""
+    def process_idx(self) -> Optional[int]:
+        """Index of process as integer, 0 for the representative process.
+
+        The returned value can be None if it is not assgined yet.
+        """
         pass
 
     @abstractproperty
@@ -146,14 +153,14 @@ class AsyncAgent(Agent, metaclass=ABCMeta):
 class BatchAgent(Agent, metaclass=ABCMeta):
     """Abstract agent class that can interact with a batch of envs."""
 
-    def act(self, obs):
+    def act(self, obs: Any) -> Any:
         return self.batch_act([obs])[0]
 
-    def observe(self, obs, reward, done, reset):
+    def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
         self.batch_observe([obs], [reward], [done], [reset])
 
     @abstractmethod
-    def batch_act(self, batch_obs):
+    def batch_act(self, batch_obs: Sequence[Any]) -> Sequence[Any]:
         """Select a batch of actions.
 
         Args:
@@ -165,7 +172,13 @@ class BatchAgent(Agent, metaclass=ABCMeta):
         raise NotImplementedError()
 
     @abstractmethod
-    def batch_observe(self, batch_obs, batch_reward, batch_done, batch_reset):
+    def batch_observe(
+        self,
+        batch_obs: Sequence[Any],
+        batch_reward: Sequence[float],
+        batch_done: Sequence[bool],
+        batch_reset: Sequence[bool],
+    ) -> None:
         """Observe a batch of action consequences.
 
         Args:
