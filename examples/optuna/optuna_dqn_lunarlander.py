@@ -28,7 +28,8 @@ ENV_ID = "LunarLander-v2"
 TRAIN_MAX_EPISODE_LEN = 1000
 STEPS = 400 * TRAIN_MAX_EPISODE_LEN
 EVAL_N_EPISODES = 10
-EVAL_INTERVAL = STEPS // 10
+N_EVAL_TIMES = 10  # evaluate N_EVAL_TIMES times during the training
+EVAL_INTERVAL = STEPS // N_EVAL_TIMES
 
 BATCH_SIZE = 64
 START_EPSILON = 1
@@ -163,9 +164,13 @@ def suggest(trial):
     n_hidden_layers = trial.suggest_int("n_hidden_layers", 1, 3)  # hyper-hyper-param
     hyper_params["hidden_sizes"] = []
     for l in range(n_hidden_layers):
-        c = trial.suggest_int(
-            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 50, 200
+        # If n_channels is a large value, the precise number doesn't matter.
+        # In other words, we should search over the smaller values more precisely.
+        c = trial.suggest_loguniform(
+            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 10, 200
         )
+        # But n_channels must be an integer.
+        c = round(c)
         hyper_params["hidden_sizes"].append(c)
     hyper_params["end_epsilon"] = trial.suggest_uniform("end_epsilon", 0.0, 0.3)
     # note that the maximum training step size = 4e5
