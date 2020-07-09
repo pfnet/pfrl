@@ -1,7 +1,6 @@
 import torch.multiprocessing as mp
 import os
 import tempfile
-import unittest
 from unittest import mock
 import time
 
@@ -13,7 +12,8 @@ from pfrl.experiments.train_agent_async import train_loop
 
 @pytest.mark.parametrize("num_envs", [1, 2])
 @pytest.mark.parametrize("max_episode_len", [None, 2])
-def test_train_agent_async(num_envs, max_episode_len):
+@pytest.mark.parametrize("collect_statistics", [True, False])
+def test_train_agent_async(num_envs, max_episode_len, collect_statistics):
 
     steps = 50
 
@@ -96,12 +96,16 @@ def test_train_agent_async(num_envs, max_episode_len):
             outdir=outdir,
             max_episode_len=max_episode_len,
             global_step_hooks=[hook_locked],
+            collect_statistics=collect_statistics,
         )
 
     assert ret_agent is agent
-    assert 1 <= len(statistics) <= n_resets_max
-    for stats in statistics:
-        assert stats == dict(dummy_stats)
+    if collect_statistics:
+        assert 1 <= len(statistics) <= n_resets_max
+        for stats in statistics:
+            assert stats == dict(dummy_stats)
+    else:
+        assert statistics is None
 
     if num_envs == 1:
         assert agent.act.call_count == steps
@@ -138,70 +142,73 @@ def test_train_agent_async(num_envs, max_episode_len):
     agent.save.assert_called_once_with(os.path.join(outdir, "{}_finish".format(steps)))
 
 
-class TestTrainLoop(unittest.TestCase):
-    def test_needs_reset(self):
+@pytest.mark.parametrize("collect_statistics", [True, False])
+def test_needs_reset(collect_statistics):
+    outdir = tempfile.mkdtemp()
 
-        outdir = tempfile.mkdtemp()
+    agent = mock.Mock()
+    env = mock.Mock()
+    # First episode: 0 -> 1 -> 2 -> 3 (reset)
+    # Second episode: 4 -> 5 -> 6 -> 7 (done)
+    env.reset.side_effect = [("state", 0), ("state", 4)]
+    env.step.side_effect = [
+        (("state", 1), 0, False, {}),
+        (("state", 2), 0, False, {}),
+        (("state", 3), 0, False, {"needs_reset": True}),
+        (("state", 5), -0.5, False, {}),
+        (("state", 6), 0, False, {}),
+        (("state", 7), 1, True, {}),
+    ]
 
-        agent = mock.Mock()
-        env = mock.Mock()
-        # First episode: 0 -> 1 -> 2 -> 3 (reset)
-        # Second episode: 4 -> 5 -> 6 -> 7 (done)
-        env.reset.side_effect = [("state", 0), ("state", 4)]
-        env.step.side_effect = [
-            (("state", 1), 0, False, {}),
-            (("state", 2), 0, False, {}),
-            (("state", 3), 0, False, {"needs_reset": True}),
-            (("state", 5), -0.5, False, {}),
-            (("state", 6), 0, False, {}),
-            (("state", 7), 1, True, {}),
-        ]
+    dummy_stats = [
+        ("average_q", 3.14),
+        ("average_loss", 2.7),
+        ("cumulative_steps", 42),
+        ("n_updates", 8),
+        ("rlen", 1),
+    ]
+    n_resets = 2  # Statistics will be collected when episodes end.
+    agent.get_statistics.side_effect = [dummy_stats] * n_resets
 
-        dummy_stats = [
-            ("average_q", 3.14),
-            ("average_loss", 2.7),
-            ("cumulative_steps", 42),
-            ("n_updates", 8),
-            ("rlen", 1),
-        ]
-        n_resets = 2  # Statistics will be collected when episodes end.
-        agent.get_statistics.side_effect = [dummy_stats] * n_resets
-
-        counter = mp.Value("i", 0)
-        episodes_counter = mp.Value("i", 0)
-        stop_event = mp.Event()
-        exception_event = mp.Event()
-        process0_end_event = mp.Event()
+    counter = mp.Value("i", 0)
+    episodes_counter = mp.Value("i", 0)
+    stop_event = mp.Event()
+    exception_event = mp.Event()
+    process0_end_event = mp.Event()
+    if collect_statistics:
         statistics_queue = mp.Queue()
-        train_loop(
-            process_idx=0,
-            env=env,
-            agent=agent,
-            steps=5,
-            outdir=outdir,
-            counter=counter,
-            episodes_counter=episodes_counter,
-            stop_event=stop_event,
-            exception_event=exception_event,
-            process0_end_event=process0_end_event,
-            statistics_queue=statistics_queue,
-        )
+    else:
+        statistics_queue = None
+    train_loop(
+        process_idx=0,
+        env=env,
+        agent=agent,
+        steps=5,
+        outdir=outdir,
+        counter=counter,
+        episodes_counter=episodes_counter,
+        stop_event=stop_event,
+        exception_event=exception_event,
+        process0_end_event=process0_end_event,
+        statistics_queue=statistics_queue,
+    )
 
-        # wait small amount of time to avoid missing last queue ite in some edge cases
+    if collect_statistics:
+        # wait small amount of time to avoid missing last queue item in some edge cases
         time.sleep(0.5)
         process0_end_event.wait()
-        self.assertEqual(agent.get_statistics.call_count, n_resets)
+        assert agent.get_statistics.call_count == n_resets
         statistics = []
         while not statistics_queue.empty():
             statistics.append(statistics_queue.get())
-        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_resets)])
+        assert statistics == [dict(dummy_stats) for _ in range(n_resets)]
 
-        self.assertEqual(agent.act.call_count, 5)
-        self.assertEqual(agent.observe.call_count, 5)
-        self.assertEqual(agent.observe.call_count, 5)
-        # done=False and reset=True at state 3
-        self.assertFalse(agent.observe.call_args_list[2][0][2])
-        self.assertTrue(agent.observe.call_args_list[2][0][3])
+    assert agent.act.call_count == 5
+    assert agent.observe.call_count == 5
+    assert agent.observe.call_count == 5
+    # done=False and reset=True at state 3
+    assert agent.observe.call_args_list[2][0][2] is False
+    assert agent.observe.call_args_list[2][0][3]
 
-        self.assertEqual(env.reset.call_count, 2)
-        self.assertEqual(env.step.call_count, 5)
+    assert env.reset.call_count == 2
+    assert env.step.call_count == 5

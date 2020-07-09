@@ -49,6 +49,11 @@ def train_loop(
 
     logger = logger or logging.getLogger(__name__)
 
+    if statistics_queue is not None:
+        warnings.warn(
+            "Statistics collection from async training is an experimental feature."
+        )
+
     if eval_env is None:
         eval_env = env
 
@@ -187,6 +192,7 @@ def train_agent_async(
     random_seeds=None,
     stop_event=None,
     exception_event=None,
+    collect_statistics=False,
 ):
     """Train agent asynchronously using multiprocessing.
 
@@ -225,10 +231,13 @@ def train_agent_async(
             other thread raised an excpetion. The train will be terminated and
             the current agent will be saved.
             If set to None, a new Event object is created and used internally.
+        collect_statistics (bool): I set to True, statistics from
+            process_idx==0 will be returned.
 
     Returns:
         agent: Trained agent.
-        statistics: List of episode-wise stats dict, collected on process_idx==0.
+        statistics: (None if collect_statistics is not set) List of
+            episode-wise stats dict, collected on process_idx==0.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -238,7 +247,10 @@ def train_agent_async(
 
     counter = mp.Value("l", 0)
     episodes_counter = mp.Value("l", 0)
-    statistics_queue = mp.Queue()
+    if collect_statistics:
+        statistics_queue = mp.Queue()
+    else:
+        statistics_queue = None
     process0_end_event = mp.Event()
 
     if stop_event is None:
@@ -336,19 +348,22 @@ def train_agent_async(
 
     stop_event.set()
 
-    # wait small amount of time to avoid missing last queue ite in some edge cases
-    time.sleep(0.5)
-    statistics = []
-    wait_tolerance_sec = 3.0
-    # wait process_idx==0
-    if not process0_end_event.wait(wait_tolerance_sec):
-        warnings.warn(
-            "The evaluation process (process_idx==0) did not set end_event properly "
-            "(tolerance: {} sec). It might exit unexpectedly.".format(
-                wait_tolerance_sec
+    if collect_statistics:
+        # wait small amount of time to avoid missing last queue ite in some edge cases
+        time.sleep(0.5)
+        statistics = []
+        wait_tolerance_sec = 3.0
+        # wait process_idx==0
+        if not process0_end_event.wait(wait_tolerance_sec):
+            warnings.warn(
+                "The evaluation process (process_idx==0) did not set end_event "
+                "properly (tolerance: {} sec). It might exit unexpectedly.".format(
+                    wait_tolerance_sec
+                )
             )
-        )
-    while not statistics_queue.empty():
-        statistics.append(statistics_queue.get())
+        while not statistics_queue.empty():
+            statistics.append(statistics_queue.get())
+    else:
+        statistics = None
 
     return agent, statistics
