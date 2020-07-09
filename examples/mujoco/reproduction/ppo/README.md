@@ -24,7 +24,7 @@ python train_ppo.py [options]
 - `--seed`. This option specifies the random seed used.
 - `--outdir` This option specifies the output directory to which the results are written.
 - `--demo`. Runs an evaluation, instead of training the agent.
-- (Currently unsupported) `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
+- `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
 
 To view the full list of options, either view the code or run the example with the `--help` option.
 

@@ -24,7 +24,7 @@ python train_soft_actor_critic.py [options]
 - `--outdir` This option specifies the output directory to which the results are written.
 - `--demo`. Runs an evaluation, instead of training the agent.
 - `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
-- (Currently unsupported) `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
+- `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
 
 To view the full list of options, either view the code or run the example with the `--help` option.
 
