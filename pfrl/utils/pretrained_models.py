@@ -22,7 +22,7 @@ MODELS = {
     "DQN": ["best", "final"],
     "IQN": ["best", "final"],
     "Rainbow": ["best", "final"],
-    "A3C": ["final", "best"],
+    "A3C": ["best", "final"],
     "DDPG": ["best", "final"],
     "TRPO": ["best", "final"],
     "PPO": ["final"],
