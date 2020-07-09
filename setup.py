@@ -7,6 +7,7 @@ install_requires = [
     'gym>=0.9.7',
     'numpy>=1.10.4',
     'pillow',
+    'optuna',
 ]
 
 test_requires = [
