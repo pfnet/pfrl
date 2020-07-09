@@ -161,7 +161,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         recurrent=False,
     ):
         self.model = q_function
-        self.q_function = q_function  # For backward compatibility
 
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -215,8 +214,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.last_action = None
         self.target_model = None
         self.sync_target_network()
-        # For backward compatibility
-        self.target_q_function = self.target_model
 
         # Statistics
         self.q_record = collections.deque(maxlen=1000)
@@ -237,7 +234,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
     @property
     def cumulative_steps(self):
         # cumulative_steps counts the overall steps during the training.
-        # This property is only effective and correct in actor-learner mode.
         return self._cumulative_steps
 
     def _setup_actor_learner_training(self, n_actors, actor_update_interval):
@@ -455,6 +451,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
 
         for i in range(len(batch_obs)):
             self.t += 1
+            self._cumulative_steps += 1
             # Update the target network
             if self.t % self.target_update_interval == 0:
                 self.sync_target_network()

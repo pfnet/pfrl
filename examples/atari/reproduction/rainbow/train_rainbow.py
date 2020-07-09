@@ -36,7 +36,6 @@ def main():
         "--pretrained-type", type=str, default="best", choices=["best", "final"]
     )
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--use-sdl", action="store_true", default=False)
     parser.add_argument("--eval-epsilon", type=float, default=0.0)
     parser.add_argument("--noisy-net-sigma", type=float, default=0.5)
     parser.add_argument("--steps", type=int, default=5 * 10 ** 7)

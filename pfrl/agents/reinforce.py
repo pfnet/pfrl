@@ -39,7 +39,7 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
         logger (logging.Logger): Logger to be used.
     """
 
-    saved_attributes = ["model", "optimizer"]
+    saved_attributes = ("model", "optimizer")
 
     def __init__(
         self,
