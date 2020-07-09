@@ -173,7 +173,7 @@ def suggest(trial):
     hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
     # Adam's default eps==1e-8 but larger eps oftens helps.
     # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
-    hyper_params["adam_eps"] = trial.suggest_uniform("adam_eps", 1e-8, 1e-3)
+    hyper_params["adam_eps"] = trial.suggest_loguniform("adam_eps", 1e-8, 1e-3)
     inv_gamma = trial.suggest_loguniform("inv_gamma", 1e-3, 1e-1)
     hyper_params["gamma"] = 1 - inv_gamma
     # decaying epsilon without training does not make much sense.
