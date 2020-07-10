@@ -3,7 +3,7 @@
 An example script of training a DQN agent with
 [Optuna](https://optuna.org/)-powered hyper-parameters tuning.
 
-For keep simplicity of this script, the target environment must have:
+To keep this script simple, the target environment (``--env``) must have:
  - 1d continuous observation space
  - discrete action space
 The default arguments are set to LunarLander-v2 environment.
@@ -206,9 +206,16 @@ def suggest(trial, steps):
     hyper_params["adam_eps"] = trial.suggest_loguniform("adam_eps", 1e-8, 1e-3)
     inv_gamma = trial.suggest_loguniform("inv_gamma", 1e-3, 1e-1)
     hyper_params["gamma"] = 1 - inv_gamma
-    # decaying epsilon without training does not make much sense.
+
+    rbuf_capacity = steps
+    min_replay_start_size = min(1e3, rbuf_capacity)
+    # min: Replay start size cannot exceed replay buffer capacity.
+    # max: decaying epsilon without training does not make much sense.
+    max_replay_start_size = min(
+        max(1e3, hyper_params["decay_steps"] // 2), rbuf_capacity
+    )
     hyper_params["replay_start_size"] = trial.suggest_int(
-        "replay_start_size", 1e3, max(1e3, hyper_params["decay_steps"] // 2),
+        "replay_start_size", min_replay_start_size, max_replay_start_size,
     )
     # target_update_interval should be a multiple of update_interval
     hyper_params["update_interval"] = trial.suggest_int("update_interval", 1, 8)
