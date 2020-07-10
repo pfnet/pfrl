@@ -23,13 +23,11 @@ from pfrl import replay_buffers
 from pfrl.nn.mlp import MLP
 
 
-ENV_ID = "LunarLander-v2"
-
-
 def _objective_core(
     # optuna parameters
     trial,
     # training parameters
+    env_id,
     outdir,
     seed,
     monitor,
@@ -50,7 +48,27 @@ def _objective_core(
     test_seed = 2 ** 31 - 1 - seed
 
     def make_env(test=False):
-        env = gym.make(ENV_ID)
+        env = gym.make(env_id)
+
+        if not isinstance(env.observation_space, gym.spaces.Box):
+            raise ValueError(
+                "Supported only Box observation environments, but given: {}".format(
+                    env.observation_space
+                )
+            )
+        if len(env.observation_space.shape) != 1:
+            raise ValueError(
+                "Supported only observation spaces with ndim==1, but given: {}".format(
+                    env.observation_space.shape
+                )
+            )
+        if not isinstance(env.action_space, gym.spaces.Discrete):
+            raise ValueError(
+                "Supported only discrete action environments, but given: {}".format(
+                    env.action_space
+                )
+            )
+
         env_seed = test_seed if test else train_seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
@@ -228,6 +246,12 @@ def main():
 
     # training parameters
     parser.add_argument(
+        "--env",
+        type=str,
+        default="LunarLander-v2",
+        help="OpenAI Gym Environment ID.",
+    )
+    parser.add_argument(
         "--outdir",
         type=str,
         default="results",
@@ -302,6 +326,7 @@ def main():
             # optuna parameters
             trial=trial,
             # training parameters
+            env_id=args.env,
             outdir=outdir,
             seed=seed,
             monitor=args.monitor,
