@@ -272,10 +272,7 @@ def main():
         help="Frequency (in timesteps) of evaluation phase.",
     )
     parser.add_argument(
-        "--batch-size",
-        type=int,
-        default=64,
-        help="Training batch size.",
+        "--batch-size", type=int, default=64, help="Training batch size.",
     )
 
     args = parser.parse_args()
