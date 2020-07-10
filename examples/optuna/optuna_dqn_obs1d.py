@@ -251,10 +251,7 @@ def main():
 
     # training parameters
     parser.add_argument(
-        "--env",
-        type=str,
-        default="LunarLander-v2",
-        help="OpenAI Gym Environment ID.",
+        "--env", type=str, default="LunarLander-v2", help="OpenAI Gym Environment ID.",
     )
     parser.add_argument(
         "--outdir",
