@@ -22,27 +22,24 @@ from pfrl import q_functions
 from pfrl import replay_buffers
 from pfrl.nn.mlp import MLP
 
-# meta parameters
+
 ENV_ID = "LunarLander-v2"
-
-TRAIN_MAX_EPISODE_LEN = 1000
-STEPS = 400 * TRAIN_MAX_EPISODE_LEN
-EVAL_N_EPISODES = 10
-N_EVAL_TIMES = 10  # evaluate N_EVAL_TIMES times during the training
-EVAL_INTERVAL = STEPS // N_EVAL_TIMES
-
-BATCH_SIZE = 64
-START_EPSILON = 1
-RBUF_CAPACITY = STEPS
 
 
 def _objective_core(
+    # optuna parameters
     trial,
-    # meta parameters
+    # training parameters
     outdir,
     seed,
     monitor,
     gpu,
+    steps,
+    train_max_episode_len,
+    eval_n_episodes,
+    eval_interval,
+    batch_size,
+    # hyper parameters
     hyper_params,
 ):
     # Set a random seed used in PFRL
@@ -79,8 +76,9 @@ def _objective_core(
     q_func = q_functions.SingleModelStateQFunctionWithDiscreteAction(model=model)
 
     # Use epsilon-greedy for exploration
+    start_epsilon = 1
     explorer = explorers.LinearDecayEpsilonGreedy(
-        start_epsilon=START_EPSILON,
+        start_epsilon=start_epsilon,
         end_epsilon=hyper_params["end_epsilon"],
         decay_steps=hyper_params["decay_steps"],
         random_action_func=action_space.sample,
@@ -90,7 +88,8 @@ def _objective_core(
         q_func.parameters(), lr=hyper_params["lr"], eps=hyper_params["adam_eps"]
     )
 
-    rbuf = replay_buffers.ReplayBuffer(RBUF_CAPACITY)
+    rbuf_capacity = steps
+    rbuf = replay_buffers.ReplayBuffer(rbuf_capacity)
 
     agent = DQN(
         q_func,
@@ -102,7 +101,7 @@ def _objective_core(
         replay_start_size=hyper_params["replay_start_size"],
         target_update_interval=hyper_params["target_update_interval"],
         update_interval=hyper_params["update_interval"],
-        minibatch_size=BATCH_SIZE,
+        minibatch_size=batch_size,
     )
 
     eval_env = make_env(test=True)
@@ -110,13 +109,13 @@ def _objective_core(
     _, statistics = experiments.train_agent_with_evaluation(
         agent=agent,
         env=env,
-        steps=STEPS,
+        steps=steps,
         eval_n_steps=None,
-        eval_n_episodes=EVAL_N_EPISODES,
-        eval_interval=EVAL_INTERVAL,
+        eval_n_episodes=eval_n_episodes,
+        eval_interval=eval_interval,
         outdir=outdir,
         eval_env=eval_env,
-        train_max_episode_len=TRAIN_MAX_EPISODE_LEN,
+        train_max_episode_len=train_max_episode_len,
     )
 
     score = _get_score_from_statistics(statistics)
@@ -155,7 +154,7 @@ def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
     return final_score
 
 
-def suggest(trial):
+def suggest(trial, steps):
     hyper_params = {}
 
     hyper_params["reward_scale_factor"] = trial.suggest_loguniform(
@@ -173,8 +172,8 @@ def suggest(trial):
         c = round(c)
         hyper_params["hidden_sizes"].append(c)
     hyper_params["end_epsilon"] = trial.suggest_uniform("end_epsilon", 0.0, 0.3)
-    # note that the maximum training step size = 4e5
-    hyper_params["decay_steps"] = trial.suggest_int("decay_steps", 1e3, 3e5)
+    max_decay_steps = steps // 2
+    hyper_params["decay_steps"] = trial.suggest_int("decay_steps", 1e3, max_decay_steps)
     hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
     # Adam's default eps==1e-8 but larger eps oftens helps.
     # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
@@ -224,7 +223,7 @@ def main():
         ),
     )
 
-    # PFRL related args
+    # training parameters
     parser.add_argument(
         "--outdir",
         type=str,
@@ -238,15 +237,45 @@ def main():
         "--seed", type=int, default=0, help="Random seed for randomizer.",
     )
     parser.add_argument(
-        "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
-    )
-    parser.add_argument(
         "--monitor",
         action="store_true",
         default=False,
         help=(
             "Monitor env. Videos and additional information are saved as output files."
         ),
+    )
+    parser.add_argument(
+        "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
+    )
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=4 * 10 ** 5,
+        help="Total number of timesteps to train the agent for each trial",
+    )
+    parser.add_argument(
+        "--train-max-episode-len",
+        type=int,
+        default=1000,
+        help="Maximum episode length during training.",
+    )
+    parser.add_argument(
+        "--eval-n-episodes",
+        type=int,
+        default=10,
+        help="Number of episodes at each evaluation phase.",
+    )
+    parser.add_argument(
+        "--eval-interval",
+        type=int,
+        default=4 * 10 ** 4,
+        help="Frequency (in timesteps) of evaluation phase.",
+    )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Training batch size.",
     )
 
     args = parser.parse_args()
@@ -260,7 +289,7 @@ def main():
 
     def objective(trial):
         # suggest parameters from Optuna
-        hyper_params = suggest(trial)
+        hyper_params = suggest(trial, args.steps)
 
         # seed is generated for each objective
         seed = randomizer.randint(0, 2 ** 31 - 1)
@@ -270,12 +299,19 @@ def main():
         print("Output files are saved in {}".format(outdir))
 
         return _objective_core(
-            trial,
-            # meta parameters
+            # optuna parameters
+            trial=trial,
+            # training parameters
             outdir=outdir,
             seed=seed,
             monitor=args.monitor,
             gpu=args.gpu,
+            steps=args.steps,
+            train_max_episode_len=args.train_max_episode_len,
+            eval_n_episodes=args.eval_n_episodes,
+            eval_interval=args.eval_interval,
+            batch_size=args.batch_size,
+            # hyper parameters
             hyper_params=hyper_params,
         )
 
