@@ -173,7 +173,10 @@ def suggest(trial, steps):
         hyper_params["hidden_sizes"].append(c)
     hyper_params["end_epsilon"] = trial.suggest_uniform("end_epsilon", 0.0, 0.3)
     max_decay_steps = steps // 2
-    hyper_params["decay_steps"] = trial.suggest_int("decay_steps", 1e3, max_decay_steps)
+    min_decay_steps = min(1e3, max_decay_steps)
+    hyper_params["decay_steps"] = trial.suggest_int(
+        "decay_steps", min_decay_steps, max_decay_steps
+    )
     hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
     # Adam's default eps==1e-8 but larger eps oftens helps.
     # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
