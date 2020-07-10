@@ -2,7 +2,8 @@
 
 Tune hyper parameters using [Optuna](https://optuna.org/).
 
-Although the example script (`optuna_dqn_lunarlander.py`) uses fixed target algorithm/environment
+Although the example script (`optuna_dqn_obs1d.py`) uses fixed target algorithm/environment
+(i.e., DQN and environments with 1d continuous observation space and discrete action space)
 in order to fucus on the concept of Optuna-powered PFRL,
 you can create one for your own use easily thanks to the Optuna's high flexibility!
 
@@ -21,7 +22,7 @@ study="optuna-pfrl-quickstart"
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # Start tuning hyper parameters
-python optuna_dqn_lunarlander.py --optuna-study-name "${study}" --optuna-storage "${storage}"
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}"
 ```
 
 You can see the dashboard (experimental):
@@ -55,8 +56,8 @@ study="optuna-pfrl-distributed"
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # You can run two processes parallelly (If your computation resource allows!)
-python optuna_dqn_lunarlander.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
-python optuna_dqn_lunarlander.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
 ```
 
 ```bash
@@ -71,5 +72,5 @@ postgres_database"database"
 storage="postgresql://${postgres_user}:${postgres_password}@${postgres_host}/${postgres_database}"
 study="optuna-pfrl-distributed"
 
-python optuna_dqn_lunarlander.py --optuna-study-name "${study}" --optuna-storage "${storage}"
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}"
 ```

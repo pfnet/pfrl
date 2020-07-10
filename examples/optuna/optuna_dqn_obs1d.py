@@ -1,7 +1,12 @@
 """An example of training DQN, with Optuna-powered hyper-parameters tuning.
 
-An example script of training a DQN agent against the LunarLander-v2 environment,
-with [Optuna](https://optuna.org/)-powered hyper-parameters tuning.
+An example script of training a DQN agent with
+[Optuna](https://optuna.org/)-powered hyper-parameters tuning.
+
+For keep simplicity of this script, the target environment must have:
+ - 1d continuous observation space
+ - discrete action space
+The default arguments are set to LunarLander-v2 environment.
 """
 
 import logging
