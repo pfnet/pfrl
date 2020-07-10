@@ -140,8 +140,7 @@ def download_and_store_model(alg, url, env, model_type):
             _get_model_directory(os.path.join('.lock')),
                                  'models.lock')
     with filelock.FileLock(lock):
-        root = _get_model_directory(os.path.join('models',
-                                                 alg, env))
+        root = _get_model_directory(os.path.join(alg, env))
         url_basepath = os.path.join(url, alg, env)
         file = model_type + ".zip"
         path = os.path.join(root, file)
