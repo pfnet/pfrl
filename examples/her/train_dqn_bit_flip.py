@@ -49,17 +49,17 @@ class BitFlip(gym.GoalEnv):
         return self.observation, reward, done, {}
 
     def reset(self):
-        state = self.observation_space['desired_goal'].sample()
-        goal = self.observation_space['desired_goal'].sample()
+        sample_obs = self.observation_space.sample()
+        state, goal = sample_obs['observation'], sample_obs['desired_goal']
         while (state == goal).all():
-            goal = self.observation_space['desired_goal'].sample()
+            sample_obs = self.observation_space.sample()
+            state, goal = sample_obs['observation'], sample_obs['desired_goal']
         self.observation = dict()
         self.observation["desired_goal"] = goal
         self.observation["achieved_goal"] = state
         self.observation["observation"] = state
         self.steps = 0
         return self.observation
-
 
 
 def main():
