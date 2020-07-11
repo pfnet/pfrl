@@ -88,7 +88,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=5 * 10 ** 7,
+        default=10 ** 7,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
