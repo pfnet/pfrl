@@ -26,7 +26,7 @@ class HindsightReplayStrategy():
     def __init__(self, reward_fn):
         self.reward_fn = reward_fn
 
-    def apply(self, episodes):
+    def apply(self, episodes,  reward_fn, swap_keys_list):
         return episodes
 
 class ReplayFinalGoal(HindsightReplayStrategy):
@@ -37,7 +37,7 @@ class ReplayFinalGoal(HindsightReplayStrategy):
         self.ignore_null_goals = ignore_null_goals
         self.is_null_goal = is_null_goal  
 
-    def apply(self, episodes, reward_fn):
+    def apply(self, episodes, reward_fn, swap_keys_list):
         batch_size = len(episodes)
         episode_lens = np.array([len(episode) for episode in episodes])
 
@@ -68,17 +68,14 @@ class ReplayFutureGoal(HindsightReplayStrategy):
         Args:
             ignore_null_goals (bool): no replace with goal when nothing achieved
             future_k (int): number of future goals to sample per true sample
-            swap_list (list): a list of tuples of keys to swap in the
-                observation. E.g. [(("desired_x", "achieved_x"))] This is used
-                to replace a transition's "desired_x" with a goal transition's
-                "achieved_x"
     """
 
-    def __init__(self, ignore_null_goals=True, is_null_goal=None):
+    def __init__(self, ignore_null_goals=True, is_null_goal=None, future_k=4):
         self.ignore_null_goals = ignore_null_goals
         self.is_null_goal = is_null_goal
+        self.future_prob = 1.0 - 1.0 / (float(future_k) + 1)
 
-    def apply(self, episodes, reward_fn):
+    def apply(self, episodes, reward_fn, swap_keys_list):
         """Sample with the future strategy
         """
         batch_size = len(episodes)
@@ -122,7 +119,6 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
         reward_fn(fn): Calculate reward from achieved & observed goals
         replay_strategy: instance of HindsightReplayStrategy()
         capacity (int): Capacity of the replay buffer
-        future_k (int): number of future goals to sample per true sample
         swap_list (list): a list of tuples of keys to swap in the
             observation. E.g. [(("desired_x", "achieved_x"))] This is used
             to replace a transition's "desired_x" with a goal transition's
@@ -137,7 +133,7 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
                  future_k=0,
                  swap_list=[('desired_goal', 'achieved_goal')]):
 
-        assert replay_strategy in ["future", "final", "none"]
+        assert replay_strategy is not None
         if ignore_null_goals:
             assert is_null_goal is not None, "is_null_goal to detect when no\
                 goal was reached is required when ignore_null_goals=True"
@@ -149,7 +145,6 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
 
         super(HindsightReplayBuffer, self).__init__(capacity)
         # probability of sampling a future goal instead of a true goal
-        self.future_prob = 1.0 - 1.0 / (float(future_k) + 1)
 
 
     def sample(self, n):
@@ -160,13 +155,6 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
         batch = self.replay_strategy.apply(episodes,
                                            self.reward_fn,
                                            self.swap_keys_list)
-        if self.replay_strategy == "future":
-            batch = self._replay_future(episodes)
-        elif self.replay_strategy == "final":
-            batch = self._replay_final(episodes)
-        else:
-            raise NotImplementedError()
-
         return batch
 
     def sample_episodes(self, n_episodes, max_len=None):

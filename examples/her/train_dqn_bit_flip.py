@@ -103,6 +103,7 @@ def main():
         default=10,
         help="Number of bits for BitFlipping environment",
     )
+    parser.add_argument("--use-hindsight", type=bool, default=True)
     parser.add_argument("--eval-n-steps", type=int, default=125000)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument("--n-best-episodes", type=int, default=30)
@@ -150,7 +151,17 @@ def main():
         centered=True,
     )
 
-    rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+    def reward_fn(dg, ag):
+        return -1.0 if (ag != dg).any() else 0.0
+
+    if args.use_hindsight:
+        rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
+            reward_fn=reward_fn,
+            replay_strategy=replay_buffers.hindsight.ReplayFutureGoal(),
+            capacity=10 ** 6
+            )
+    else:
+        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         start_epsilon=1.0,
