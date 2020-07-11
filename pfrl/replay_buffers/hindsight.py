@@ -2,11 +2,11 @@ import copy
 
 import numpy as np
 
-from pfrl.replay_buffer import EpisodicReplayBuffer
+from pfrl.replay_buffers.episodic import EpisodicReplayBuffer
 from pfrl.replay_buffer import random_subseq
 
 
-def relabel_transition_goal(self, transition, goal_transition,
+def relabel_transition_goal(transition, goal_transition,
                             reward_fn, swap_keys_list):
     # Relabel/replace the desired goal for the transition with new_goal
     for desired_obs_key, achieved_obs_key in swap_keys_list:
@@ -33,10 +33,6 @@ class ReplayFinalGoal(HindsightReplayStrategy):
     """Replay final goal.
     """
 
-    def __init__(self, ignore_null_goals=True, is_null_goal=None):
-        self.ignore_null_goals = ignore_null_goals
-        self.is_null_goal = is_null_goal  
-
     def apply(self, episodes, reward_fn, swap_keys_list):
         batch_size = len(episodes)
         episode_lens = np.array([len(episode) for episode in episodes])
@@ -54,11 +50,9 @@ class ReplayFinalGoal(HindsightReplayStrategy):
             if apply_her:
                 final_transition = episode[-1]
                 final_goal = final_transition["next_state"]["achieved_goal"]
-                if not (self.ignore_null_goals and
-                        self.is_null_goal(final_goal)):
-                    transition = copy.deepcopy(transition)
-                    transition = relabel_transition_goal(
-                        transition, final_transition, reward_fn, swap_keys_list)
+                transition = copy.deepcopy(transition)
+                transition = relabel_transition_goal(
+                    transition, final_transition, reward_fn, swap_keys_list)
             batch.append([transition])
         return batch
 
@@ -70,9 +64,7 @@ class ReplayFutureGoal(HindsightReplayStrategy):
             future_k (int): number of future goals to sample per true sample
     """
 
-    def __init__(self, ignore_null_goals=True, is_null_goal=None, future_k=4):
-        self.ignore_null_goals = ignore_null_goals
-        self.is_null_goal = is_null_goal
+    def __init__(self, future_k=4):
         self.future_prob = 1.0 - 1.0 / (float(future_k) + 1)
 
     def apply(self, episodes, reward_fn, swap_keys_list):
@@ -101,11 +93,9 @@ class ReplayFutureGoal(HindsightReplayStrategy):
             if apply_her:
                 future_transition = episode[future_t]
                 future_goal = future_transition["next_state"]["achieved_goal"]
-                if not (self.ignore_null_goals and
-                        self.is_null_goal(future_goal)):
-                    transition = copy.deepcopy(transition)
-                    transition = relabel_transition_goal(
-                        transition, future_transition, reward_fn, swap_keys_list)
+                transition = copy.deepcopy(transition)
+                transition = relabel_transition_goal(
+                    transition, future_transition, reward_fn, swap_keys_list)
             batch.append([transition])
         return batch
 
@@ -134,9 +124,6 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
                  swap_list=[('desired_goal', 'achieved_goal')]):
 
         assert replay_strategy is not None
-        if ignore_null_goals:
-            assert is_null_goal is not None, "is_null_goal to detect when no\
-                goal was reached is required when ignore_null_goals=True"
         self.reward_fn = reward_fn
         self.replay_strategy = replay_strategy
         self.is_null_goal = is_null_goal
