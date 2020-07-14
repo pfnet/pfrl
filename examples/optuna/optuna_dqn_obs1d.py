@@ -304,7 +304,7 @@ def main():
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=4 * 10 ** 4,
+        default=10 ** 4,
         help="Frequency (in timesteps) of evaluation phase.",
     )
     parser.add_argument(
