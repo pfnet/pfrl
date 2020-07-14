@@ -408,6 +408,9 @@ class Evaluator(object):
             column_names = _basic_columns + custom_columns
             print("\t".join(column_names), file=f)
 
+        if use_tensorboard:
+            self.tb_writer = create_tb_writer(outdir)
+
     def _evaluate_and_update_max_score(self, t, episodes):
         eval_stats = eval_performance(
             self.env,
