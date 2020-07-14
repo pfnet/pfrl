@@ -180,31 +180,32 @@ def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
 def suggest(trial, steps):
     hyper_params = {}
 
-    hyper_params["reward_scale_factor"] = trial.suggest_loguniform(
-        "reward_scale_factor", 1e-5, 10
+    hyper_params["reward_scale_factor"] = trial.suggest_float(
+        "reward_scale_factor", 1e-5, 10, log=True
     )
     n_hidden_layers = trial.suggest_int("n_hidden_layers", 1, 3)  # hyper-hyper-param
     hyper_params["hidden_sizes"] = []
     for l in range(n_hidden_layers):
         # If n_channels is a large value, the precise number doesn't matter.
         # In other words, we should search over the smaller values more precisely.
-        c = trial.suggest_loguniform(
-            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l), 10, 200
+        c = trial.suggest_int(
+            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l),
+            10,
+            200,
+            log=True,
         )
-        # But n_channels must be an integer.
-        c = round(c)
         hyper_params["hidden_sizes"].append(c)
-    hyper_params["end_epsilon"] = trial.suggest_uniform("end_epsilon", 0.0, 0.3)
+    hyper_params["end_epsilon"] = trial.suggest_float("end_epsilon", 0.0, 0.3)
     max_decay_steps = steps // 2
     min_decay_steps = min(1e3, max_decay_steps)
     hyper_params["decay_steps"] = trial.suggest_int(
         "decay_steps", min_decay_steps, max_decay_steps
     )
-    hyper_params["lr"] = trial.suggest_loguniform("lr", 1e-4, 1e-2)
+    hyper_params["lr"] = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
     # Adam's default eps==1e-8 but larger eps oftens helps.
     # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
-    hyper_params["adam_eps"] = trial.suggest_loguniform("adam_eps", 1e-8, 1e-3)
-    inv_gamma = trial.suggest_loguniform("inv_gamma", 1e-3, 1e-1)
+    hyper_params["adam_eps"] = trial.suggest_float("adam_eps", 1e-8, 1e-3, log=True)
+    inv_gamma = trial.suggest_float("inv_gamma", 1e-3, 1e-1, log=True)
     hyper_params["gamma"] = 1 - inv_gamma
 
     rbuf_capacity = steps
