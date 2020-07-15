@@ -1,10 +1,9 @@
-import functools
 import os
 
-import numpy as np
 import pytest
 
 import pfrl
+from pfrl import nn
 from pfrl import agents
 from pfrl.utils import download_model
 
@@ -18,6 +17,9 @@ class TestLoadA3C:
         self.pretrained_type = pretrained_type
 
     def _test_load_a3c(self, gpu):
+        from pfrl.policies import SoftmaxCategoricalHead
+        obs_size = 4
+        n_actions = 4 
         a3c_model = nn.Sequential(
             nn.Conv2d(obs_size, 16, 8, stride=4),
             nn.ReLU(),
@@ -34,7 +36,7 @@ class TestLoadA3C:
         from pfrl.optimizers import SharedRMSpropEpsInsideSqrt
 
         opt = SharedRMSpropEpsInsideSqrt(
-            model.parameters(), lr=7e-4, eps=1e-1, alpha=0.99
+            a3c_model.parameters(), lr=7e-4, eps=1e-1, alpha=0.99
         )
         agent = agents.A3C(
             a3c_model, opt, t_max=5, gamma=0.99, beta=1e-2, phi=lambda x: x
