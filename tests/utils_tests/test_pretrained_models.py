@@ -18,8 +18,9 @@ class TestLoadA3C:
 
     def _test_load_a3c(self, gpu):
         from pfrl.policies import SoftmaxCategoricalHead
+
         obs_size = 4
-        n_actions = 4 
+        n_actions = 4
         a3c_model = nn.Sequential(
             nn.Conv2d(obs_size, 16, 8, stride=4),
             nn.ReLU(),
