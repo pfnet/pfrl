@@ -358,9 +358,7 @@ def main():
             help="Setting percentile == 50.0 is equivalent to the MedianPruner.",
         )
         parser.add_argument(
-            "--n-startup-trials",
-            type=int,
-            default=5,
+            "--n-startup-trials", type=int, default=5,
         )
         parser.add_argument(
             "--n-warmup-steps",
@@ -416,8 +414,7 @@ def main():
         pruner = optuna.pruners.NopPruner()
     elif args.optuna_pruner == "ThresholdPruner":
         pruner = optuna.pruners.ThresholdPruner(
-            lower=args.lower,
-            n_warmup_steps=args.n_warmup_steps,
+            lower=args.lower, n_warmup_steps=args.n_warmup_steps,
         )
     elif args.optuna_pruner == "PercentilePruner":
         pruner = optuna.pruners.PercentilePruner(
@@ -442,7 +439,8 @@ def main():
         def __call__(self, study, trial):
             training_steps = sum(
                 trial.last_step
-                for trial in study.get_trials() if trial.last_step is not None
+                for trial in study.get_trials()
+                if trial.last_step is not None
             )
             if training_steps >= self.training_steps_budget:
                 study.stop()
