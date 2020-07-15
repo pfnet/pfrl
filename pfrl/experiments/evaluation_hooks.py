@@ -44,6 +44,7 @@ class OptunaPrunerHook(EvaluationHook):
             Note that you don't need to care about this exception since Optuna will
             catch `optuna.TrialPruned` and stop the trial properly.
     """
+
     def __init__(self, trial):
         self.trial = trial
 
