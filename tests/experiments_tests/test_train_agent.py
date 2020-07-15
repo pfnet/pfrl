@@ -173,7 +173,7 @@ class TestTrainAgent(unittest.TestCase):
             self.assertEqual(args[2], i + 1)
 
         # evaluation_hook receives (env, agent, evaluator, t, eval_score)
-        self.assertEqual(evaluation_hook.call_count, 1)
+        self.assertEqual(evaluation_hook.call_count, n_resets)
         args = evaluation_hook.call_args[0]
         self.assertIs(args[0], env)
         self.assertIs(args[1], agent)

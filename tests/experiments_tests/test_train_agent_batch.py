@@ -11,7 +11,8 @@ import pfrl
 @pytest.mark.parametrize("num_envs", [1, 2])
 @pytest.mark.parametrize("max_episode_len", [None, 2])
 @pytest.mark.parametrize("steps", [5, 6])
-def test_train_agent_batch(num_envs, max_episode_len, steps):
+@pytest.mark.parametrize("enable_evaluation_hook", [True, False])
+def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation_hook):
 
     outdir = tempfile.mkdtemp()
 
@@ -50,6 +51,20 @@ def test_train_agent_batch(num_envs, max_episode_len, steps):
     ]
     agent.get_statistics.side_effect = [dummy_stats] * n_logging
 
+    if enable_evaluation_hook:
+        evaluator = mock.Mock()
+        # evaluator will be called `ceil(steps / num_envs)` times,
+        # but it should return a valid score every eval_interval steps.
+        # Here we assume that eval_interval==steps.
+        # (i.e., return a valid evaluation score on the last call only)
+        n_evaluate_if_necessary_calls = math.ceil(steps / num_envs)
+        side_effect = [None] * (n_evaluate_if_necessary_calls - 1) + [42]
+        evaluator.evaluate_if_necessary.side_effect = side_effect
+        evaluation_hooks = [mock.Mock()]
+    else:
+        evaluator = None
+        evaluation_hooks = ()
+
     statistics = pfrl.experiments.train_agent_batch(
         agent=agent,
         env=vec_env,
@@ -58,9 +73,15 @@ def test_train_agent_batch(num_envs, max_episode_len, steps):
         max_episode_len=max_episode_len,
         log_interval=log_interval,
         step_hooks=[hook],
+        evaluator=evaluator,
+        evaluation_hooks=evaluation_hooks,
     )
 
-    assert statistics == [dict(dummy_stats) for _ in range(n_logging)]
+    expected_statistics = [dict(dummy_stats) for _ in range(n_logging)]
+    if enable_evaluation_hook:
+        expected_statistics[-1]["eval_score"] = 42
+
+    assert statistics == expected_statistics
 
     iters = math.ceil(steps / num_envs)
     assert agent.batch_act.call_count == iters
@@ -106,6 +127,26 @@ def test_train_agent_batch(num_envs, max_episode_len, steps):
         assert args[1] == agent
         # step starts with 1
         assert args[2] == i + 1
+
+    if enable_evaluation_hook:
+        assert (
+            evaluator.evaluate_if_necessary.call_count == n_evaluate_if_necessary_calls
+        )
+        # evaluation_hook receives (env, agent, evaluator, t, eval_score)
+        assert evaluation_hooks[0].call_count == 1
+        args = evaluation_hooks[0].call_args[0]
+        assert args[0] is vec_env
+        assert args[1] is agent
+        assert args[2] is evaluator
+        if steps % num_envs == 0:
+            t = steps
+        else:
+            # `t` is always multiple of `num_envs`.
+            # In this case `t` exceeds `steps`, since each env of `vec_env` will be
+            # executed simultaneously.
+            t = math.ceil(steps / num_envs) * num_envs
+        assert args[3] == t
+        assert args[4] == 42
 
 
 class TestTrainAgentBatchNeedsReset(unittest.TestCase):

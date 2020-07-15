@@ -21,6 +21,7 @@ def train_agent_batch(
     evaluator=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     return_window_size=100,
     logger=None,
 ):
@@ -30,7 +31,6 @@ def train_agent_batch(
         agent: Agent to train.
         env: Environment to train the agent against.
         steps (int): Number of total time steps for training.
-        eval_interval (int): Interval of evaluation.
         outdir (str): Path to the directory to output things.
         checkpoint_freq (int): frequency at which agents are stored.
         log_interval (int): Interval of logging.
@@ -43,6 +43,9 @@ def train_agent_batch(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Sequence of callable objects that accepts
+            (env, agent, evaluator, step, eval_score) as arguments. They are
+            called every evaluation. See pfrl.experiments.evaluation_hooks.
         logger (logging.Logger): Logger used in this function.
     Returns:
         List of stats dict, collected every log_interval steps.
@@ -132,6 +135,9 @@ def train_agent_batch(
                         # The priod of log_interval and evaluation is not synced.
                         # The eval_score may overwrite an existing record.
                         statistics[-1]["eval_score"] = eval_score
+
+                    for hook in evaluation_hooks:
+                        hook(env, agent, evaluator, t, eval_score)
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
@@ -177,6 +183,7 @@ def train_agent_batch_with_evaluation(
     log_interval=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     save_best_so_far_agent=True,
     logger=None,
 ):
@@ -204,6 +211,9 @@ def train_agent_batch_with_evaluation(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Sequence of callable objects that accepts
+            (env, agent, evaluator, step, eval_score) as arguments. They are
+            called every evaluation. See pfrl.experiments.evaluation_hooks.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
@@ -250,6 +260,7 @@ def train_agent_batch_with_evaluation(
         return_window_size=return_window_size,
         log_interval=log_interval,
         step_hooks=step_hooks,
+        evaluation_hooks=evaluation_hooks,
         logger=logger,
     )
 
