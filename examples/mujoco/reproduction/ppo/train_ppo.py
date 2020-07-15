@@ -212,8 +212,7 @@ def main():
         if args.load:
             agent.load(args.load)
         else:
-            agent.load(utils.download_model("PPO", args.env,
-                                            model_type="final")[0])
+            agent.load(utils.download_model("PPO", args.env, model_type="final")[0])
 
     if args.demo:
         env = make_batch_env(True)

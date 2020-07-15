@@ -32,8 +32,13 @@ class TestLoadA3C:
             ),
         )
         from pfrl.optimizers import SharedRMSpropEpsInsideSqrt
-        opt = SharedRMSpropEpsInsideSqrt(model.parameters(), lr=7e-4, eps=1e-1, alpha=0.99)
-        agent = agents.A3C(a3c_model, opt, t_max=5, gamma=0.99, beta=1e-2, phi=lambda x: x)
+
+        opt = SharedRMSpropEpsInsideSqrt(
+            model.parameters(), lr=7e-4, eps=1e-1, alpha=0.99
+        )
+        agent = agents.A3C(
+            a3c_model, opt, t_max=5, gamma=0.99, beta=1e-2, phi=lambda x: x
+        )
         downloaded_model, exists = download_model(
             "A3C", "BreakoutNoFrameskip-v4", model_type=self.pretrained_type
         )
@@ -47,6 +52,3 @@ class TestLoadA3C:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_a3c(gpu=0)
-
-
-
