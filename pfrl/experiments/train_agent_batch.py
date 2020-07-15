@@ -17,7 +17,6 @@ def train_agent_batch(
     checkpoint_freq=None,
     log_interval=None,
     max_episode_len=None,
-    eval_interval=None,
     step_offset=0,
     evaluator=None,
     successful_score=None,
