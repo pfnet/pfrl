@@ -50,7 +50,7 @@ main() {
   docker_image=pytorch/pytorch:1.5.1-cuda10.1-cudnn7-runtime
   docker_args+=(--env="SLOW=${SLOW:-0}")
 
-  for ZIP in a3c_results.zip dqn_results.zip iqn_results.zip rainbow_results.zip ddpg_results.zip trpo_results.zip ppo_results.zip td3_results.zip sac_results.zip
+  for ZIP in a3c_results.zip dqn_results.zip iqn_results.zip
   do
       gsutil cp gs://chainerrl-asia-pfn-public-ci/${ZIP} .
       mkdir -p ~/.pfrl/models/
