@@ -26,6 +26,7 @@ from pfrl import utils
 from pfrl import q_functions
 from pfrl import replay_buffers
 from pfrl.nn.mlp import MLP
+from pfrl.experiments.evaluation_hooks import OptunaPrunerHook
 
 
 def _objective_core(
@@ -129,6 +130,7 @@ def _objective_core(
 
     eval_env = make_env(test=True)
 
+    evaluation_hooks = [OptunaPrunerHook(trial=trial)]
     _, statistics = experiments.train_agent_with_evaluation(
         agent=agent,
         env=env,
@@ -139,6 +141,7 @@ def _objective_core(
         outdir=outdir,
         eval_env=eval_env,
         train_max_episode_len=train_max_episode_len,
+        evaluation_hooks=evaluation_hooks,
     )
 
     score = _get_score_from_statistics(statistics)
@@ -231,32 +234,6 @@ def suggest(trial, steps):
 def main():
     parser = argparse.ArgumentParser()
 
-    # Optuna related args
-    parser.add_argument(
-        "--optuna-study-name",
-        type=str,
-        default="dqn_lunarlander",
-        help="Name for Optuna Study.",
-    )
-    parser.add_argument(
-        "--optuna-storage",
-        type=str,
-        default="sqlite:///example.db",
-        help=(
-            "DB URL for Optuna Study. Be sure to create one beforehand: "
-            "optuna create-study --study-name <name> --storage <storage> --direction maximize"  # noqa
-        ),
-    )
-    parser.add_argument(
-        "--optuna-n-trials",
-        type=int,
-        default=100,
-        help=(  # noqa
-            "The number of trials for Optuna. See "
-            "https://optuna.readthedocs.io/en/stable/reference/study.html#optuna.study.Study.optimize"  # noqa
-        ),
-    )
-
     # training parameters
     parser.add_argument(
         "--env", type=str, default="LunarLander-v2", help="OpenAI Gym Environment ID.",
@@ -312,6 +289,88 @@ def main():
         "--batch-size", type=int, default=64, help="Training batch size.",
     )
 
+    # Optuna related args
+    parser.add_argument(
+        "--optuna-study-name",
+        type=str,
+        default="optuna-pfrl-quickstart",
+        help="Name for Optuna Study.",
+    )
+    parser.add_argument(
+        "--optuna-storage",
+        type=str,
+        default="sqlite:///example.db",
+        help=(
+            "DB URL for Optuna Study. Be sure to create one beforehand: "
+            "optuna create-study --study-name <name> --storage <storage> --direction maximize"  # noqa
+        ),
+    )
+    parser.add_argument(
+        "--optuna-training-steps-budget",
+        type=int,
+        default=4 * 10 ** 7,
+        help=(
+            "Total training steps thoughout the optimization. If the pruner works "
+            "well, this limited training steps can be allocated to promissing trials "
+            "efficiently, and thus the tuned hyperparameter should get better."
+        ),
+    )
+    parser.add_argument(
+        "--optuna-pruner",
+        type=str,
+        default="NopPruner",
+        choices=["NopPruner", "ThresholdPruner", "PercentilePruner", "HyperbandPruner"],
+        help=(
+            "Optuna pruner. For more details see: "
+            "https://optuna.readthedocs.io/en/stable/reference/pruners.html"
+        ),
+    )
+    # add pruner specific arguments...
+    _tmp_args, _unknown = parser.parse_known_args()
+    n_warmup_steps_help_msg = (
+        "Don't prune for first `n_warmup_steps` steps for each trial (pruning check "
+        "will be invoked every `eval_interval` step). Note that `step` for the pruner "
+        "is the training step, not the number of evaluations so far."
+    )
+    if _tmp_args.optuna_pruner == "NopPruner":
+        pass
+    elif _tmp_args.optuna_pruner == "ThresholdPruner":
+        parser.add_argument(
+            "--lower",
+            type=float,
+            required=True,
+            help=(
+                "Lower side threshold score for pruning trials. "
+                "Please set the appropriate value for your specified env."
+            ),
+        )
+        parser.add_argument(
+            "--n-warmup-steps",
+            type=int,
+            default=5 * 10 ** 4,
+            help=n_warmup_steps_help_msg,
+        )
+    elif _tmp_args.optuna_pruner == "PercentilePruner":
+        parser.add_argument(
+            "--percentile",
+            type=float,
+            default=50.0,
+            help="Setting percentile == 50.0 is equivalent to the MedianPruner.",
+        )
+        parser.add_argument(
+            "--n-startup-trials",
+            type=int,
+            default=5,
+        )
+        parser.add_argument(
+            "--n-warmup-steps",
+            type=int,
+            default=5 * 10 ** 4,
+            help=n_warmup_steps_help_msg,
+        )
+    elif _tmp_args.optuna_pruner == "HyperbandPruner":
+        pass
+
     args = parser.parse_args()
 
     rootdir = experiments.prepare_output_dir(args=args, basedir=args.outdir)
@@ -351,10 +410,49 @@ def main():
         )
 
     sampler = optuna.samplers.TPESampler(seed=args.seed)
+
+    # pruner
+    if args.optuna_pruner == "NopPruner":
+        pruner = optuna.pruners.NopPruner()
+    elif args.optuna_pruner == "ThresholdPruner":
+        pruner = optuna.pruners.ThresholdPruner(
+            lower=args.lower,
+            n_warmup_steps=args.n_warmup_steps,
+        )
+    elif args.optuna_pruner == "PercentilePruner":
+        pruner = optuna.pruners.PercentilePruner(
+            percentile=args.percentile,
+            n_startup_trials=args.n_startup_trials,
+            n_warmup_steps=args.n_warmup_steps,
+        )
+    elif args.optuna_pruner == "HyperbandPruner":
+        pruner = optuna.pruners.HyperbandPruner(min_resource=args.eval_interval)
+
     study = optuna.load_study(
-        study_name=args.optuna_study_name, storage=args.optuna_storage, sampler=sampler
+        study_name=args.optuna_study_name,
+        storage=args.optuna_storage,
+        sampler=sampler,
+        pruner=pruner,
     )
-    study.optimize(objective, n_trials=args.optuna_n_trials)
+
+    class OptunaTrainingStepsBudgetCallback:
+        def __init__(self, training_steps_budget):
+            self.training_steps_budget = training_steps_budget
+
+        def __call__(self, study, trial):
+            training_steps = sum(
+                trial.last_step
+                for trial in study.get_trials() if trial.last_step is not None
+            )
+            if training_steps >= self.training_steps_budget:
+                study.stop()
+
+    callbacks = [
+        OptunaTrainingStepsBudgetCallback(
+            training_steps_budget=args.optuna_training_steps_budget,
+        ),
+    ]
+    study.optimize(objective, callbacks=callbacks)
 
 
 if __name__ == "__main__":
