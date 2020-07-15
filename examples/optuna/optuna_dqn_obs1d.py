@@ -347,7 +347,7 @@ def main():
         parser.add_argument(
             "--n-warmup-steps",
             type=int,
-            default=5 * 10 ** 4,
+            default=5 * _tmp_args.eval_interval,
             help=n_warmup_steps_help_msg,
         )
     elif _tmp_args.optuna_pruner == "PercentilePruner":
@@ -365,7 +365,7 @@ def main():
         parser.add_argument(
             "--n-warmup-steps",
             type=int,
-            default=5 * 10 ** 4,
+            default=5 * _tmp_args.eval_interval,
             help=n_warmup_steps_help_msg,
         )
     elif _tmp_args.optuna_pruner == "HyperbandPruner":
