@@ -254,7 +254,6 @@ def train_agent_batch_with_evaluation(
         checkpoint_freq=checkpoint_freq,
         max_episode_len=max_episode_len,
         step_offset=step_offset,
-        eval_interval=eval_interval,
         evaluator=evaluator,
         successful_score=successful_score,
         return_window_size=return_window_size,
