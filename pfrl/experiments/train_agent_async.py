@@ -349,7 +349,7 @@ def train_agent_async(
     stop_event.set()
 
     if collect_statistics:
-        # wait small amount of time to avoid missing last queue ite in some edge cases
+        # wait small amount of time to avoid missing last queue item in some edge cases
         time.sleep(0.5)
         statistics = []
         wait_tolerance_sec = 3.0
