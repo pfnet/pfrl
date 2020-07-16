@@ -69,7 +69,7 @@ class TestLoadDQN:
             "DQN", "BreakoutNoFrameskip-v4", model_type=self.pretrained_type
         )
         agent.load(downloaded_model)
-        if os.environ.get("CHAINERRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
             assert exists
 
     def test_cpu(self):
@@ -137,7 +137,7 @@ class TestLoadIQN:
             "IQN", "BreakoutNoFrameskip-v4", model_type=self.pretrained_type
         )
         agent.load(downloaded_model)
-        if os.environ.get("CHAINERRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
             assert exists
 
     def test_cpu(self):
@@ -146,6 +146,43 @@ class TestLoadIQN:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_iqn(gpu=0)
+
+
+@pytest.mark.parametrize("pretrained_type", ["final", "best"])
+class TestLoadRainbow:
+    @pytest.fixture(autouse=True)
+    def setup(self, pretrained_type):
+        self.pretrained_type = pretrained_type
+
+    def _test_load_rainbow(self, gpu):
+        from pfrl.q_functions import DistributionalDuelingDQN
+        q_func = DistributionalDuelingDQN(4, 51, -10, 10)
+        pnn.to_factorized_noisy(q_func, sigma_scale=0.5)
+        explorer = explorers.Greedy()
+        opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10 ** -4)
+        rbuf = replay_buffers.ReplayBuffer(100)
+        agent = agents.CategoricalDoubleDQN(
+            q_func, opt, rbuf, gpu=gpu, gamma=0.99,
+            explorer=explorer, minibatch_size=32,
+            replay_start_size=50,
+            target_update_interval=32000,
+            update_interval=4,
+            batch_accumulator='mean',
+            phi=lambda x: x,
+        )
+
+        downloaded_model, exists = download_model("Rainbow", "BreakoutNoFrameskip-v4",
+                                       model_type=self.pretrained_type)
+        agent.load(downloaded_model)
+        if os.environ.get('PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED'):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_rainbow(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_rainbow(gpu=0)
 
 
 @pytest.mark.parametrize("pretrained_type", ["final", "best"])
