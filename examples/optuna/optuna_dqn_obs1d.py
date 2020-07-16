@@ -433,14 +433,20 @@ def main():
     )
 
     class OptunaTrainingStepsBudgetCallback:
-        def __init__(self, training_steps_budget):
+        def __init__(self, training_steps_budget, logger=None):
             self.training_steps_budget = training_steps_budget
+            self.logger = logger or logging.getLogger(__name__)
 
         def __call__(self, study, trial):
             training_steps = sum(
                 trial.last_step
                 for trial in study.get_trials()
                 if trial.last_step is not None
+            )
+            self.logger.info(
+                "{} / {} (sum of training steps / budget)".format(
+                    training_steps, self.training_steps_budget
+                )
             )
             if training_steps >= self.training_steps_budget:
                 study.stop()
