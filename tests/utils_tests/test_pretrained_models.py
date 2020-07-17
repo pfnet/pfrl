@@ -430,3 +430,77 @@ class TestLoadPPO:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_ppo(gpu=0)
+
+
+@pytest.mark.parametrize("pretrained_type", ["final", "best"])
+class TestLoadTD3:
+    @pytest.fixture(autouse=True)
+    def setup(self, pretrained_type):
+        self.pretrained_type = pretrained_type
+
+    def _test_load_td3(self, gpu):
+
+        obs_size = 11
+        action_size = 3
+
+        def make_q_func_with_optimizer():
+            q_func = nn.Sequential(
+                pnn.ConcatObsAndAction(),
+                nn.Linear(obs_size + action_size, 400),
+                nn.ReLU(),
+                nn.Linear(400, 300),
+                nn.ReLU(),
+                nn.Linear(300, 1),
+            )
+            q_func_optimizer = torch.optim.Adam(q_func.parameters())
+            return q_func, q_func_optimizer
+
+        q_func1, q_func1_optimizer = make_q_func_with_optimizer()
+        q_func2, q_func2_optimizer = make_q_func_with_optimizer()
+
+        policy = nn.Sequential(
+            nn.Linear(obs_size, 400),
+            nn.ReLU(),
+            nn.Linear(400, 300),
+            nn.ReLU(),
+            nn.Linear(300, action_size),
+            nn.Tanh(),
+            pfrl.policies.DeterministicHead(),
+        )
+        policy_optimizer = torch.optim.Adam(policy.parameters())
+
+        rbuf = replay_buffers.ReplayBuffer(100)
+        explorer = explorers.AdditiveGaussian(
+            scale=0.1, low=[-1.0, -1.0, -1.0], high=[1.0, 1.0, 1.0]
+        )
+
+        agent = agents.TD3(
+            policy,
+            q_func1,
+            q_func2,
+            policy_optimizer,
+            q_func1_optimizer,
+            q_func2_optimizer,
+            rbuf,
+            gamma=0.99,
+            soft_update_tau=5e-3,
+            explorer=explorer,
+            replay_start_size=1000,
+            gpu=gpu,
+            minibatch_size=100,
+            burnin_action_func=None,
+        )
+
+        downloaded_model, exists = download_model(
+            "TD3", "Hopper-v2", model_type=self.pretrained_type
+        )
+        agent.load(downloaded_model)
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_td3(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_td3(gpu=0)
