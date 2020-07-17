@@ -306,3 +306,66 @@ class TestLoadDDPG:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_ddpg(gpu=0)
+
+
+@pytest.mark.parametrize("pretrained_type", ["final", "best"])
+class TestLoadTRPO:
+    @pytest.fixture(autouse=True)
+    def setup(self, pretrained_type):
+        self.pretrained_type = pretrained_type
+
+    def _test_load_trpo(self, gpu):
+        obs_size = 11
+        action_size = 3
+
+        policy = torch.nn.Sequential(
+            nn.Linear(obs_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, 64),
+            nn.Tanh(),
+            nn.Linear(64, action_size),
+            pfrl.policies.GaussianHeadWithStateIndependentCovariance(
+                action_size=action_size,
+                var_type="diagonal",
+                var_func=lambda x: torch.exp(2 * x),  # Parameterize log std
+                var_param_init=0,  # log std = 0 => std = 1
+            ),
+        )
+
+        vf = torch.nn.Sequential(
+            nn.Linear(obs_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, 64),
+            nn.Tanh(),
+            nn.Linear(64, 1),
+        )
+        vf_opt = torch.optim.Adam(vf.parameters())
+
+        agent = agents.TRPO(
+            policy=policy,
+            vf=vf,
+            vf_optimizer=vf_opt,
+            gpu=gpu,
+            update_interval=5000,
+            max_kl=0.01,
+            conjugate_gradient_max_iter=20,
+            conjugate_gradient_damping=1e-1,
+            gamma=0.995,
+            lambd=0.97,
+            vf_epochs=5,
+            entropy_coef=0,
+        )
+
+        downloaded_model, exists = download_model(
+            "TRPO", "Hopper-v2", model_type=self.pretrained_type
+        )
+        agent.load(downloaded_model)
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_trpo(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_trpo(gpu=0)
