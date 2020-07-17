@@ -504,3 +504,88 @@ class TestLoadTD3:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_td3(gpu=0)
+
+
+@pytest.mark.parametrize("pretrained_type", ["final", "best"])
+class TestLoadSAC:
+    @pytest.fixture(autouse=True)
+    def setup(self, pretrained_type):
+        self.pretrained_type = pretrained_type
+
+    def _test_load_sac(self, gpu):
+        obs_size = 11
+        action_size = 3
+
+        def squashed_diagonal_gaussian_head(x):
+            assert x.shape[-1] == action_size * 2
+            mean, log_scale = torch.chunk(x, 2, dim=1)
+            log_scale = torch.clamp(log_scale, -20.0, 2.0)
+            var = torch.exp(log_scale * 2)
+            base_distribution = distributions.Independent(
+                distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
+            )
+            # cache_size=1 is required for numerical stability
+            return distributions.transformed_distribution.TransformedDistribution(
+                base_distribution,
+                [distributions.transforms.TanhTransform(cache_size=1)],
+            )
+
+        from pfrl.nn.lmbda import Lambda
+        policy = nn.Sequential(
+            nn.Linear(obs_size, 256),
+            nn.ReLU(),
+            nn.Linear(256, 256),
+            nn.ReLU(),
+            nn.Linear(256, action_size * 2),
+            Lambda(squashed_diagonal_gaussian_head),
+        )
+        policy_optimizer = torch.optim.Adam(policy.parameters(), lr=3e-4)
+
+        def make_q_func_with_optimizer():
+            q_func = nn.Sequential(
+                pfrl.nn.ConcatObsAndAction(),
+                nn.Linear(obs_size + action_size, 256),
+                nn.ReLU(),
+                nn.Linear(256, 256),
+                nn.ReLU(),
+                nn.Linear(256, 1),
+            )
+            torch.nn.init.xavier_uniform_(q_func[1].weight)
+            torch.nn.init.xavier_uniform_(q_func[3].weight)
+            torch.nn.init.xavier_uniform_(q_func[5].weight)
+            q_func_optimizer = torch.optim.Adam(q_func.parameters(), lr=3e-4)
+            return q_func, q_func_optimizer
+
+        q_func1, q_func1_optimizer = make_q_func_with_optimizer()
+        q_func2, q_func2_optimizer = make_q_func_with_optimizer()
+
+        agent = agents.SoftActorCritic(
+            policy,
+            q_func1,
+            q_func2,
+            policy_optimizer,
+            q_func1_optimizer,
+            q_func2_optimizer,
+            replay_buffers.ReplayBuffer(100),
+            gamma=0.99,
+            replay_start_size=1000,
+            gpu=gpu,
+            minibatch_size=256,
+            burnin_action_func=None,
+            entropy_target=-3,
+            temperature_optimizer_lr=3e-4,
+        )
+
+        downloaded_model, exists = download_model(
+            "SAC", "Hopper-v2", model_type=self.pretrained_type
+        )
+        agent.load(downloaded_model)
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_sac(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_sac(gpu=0)
