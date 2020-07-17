@@ -156,25 +156,32 @@ class TestLoadRainbow:
 
     def _test_load_rainbow(self, gpu):
         from pfrl.q_functions import DistributionalDuelingDQN
+
         q_func = DistributionalDuelingDQN(4, 51, -10, 10)
         pnn.to_factorized_noisy(q_func, sigma_scale=0.5)
         explorer = explorers.Greedy()
         opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10 ** -4)
         rbuf = replay_buffers.ReplayBuffer(100)
         agent = agents.CategoricalDoubleDQN(
-            q_func, opt, rbuf, gpu=gpu, gamma=0.99,
-            explorer=explorer, minibatch_size=32,
+            q_func,
+            opt,
+            rbuf,
+            gpu=gpu,
+            gamma=0.99,
+            explorer=explorer,
+            minibatch_size=32,
             replay_start_size=50,
             target_update_interval=32000,
             update_interval=4,
-            batch_accumulator='mean',
+            batch_accumulator="mean",
             phi=lambda x: x,
         )
 
-        downloaded_model, exists = download_model("Rainbow", "BreakoutNoFrameskip-v4",
-                                       model_type=self.pretrained_type)
+        downloaded_model, exists = download_model(
+            "Rainbow", "BreakoutNoFrameskip-v4", model_type=self.pretrained_type
+        )
         agent.load(downloaded_model)
-        if os.environ.get('PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED'):
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
             assert exists
 
     def test_cpu(self):
@@ -223,3 +230,79 @@ class TestLoadA3C:
         agent.load(downloaded_model)
         if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
             assert exists
+
+
+@pytest.mark.parametrize("pretrained_type", ["final", "best"])
+class TestLoadDDPG:
+    @pytest.fixture(autouse=True)
+    def setup(self, pretrained_type):
+        self.pretrained_type = pretrained_type
+
+    def _test_load_ddpg(self, gpu):
+        def concat_obs_and_action(obs, action):
+            return F.concat((obs, action), axis=-1)
+
+        obs_size = 11
+        action_size = 3
+        from pfrl.nn import ConcatObsAndAction
+
+        q_func = nn.Sequential(
+            ConcatObsAndAction(),
+            nn.Linear(obs_size + action_size, 400),
+            nn.ReLU(),
+            nn.Linear(400, 300),
+            nn.ReLU(),
+            nn.Linear(300, 1),
+        )
+        from pfrl.nn import BoundByTanh
+        from pfrl.policies import DeterministicHead
+
+        policy = nn.Sequential(
+            nn.Linear(obs_size, 400),
+            nn.ReLU(),
+            nn.Linear(400, 300),
+            nn.ReLU(),
+            nn.Linear(300, action_size),
+            BoundByTanh(low=[-1.0, -1.0, -1.0], high=[1.0, 1.0, 1.0]),
+            DeterministicHead(),
+        )
+
+        opt_a = torch.optim.Adam(policy.parameters())
+        opt_c = torch.optim.Adam(q_func.parameters())
+
+        explorer = explorers.AdditiveGaussian(
+            scale=0.1, low=[-1.0, -1.0, -1.0], high=[1.0, 1.0, 1.0]
+        )
+
+        agent = agents.DDPG(
+            policy,
+            q_func,
+            opt_a,
+            opt_c,
+            replay_buffers.ReplayBuffer(100),
+            gamma=0.99,
+            explorer=explorer,
+            replay_start_size=1000,
+            target_update_method="soft",
+            target_update_interval=1,
+            update_interval=1,
+            soft_update_tau=5e-3,
+            n_times_update=1,
+            gpu=gpu,
+            minibatch_size=100,
+            burnin_action_func=None,
+        )
+
+        downloaded_model, exists = download_model(
+            "DDPG", "Hopper-v2", model_type=self.pretrained_type
+        )
+        agent.load(downloaded_model)
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_ddpg(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_ddpg(gpu=0)
