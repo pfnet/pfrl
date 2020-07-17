@@ -119,14 +119,11 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
                  reward_fn,
                  replay_strategy,
                  capacity=None,
-                 is_null_goal=None,
-                 future_k=0,
                  swap_list=[('desired_goal', 'achieved_goal')]):
 
         assert replay_strategy is not None
         self.reward_fn = reward_fn
         self.replay_strategy = replay_strategy
-        self.is_null_goal = is_null_goal
         self.swap_keys_list = swap_list
         assert ('desired_goal', 'achieved_goal') in self.swap_keys_list
 
