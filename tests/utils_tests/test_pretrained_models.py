@@ -531,6 +531,7 @@ class TestLoadSAC:
             )
 
         from pfrl.nn.lmbda import Lambda
+
         policy = nn.Sequential(
             nn.Linear(obs_size, 256),
             nn.ReLU(),
