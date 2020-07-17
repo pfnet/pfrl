@@ -239,8 +239,6 @@ class TestLoadDDPG:
         self.pretrained_type = pretrained_type
 
     def _test_load_ddpg(self, gpu):
-        def concat_obs_and_action(obs, action):
-            return F.concat((obs, action), axis=-1)
 
         obs_size = 11
         action_size = 3
@@ -521,6 +519,7 @@ class TestLoadSAC:
             mean, log_scale = torch.chunk(x, 2, dim=1)
             log_scale = torch.clamp(log_scale, -20.0, 2.0)
             var = torch.exp(log_scale * 2)
+            from torch import distributions
             base_distribution = distributions.Independent(
                 distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
             )
