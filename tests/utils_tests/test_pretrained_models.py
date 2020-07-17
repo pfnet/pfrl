@@ -369,3 +369,64 @@ class TestLoadTRPO:
     @pytest.mark.gpu
     def test_gpu(self):
         self._test_load_trpo(gpu=0)
+
+
+class TestLoadPPO:
+    def _test_load_ppo(self, gpu):
+        obs_size = 11
+        action_size = 3
+        from pfrl.policies import GaussianHeadWithStateIndependentCovariance
+
+        policy = torch.nn.Sequential(
+            nn.Linear(obs_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, 64),
+            nn.Tanh(),
+            nn.Linear(64, action_size),
+            GaussianHeadWithStateIndependentCovariance(
+                action_size=action_size,
+                var_type="diagonal",
+                var_func=lambda x: torch.exp(2 * x),  # Parameterize log std
+                var_param_init=0,  # log std = 0 => std = 1
+            ),
+        )
+
+        vf = torch.nn.Sequential(
+            nn.Linear(obs_size, 64),
+            nn.Tanh(),
+            nn.Linear(64, 64),
+            nn.Tanh(),
+            nn.Linear(64, 1),
+        )
+
+        model = pnn.Branched(policy, vf)
+        opt = torch.optim.Adam(model.parameters(), lr=3e-4, eps=1e-5)
+
+        agent = agents.PPO(
+            model,
+            opt,
+            obs_normalizer=None,
+            gpu=gpu,
+            update_interval=2048,
+            minibatch_size=64,
+            epochs=10,
+            clip_eps_vf=None,
+            entropy_coef=0,
+            standardize_advantages=True,
+            gamma=0.995,
+            lambd=0.97,
+        )
+
+        downloaded_model, exists = download_model(
+            "PPO", "Hopper-v2", model_type="final"
+        )
+        agent.load(downloaded_model)
+        if os.environ.get("PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED"):
+            assert exists
+
+    def test_cpu(self):
+        self._test_load_ppo(gpu=None)
+
+    @pytest.mark.gpu
+    def test_gpu(self):
+        self._test_load_ppo(gpu=0)
