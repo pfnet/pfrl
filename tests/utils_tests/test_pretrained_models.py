@@ -520,6 +520,7 @@ class TestLoadSAC:
             log_scale = torch.clamp(log_scale, -20.0, 2.0)
             var = torch.exp(log_scale * 2)
             from torch import distributions
+
             base_distribution = distributions.Independent(
                 distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
             )
