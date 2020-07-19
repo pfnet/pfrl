@@ -14,6 +14,13 @@ To run the training example:
 python train_td3.py [options]
 ```
 
+We have already pretrained models from this script for all the domains listed in the [results](#Results) section. To load a pretrained model:
+
+```
+python train_td3.py --demo --load-pretrained --env HalfCheetah-v2 --pretrained-type best --gpu -1
+```
+
+
 ### Useful Options
 
 - `--gpu`. Specifies the GPU. If you do not have a GPU on your machine, run the example with the option `--gpu -1`. E.g. `python train_td3.py --gpu -1`.
@@ -23,7 +30,7 @@ python train_td3.py [options]
 - `--outdir` This option specifies the output directory to which the results are written.
 - `--demo`. Runs an evaluation, instead of training the agent.
 - `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
-- (Currently unsupported) `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
+- `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
 
 To view the full list of options, either view the code or run the example with the `--help` option.
 

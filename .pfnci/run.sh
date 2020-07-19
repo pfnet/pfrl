@@ -52,7 +52,6 @@ main() {
     marker+=' and gpu'
     bucket="${GPU}"
   fi
-  marker+=' and not download_model'
 
 
   UBUNTU_VERSION_ID=$(grep DISTRIB_RELEASE /etc/lsb-release | cut -d "=" -f2)

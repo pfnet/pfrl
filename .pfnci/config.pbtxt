@@ -10,6 +10,7 @@ configs {
       seconds: 1200
     }
     environment_variables { key: "GPU" value: "1" }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/script.sh gpu"
   }
 }
@@ -27,6 +28,7 @@ configs {
     }
     environment_variables { key: "GPU" value: "1" }
     environment_variables { key: "SLOW" value: "1" }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/script.sh gpu"
   }
 }
@@ -44,6 +46,7 @@ configs {
     }
     environment_variables { key: "GPU" value: "1" }
     environment_variables { key: "TEST_EXAMPLES" value: "1" }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/script.sh gpu"
   }
 }
@@ -59,6 +62,7 @@ configs {
       seconds: 2400
     }
     environment_variables { key: "SLOW" value: "1" }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/script.sh cpu"
   }
 }
@@ -74,6 +78,7 @@ configs {
     time_limit {
       seconds: 1200
     }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/script.sh cpu"
   }
 }
@@ -88,6 +93,7 @@ configs {
     time_limit {
       seconds: 1200
     }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     environment_variables { key: "TEST_EXAMPLES" value: "1" }
     command: "bash .pfnci/script.sh cpu"
   }
@@ -104,6 +110,7 @@ configs {
     time_limit {
       seconds: 1200
     }
+    environment_variables { key: "PFRL_ASSERT_DOWNLOADED_MODEL_IS_CACHED" value: "1" }
     command: "bash .pfnci/lint.sh"
   }
 }
