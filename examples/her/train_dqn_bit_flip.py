@@ -104,9 +104,9 @@ def main():
         help="Number of bits for BitFlipping environment",
     )
     parser.add_argument("--use-hindsight", type=bool, default=True)
-    parser.add_argument("--eval-n-steps", type=int, default=125000)
+    parser.add_argument("--eval-n-episodes", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=250000)
-    parser.add_argument("--n-best-episodes", type=int, default=30)
+    parser.add_argument("--n-best-episodes", type=int, default=100)
     args = parser.parse_args()
 
     import logging
@@ -213,8 +213,8 @@ def main():
             agent=agent,
             env=env,
             steps=args.steps,
-            eval_n_steps=args.eval_n_steps,
-            eval_n_episodes=None,
+            eval_n_steps=None,
+            eval_n_episodes=args.eval_n_episodes,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
             save_best_so_far_agent=True,
