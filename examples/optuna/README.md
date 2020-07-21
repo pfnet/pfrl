@@ -17,25 +17,34 @@ The quickstart on your local machine.
 ```bash
 storage="sqlite:///example.db"
 study="optuna-pfrl-quickstart"
+pruner="HyperbandPruner"
 
 # In common RL, higher score means better performance (`--direction maximize`)
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # Start tuning hyper parameters
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}"
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}"
 ```
 
-You can see the dashboard (experimental):
+You can see the optimization history of this study on [Jupyter Notebook](https://jupyter.org/install)
+via the [Optuna visualization module](https://optuna.readthedocs.io/en/latest/reference/visualization.html):
 
-```bash
-pip install bokeh==1.4.0  # https://github.com/optuna/optuna/issues/1320
-optuna dashboard --study-name "${study}" --storage "${storage}"
+```python
+# On jupyter notebook
+import optuna
+
+study_name = "optuna-pfrl-quickstart"
+storage = "sqlite:///example.db"
+study = optuna.load_study(study_name=study_name, storage=storage)
+
+optuna.visualization.plot_optimization_history(study)
 ```
 
-Then open `localhost:5006` on your browser.
+![optimization_history](assets/optimization_history.png)
 
-![dashboard](assets/dashboard.png)
 
+If you are interested in the `--optuna-pruner` argument above, see the
+[corresponding Optuna document](https://optuna.readthedocs.io/en/latest/reference/pruners.html).
 
 
 ### Distributed Optimization
@@ -52,12 +61,13 @@ postgres_database"database"
 
 storage="postgresql://${postgres_user}:${postgres_password}@${postgres_host}/${postgres_database}"
 study="optuna-pfrl-distributed"
+pruner="HyperbandPruner"
 
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # You can run two processes parallelly (If your computation resource allows!)
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" &
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
 ```
 
 ```bash
@@ -71,6 +81,7 @@ postgres_database"database"
 
 storage="postgresql://${postgres_user}:${postgres_password}@${postgres_host}/${postgres_database}"
 study="optuna-pfrl-distributed"
+pruner="HyperbandPruner"
 
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}"
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" 
 ```
