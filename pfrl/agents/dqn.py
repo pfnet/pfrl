@@ -241,7 +241,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         # cumulative_steps counts the overall steps during the training.
         return self._cumulative_steps
 
-    def _setup_actor_learner_training(self, n_actors, actor_update_interval, update_counter):
+    def _setup_actor_learner_training(
+        self, n_actors, actor_update_interval, update_counter
+    ):
         assert actor_update_interval > 0
 
         self.actor_update_interval = actor_update_interval
@@ -632,8 +634,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 self._poll_pipe(i, pipe, replay_buffer_lock, exception_event)
 
     def setup_actor_learner_training(
-        self, n_actors,
-        update_counter=None, n_updates=None, actor_update_interval=8
+        self, n_actors, update_counter=None, n_updates=None, actor_update_interval=8
     ):
         if update_counter is None:
             update_counter = mp.Value(ctypes.c_ulong)
