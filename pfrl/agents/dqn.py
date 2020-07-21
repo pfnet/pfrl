@@ -632,7 +632,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
 
     def setup_actor_learner_training(
         self, n_actors,
-        update_counter, n_updates=None, actor_update_interval=8
+        update_counter=0, n_updates=None, actor_update_interval=8
     ):
         (shared_model, learner_pipes, actor_pipes) = self._setup_actor_learner_training(
             n_actors, actor_update_interval, update_counter

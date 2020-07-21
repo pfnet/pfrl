@@ -19,8 +19,6 @@ import torch.optim as optim
 import gym
 from gym import spaces
 import numpy as np
-import ctypes
-import multiprocessing as mp
 
 import pfrl
 from pfrl.agents.dqn import DQN
@@ -240,13 +238,12 @@ def main():
         # Disable the multi-threading on Openmp and Numpy.
         os.environ["OMP_NUM_THREADS"] = "1"  # NOQA
 
-        update_counter = mp.Value(ctypes.c_ulong)
         (
             make_actor,
             learner,
             poller,
             exception_event,
-        ) = agent.setup_actor_learner_training(args.num_envs, update_counter)
+        ) = agent.setup_actor_learner_training(args.num_envs)
 
         poller.start()
         learner.start()
