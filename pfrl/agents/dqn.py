@@ -1,6 +1,7 @@
 import copy
 import collections
 import time
+import ctypes
 import multiprocessing as mp
 from logging import getLogger
 
@@ -240,11 +241,13 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         # cumulative_steps counts the overall steps during the training.
         return self._cumulative_steps
 
-    def _setup_actor_learner_training(self, n_actors, actor_update_interval):
+    def _setup_actor_learner_training(
+        self, n_actors, actor_update_interval, update_counter
+    ):
         assert actor_update_interval > 0
 
         self.actor_update_interval = actor_update_interval
-        self.update_counter = 0
+        self.update_counter = update_counter
 
         # Make a copy on shared memory and share among actors and the poller
         shared_model = copy.deepcopy(self.model).cpu()
@@ -603,8 +606,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 # intervals.
                 update_counter += 1
                 if update_counter % self.actor_update_interval == 0:
-                    self.update_counter += 1
-                    shared_model.load_state_dict(self.model.state_dict())
+                    with self.update_counter.get_lock():
+                        self.update_counter.value += 1
+                        shared_model.load_state_dict(self.model.state_dict())
 
                 # To keep the ratio of target updates to model updates,
                 # here we calculate back the effective current timestep
@@ -630,10 +634,13 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 self._poll_pipe(i, pipe, replay_buffer_lock, exception_event)
 
     def setup_actor_learner_training(
-        self, n_actors, n_updates=None, actor_update_interval=8
+        self, n_actors, update_counter=None, n_updates=None, actor_update_interval=8
     ):
+        if update_counter is None:
+            update_counter = mp.Value(ctypes.c_ulong)
+
         (shared_model, learner_pipes, actor_pipes) = self._setup_actor_learner_training(
-            n_actors, actor_update_interval
+            n_actors, actor_update_interval, update_counter
         )
         exception_event = mp.Event()
 
