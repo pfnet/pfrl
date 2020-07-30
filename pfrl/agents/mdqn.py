@@ -118,7 +118,7 @@ class MDQN(dqn.DQN):
         ).exp().sum(dim=1).log().unsqueeze(1)
         pi = (t_ln_pi / self.temperature).exp()
 
-        batch_actions = exp_batch["action"].unsqueeze(1)
+        batch_actions = exp_batch["action"].long().unsqueeze(1)
         batch_rewards = (
             exp_batch["reward"] + t_ln_pi.gather(dim=1, index=batch_actions).flatten()
         )
