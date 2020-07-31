@@ -119,8 +119,9 @@ class MDQN(dqn.DQN):
         pi = (t_ln_pi / self.temperature).exp()
 
         batch_actions = exp_batch["action"].long().unsqueeze(1)
-        batch_rewards = (
-            exp_batch["reward"] + t_ln_pi.gather(dim=1, index=batch_actions).flatten()
+        chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
+        batch_rewards = exp_batch["reward"] + self.scaling_term * torch.max(
+            chosen_t_ln_pi, torch.tensor(self.clip_l0)
         )
         batch_terminal = exp_batch["is_state_terminal"]
         discount = exp_batch["discount"]

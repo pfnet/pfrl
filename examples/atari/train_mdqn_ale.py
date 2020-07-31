@@ -239,7 +239,7 @@ def main():
         )
 
     # Use the Nature paper's hyperparameters
-    opt = optim.Adam( q_func.parameters(), lr=args.lr)
+    opt = optim.Adam(q_func.parameters(), lr=args.lr)
 
     # Select a replay buffer to use
     if args.prioritized:
