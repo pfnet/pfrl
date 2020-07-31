@@ -10,6 +10,8 @@ from pfrl.utils.recurrent import pack_and_forward
 class MDQN(dqn.DQN):
     """Munchausen Deep Q-Network algorithm.
 
+    See https://arxiv.org/abs/2007.14430.
+
     Args:
         q_function (StateQFunction): Q-function
         optimizer (Optimizer): Optimizer that is already setup
