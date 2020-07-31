@@ -103,6 +103,31 @@ class MDQN(dqn.DQN):
         self.clip_l0 = clip_l0
 
     def _compute_target_values(self, exp_batch):
+        # Compute Q-values for current states using the target network
+        batch_state = exp_batch["state"]
+
+        if self.recurrent:
+            qout, _ = pack_and_forward(
+                self.target_model, batch_state, exp_batch["recurrent_state"]
+            )
+        else:
+            qout = self.target_model(batch_state)
+
+        # log-sum-exp-trick
+        advantages = qout.q_values - qout.max.unsqueeze(1)
+        t_ln_pi = advantages - self.temperature * (
+            advantages / self.temperature
+        ).exp().sum(dim=1).log().unsqueeze(1)
+        pi = (t_ln_pi / self.temperature).exp()
+
+        # add scaled log policy
+        batch_actions = exp_batch["action"].long().unsqueeze(1)
+        chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
+        exp_batch["reward"] += self.scaling_term * torch.max(
+            chosen_t_ln_pi, torch.tensor(self.clip_l0, device=self.device)
+        )
+
+        # value of next state (entropy-augmented) using the target network
         batch_next_state = exp_batch["next_state"]
 
         if self.recurrent:
@@ -114,20 +139,14 @@ class MDQN(dqn.DQN):
         next_q_max = target_next_qout.max
 
         # log-sum-exp-trick
-        advantages = target_next_qout.q_values - next_q_max.unsqueeze(1)
-        t_ln_pi = advantages - self.temperature * (
+        next_advantages = target_next_qout.q_values - next_q_max.unsqueeze(1)
+        next_t_ln_pi = next_advantages - self.temperature * (
             advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
-        pi = (t_ln_pi / self.temperature).exp()
+        next_value = torch.sum(pi * (target_next_qout.q_values - next_t_ln_pi), dim=1)
 
-        batch_actions = exp_batch["action"].long().unsqueeze(1)
-        chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
-        batch_rewards = exp_batch["reward"] + self.scaling_term * torch.max(
-            chosen_t_ln_pi, torch.tensor(self.clip_l0, device=self.device)
-        )
+        batch_rewards = exp_batch["reward"]
         batch_terminal = exp_batch["is_state_terminal"]
         discount = exp_batch["discount"]
-
-        next_value = torch.sum(pi * (target_next_qout.q_values - t_ln_pi), dim=1)
 
         return batch_rewards + discount * (1.0 - batch_terminal) * next_value
