@@ -132,7 +132,7 @@ def main():
     parser.add_argument(
         "--target-update-interval",
         type=int,
-        default=3 * 10 ** 4,
+        default=8 * 10 ** 3,
         help="Frequency (in timesteps) at which " + "the target network is updated.",
     )
     parser.add_argument(
