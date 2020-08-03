@@ -141,7 +141,7 @@ class MDQN(dqn.DQN):
         # log-sum-exp-trick
         next_advantages = target_next_qout.q_values - next_q_max.unsqueeze(1)
         next_t_ln_pi = next_advantages - self.temperature * (
-            advantages / self.temperature
+            next_advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
         next_value = torch.sum(pi * (target_next_qout.q_values - next_t_ln_pi), dim=1)
 
