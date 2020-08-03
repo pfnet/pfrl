@@ -1,4 +1,4 @@
-<div align="center"><img src="https://raw.githubusercontent.com/pfnet/pfrl/master/assets/PFRL.png" width="400"/></div>
+<div align="center"><img src="https://raw.githubusercontent.com/pfnet/pfrl/master/assets/PFRL.png" height="200"/></div>
 
 # PFRL
 [![Documentation Status](https://readthedocs.org/projects/pfrl/badge/?version=latest)](http://pfrl.readthedocs.io/en/latest/?badge=latest)
