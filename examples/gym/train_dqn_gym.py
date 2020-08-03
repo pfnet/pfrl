@@ -93,9 +93,6 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
     print("Output files are saved in {}".format(args.outdir))
 
-    # Set a random seed used in PFRL.
-    utils.set_random_seed(args.seed)
-
     # Set different random seeds for different subprocesses.
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
