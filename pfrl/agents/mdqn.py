@@ -133,7 +133,7 @@ class MDQN(dqn.DQN):
             advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
         pi = (t_ln_pi / self.temperature).exp()
-        self.pi_sum_record.extend(pi.detach().cpu().numpy())
+        self.pi_sum_record.extend(pi.sum(dim=1).detach().cpu().numpy())
 
         # add scaled log policy
         batch_actions = exp_batch["action"].long().unsqueeze(1)
@@ -162,7 +162,7 @@ class MDQN(dqn.DQN):
             next_advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
         next_pi = (next_t_ln_pi / self.temperature).exp()
-        self.next_pi_sum_record.extend(next_pi.detach().cpu().numpy())
+        self.next_pi_sum_record.extend(next_pi.sum(dim=1).detach().cpu().numpy())
         next_value = (next_pi * (target_next_qout.q_values - next_t_ln_pi)).sum(dim=1)
         self.next_value_record.extend(next_value.detach().cpu().numpy())
 
