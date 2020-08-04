@@ -109,7 +109,10 @@ class MDQN(dqn.DQN):
         self.scaling_term = scaling_term
         self.clip_l0 = clip_l0
 
+        self.pi_sum_record = collections.deque(maxlen=1000)
+        self.bonus_reward_record = collections.deque(maxlen=1000)
         self.augmented_reward_record = collections.deque(maxlen=1000)
+        self.next_pi_sum_record = collections.deque(maxlen=1000)
         self.next_value_record = collections.deque(maxlen=1000)
         self.next_entropy_record = collections.deque(maxlen=1000)
 
@@ -129,13 +132,17 @@ class MDQN(dqn.DQN):
         t_ln_pi = advantages - self.temperature * (
             advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
+        pi = (t_ln_pi / self.temperature).exp()
+        self.pi_sum_record.extend(pi.detach().cpu().numpy())
 
         # add scaled log policy
         batch_actions = exp_batch["action"].long().unsqueeze(1)
         chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
-        augmented_rewards = exp_batch["reward"] + self.scaling_term * torch.max(
+        bonus = self.scaling_term * torch.max(
             chosen_t_ln_pi, torch.tensor(self.clip_l0, device=self.device)
         )
+        self.bonus_reward_record.extend(bonus.detach().cpu().numpy())
+        augmented_rewards = exp_batch["reward"] + bonus
         self.augmented_reward_record.extend(augmented_rewards.detach().cpu().numpy())
 
         # value of next state (entropy-augmented) using the target network
@@ -155,6 +162,7 @@ class MDQN(dqn.DQN):
             next_advantages / self.temperature
         ).exp().sum(dim=1).log().unsqueeze(1)
         next_pi = (next_t_ln_pi / self.temperature).exp()
+        self.next_pi_sum_record.extend(next_pi.detach().cpu().numpy())
         next_value = (next_pi * (target_next_qout.q_values - next_t_ln_pi)).sum(dim=1)
         self.next_value_record.extend(next_value.detach().cpu().numpy())
 
@@ -168,7 +176,10 @@ class MDQN(dqn.DQN):
 
     def get_statistics(self):
         return super(MDQN, self).get_statistics() + [
+            ("pi_sum", _mean_or_nan(self.pi_sum_record)),
+            ("bonus", _mean_or_nan(self.bonus_reward_record)),
             ("augmented_reward", _mean_or_nan(self.augmented_reward_record)),
+            ("next_pi_sum", _mean_or_nan(self.next_pi_sum_record)),
             ("next_value", _mean_or_nan(self.next_value_record)),
-            ("next_entropy", _mean_or_nan(self.next_entropy)),
+            ("next_entropy", _mean_or_nan(self.next_entropy_record)),
         ]
