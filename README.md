@@ -42,7 +42,7 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 | Categorical DQN | ✓ | x | ✓ | ✓ | x |
 | Rainbow | ✓ | x | ✓ | ✓ | x |
 | IQN | ✓ | x | ✓ | ✓ | x |
-| DDPG | x | ✓ | ✓ | ✓ | x |
+| DDPG | x | ✓ | x | ✓ | x |
 | A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ |
 | ACER | ✓ | ✓ | ✓ | x | ✓ |
 | PPO  | ✓ | ✓ | ✓ | ✓ | x |
