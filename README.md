@@ -1,5 +1,7 @@
 <div align="center"><img src="https://raw.githubusercontent.com/pfnet/pfrl/master/assets/PFRL.png" height=150/></div>
 
+do not merge
+
 # PFRL
 [![Documentation Status](https://readthedocs.org/projects/pfrl/badge/?version=latest)](http://pfrl.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pfrl.svg)](https://pypi.python.org/pypi/pfrl)
