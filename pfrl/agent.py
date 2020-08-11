@@ -12,6 +12,30 @@ from typing import Tuple
 import torch
 
 
+class HRLAgent(object, metaclass=ABCMeta):
+    """Abstract HRL agent class"""
+    training = True
+
+    def train(self, global_step: int) -> Any:
+        """Trains the HRL agent.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError()
+
+    def append(self, step, s, a, n_s, r, d) -> Any:
+        """
+        Appends an experience to the replay buffer
+        """
+        raise NotImplementedError()
+
+    def step(self, s, env, step, global_step=0, explore=False) -> Any:
+        """ 
+        Take an action
+        """
+
+
 class Agent(object, metaclass=ABCMeta):
     """Abstract agent class."""
 
