@@ -1,12 +1,17 @@
 from typing import Any
 import torch
+from torch import nn
 import numpy as np
-from pfrl.agent import HRLAgent, Agent
+
+import pfrl
+from pfrl.agent import HRLAgent
 from pfrl.utils import Subgoal
 from pfrl.replay_buffers import (
     LowerControllerReplayBuffer,
     HigherControllerReplayBuffer
 )
+from pfrl import explorers, replay_buffers
+
 from pfrl.agents import TD3
 
 
@@ -62,20 +67,75 @@ class HRLControllerBase():
         self.policy_freq = policy_freq
         self.tau = tau
         # create td3 agent
-        self.agent = TD3()
 
-        # self.actor = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
-        # self.actor_target = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
-        # self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
+        policy = nn.Sequential(
+            nn.Linear(state_dim + goal_dim, 400),
+            nn.ReLU(),
+            nn.Linear(400, 300),
+            nn.ReLU(),
+            nn.Linear(300, action_dim),
+            nn.Tanh(),
+            pfrl.policies.DeterministicHead(),
+            )
+        policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
 
-        # self.critic1 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        # self.critic2 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        # self.critic1_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        # self.critic2_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
+        def make_q_func_with_optimizer():
+            q_func = nn.Sequential(
+                pfrl.nn.ConcatObsAndAction(),
+                nn.Linear(state_dim + goal_dim + action_dim, 400),
+                nn.ReLU(),
+                nn.Linear(400, 300),
+                nn.ReLU(),
+                nn.Linear(300, 1),
+            )
+            q_func_optimizer = torch.optim.Adam(q_func.parameters(), lr=critic_lr)
+            return q_func, q_func_optimizer
 
-        # self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=critic_lr)
-        # self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=critic_lr)
-        # self._initialize_target_networks()
+        q_func1, q_func1_optimizer = make_q_func_with_optimizer()
+        q_func2, q_func2_optimizer = make_q_func_with_optimizer()
+
+        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+        explorer = explorers.AdditiveGaussian(
+            scale=0.1, low=-1, high=1
+        )
+
+        def burnin_action_func():
+            """
+            Select random actions until model is updated one or more times.
+            """
+            return np.random.uniform(-1, 1).astype(np.float32)
+        """
+        agent = pfrl.agents.TD3(
+        policy,
+        q_func1,
+        q_func2,
+        policy_optimizer,
+        q_func1_optimizer,
+        q_func2_optimizer,
+        rbuf,
+        gamma=0.99,
+        soft_update_tau=5e-3,
+        explorer=explorer,
+        replay_start_size=args.replay_start_size,
+        gpu=args.gpu,
+        minibatch_size=args.batch_size,
+        burnin_action_func=burnin_action_func,
+    )
+        """
+        self.agent = TD3(
+            policy,
+            q_func1,
+            q_func2,
+            policy_optimizer,
+            q_func1_optimizer,
+            q_func2_optimizer,
+            rbuf,
+            gamma=gamma,
+            soft_update_tau=tau,
+            explorer=explorer,
+            update_interval=policy_freq,
+            burnin_action_func=burnin_action_func
+        )
 
         self._initialized = False
         self.total_it = 0
@@ -93,24 +153,39 @@ class HRLControllerBase():
         self.agent.load('dirname')
 
     def policy(self, state, goal):
-        return self.agent.act([torch.concat(state, goal)])
+        """
+        run the policy (actor).
+        """
+        return self.agent.act([torch.cat([state, goal])])
 
     def _train(self, states, goals, actions, rewards, n_states, n_goals, not_done):
-        self.agent.batch_observe([states, goals], rewards, not_done, None)
+        """
+        train the model.
+        """
+        self.agent.batch_observe(torch.cat([states, goals]), rewards, not_done, None)
 
     def train(self, replay_buffer, iterations=1):
+        """
+        get data from the replay buffer, and train.
+        """
         states, goals, actions, n_states, rewards, not_done = replay_buffer.sample()
         return self._train(states, goals, actions, rewards, n_states, goals, not_done)
 
     def policy_with_noise(self, state, goal):
+        """
+        run the policy...with a little extra noise.
+        """
         action = self.policy(state, goal)
         action += self._sample_exploration_noise(action)
         action = torch.min(action,  self.actor.scale)
         action = torch.max(action, -self.actor.scale)
-
+        # to-do - is this needed?
         return action.squeeze()
 
     def _sample_exploration_noise(self, actions):
+        """
+        add a bit of noise to the policy to encourage exploration.
+        """
         mean = torch.zeros(actions.size()).to(self.device)
         var = torch.ones(actions.size()).to(self.device)
         # expl_noise = self.expl_noise - (self.expl_noise/1200) * (self.total_it//10000)
@@ -199,6 +274,10 @@ class HigherController(HRLControllerBase):
         self.action_dim = action_dim
 
     def off_policy_corrections(self, low_con, batch_size, sgoals, states, actions, candidate_goals=8):
+        """
+        implementation of off policy correction in HIRO paper.
+        """
+
         first_s = [s[0] for s in states]  # First x
         last_s = [s[-1] for s in states]  # Last x
 
@@ -251,10 +330,14 @@ class HigherController(HRLControllerBase):
 
         logprob = -0.5*np.sum(np.linalg.norm(difference, axis=-1)**2, axis=-1)
         max_indices = np.argmax(logprob, axis=-1)
-
+        # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
     def train(self, replay_buffer, low_con):
+        """
+        train the high level controller with
+        the novel off policy correction.
+        """
         if not self._initialized:
             self.agent.sync_target_network()
         states, goals, actions, n_states, rewards, not_done, states_arr, actions_arr = replay_buffer.sample()
@@ -291,12 +374,13 @@ class HIROAgent(HRLAgent):
         """
         Constructor for the HIRO agent.
         """
-
+        # create subgoal
         self.subgoal = Subgoal(subgoal_dim)
         scale_high = self.subgoal.action_space.high * np.ones(subgoal_dim)
 
         self.model_save_freq = model_save_freq
 
+        # higher td3 controller
         self.high_con = HigherController(
             state_dim=state_dim,
             goal_dim=goal_dim,
@@ -306,6 +390,7 @@ class HIROAgent(HRLAgent):
             policy_freq=policy_freq_high
             )
 
+        # lower td3 controller
         self.low_con = LowerController(
             state_dim=state_dim,
             goal_dim=subgoal_dim,
@@ -315,6 +400,7 @@ class HIROAgent(HRLAgent):
             policy_freq=policy_freq_low
             )
 
+        # create replay buffers
         self.low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size, batch_size)
         self.high_level_replay_buffer = HigherControllerReplayBuffer(buffer_size, batch_size)
 
@@ -348,22 +434,22 @@ class HIROAgent(HRLAgent):
         n_s = obs['observation']
 
         # Higher Level Controller
-        # Take random action for start_training steps
         if explore:
+            # Take random action for start_training steps
             if global_step < self.start_training_steps:
                 n_sg = self.subgoal.action_space.sample()
             else:
                 n_sg = self._choose_subgoal_with_noise(step, s, self.sg, n_s)
         else:
             n_sg = self._choose_subgoal(step, s, self.sg, n_s)
-
+        # next subgoal
         self.n_sg = n_sg
 
         return a, r, n_s, done
 
     def append(self, step, s, a, n_s, r, d):
         """
-        add experiences to low and high level replay buffers.
+        add experiences to the low and high level replay buffers.
         """
         self.sr = self.low_reward(s, self.sg, n_s)
 
