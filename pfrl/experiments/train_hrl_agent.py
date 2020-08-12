@@ -56,10 +56,11 @@ def train_hrl_agent(
             a, r, n_s, done = agent.step(s, env, t, global_step, explore=True)
 
             agent.append(t, s, a, n_s, r, done)
-
-            action = agent.act(obs)
-            # o_{t+1}, r_{t+1}
-            obs, r, done, info = env.step(action)
+            info = object()
+            # to-do - commenting these out or changing the function definition?
+            # action = agent.act(obs)
+            # # o_{t+1}, r_{t+1}
+            # obs, r, done, info = env.step(action)
             t += 1
             s = n_s
             episode_r += r

@@ -68,7 +68,7 @@ class HRLControllerBase():
         self.policy_freq = policy_freq
         self.tau = tau
         # create td3 agent
-        
+
         policy = nn.Sequential(
             nn.Linear(state_dim + goal_dim, 400),
             nn.ReLU(),
@@ -79,7 +79,7 @@ class HRLControllerBase():
             pfrl.policies.DeterministicHead(),
             )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
-        
+
         def make_q_func_with_optimizer():
             q_func = nn.Sequential(
                 pfrl.nn.ConcatObsAndAction(),
@@ -104,24 +104,7 @@ class HRLControllerBase():
             Select random actions until model is updated one or more times.
             """
             return np.random.uniform(-1, 1).astype(np.float32)
-        """
-        agent = pfrl.agents.TD3(
-        policy,
-        q_func1,
-        q_func2,
-        policy_optimizer,
-        q_func1_optimizer,
-        q_func2_optimizer,
-        rbuf,
-        gamma=0.99,
-        soft_update_tau=5e-3,
-        explorer=explorer,
-        replay_start_size=args.replay_start_size,
-        gpu=args.gpu,
-        minibatch_size=args.batch_size,
-        burnin_action_func=burnin_action_func,
-    )
-        """
+
         self.agent = TD3(
             policy,
             q_func1,
