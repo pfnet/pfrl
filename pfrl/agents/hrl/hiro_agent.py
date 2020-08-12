@@ -51,18 +51,18 @@ class HRLControllerBase():
         # create td3 agent
         self.agent = TD3()
 
-        self.actor = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
-        self.actor_target = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
-        self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
+        # self.actor = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
+        # self.actor_target = TD3Actor(state_dim, goal_dim, action_dim, scale=scale).to(device)
+        # self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
 
-        self.critic1 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        self.critic2 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        self.critic1_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
-        self.critic2_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
+        # self.critic1 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
+        # self.critic2 = TD3Critic(state_dim, goal_dim, action_dim).to(device)
+        # self.critic1_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
+        # self.critic2_target = TD3Critic(state_dim, goal_dim, action_dim).to(device)
 
-        self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=critic_lr)
-        self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=critic_lr)
-        self._initialize_target_networks()
+        # self.critic1_optimizer = torch.optim.Adam(self.critic1.parameters(), lr=critic_lr)
+        # self.critic2_optimizer = torch.optim.Adam(self.critic2.parameters(), lr=critic_lr)
+        # self._initialize_target_networks()
 
         self._initialized = False
         self.total_it = 0
@@ -89,7 +89,7 @@ class HRLControllerBase():
         states, goals, actions, n_states, rewards, not_done = replay_buffer.sample()
         return self._train(states, goals, actions, rewards, n_states, goals, not_done)
 
-    def policy_with_noise(self, state, goal, to_numpy=True):
+    def policy_with_noise(self, state, goal):
         action = self.policy(state, goal)
         action += self._sample_exploration_noise(action)
         action = torch.min(action,  self.actor.scale)
