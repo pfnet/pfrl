@@ -399,7 +399,6 @@ class Agent():
 
     def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
         if save_video:
-            from OpenGL import GL
             import gym
             env = gym.wrappers.Monitor(env, directory='video',
                                     write_upon_reset=True, force=True, resume=True, mode='evaluation')

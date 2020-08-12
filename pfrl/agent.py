@@ -10,6 +10,8 @@ from typing import Sequence
 from typing import Tuple
 
 import torch
+import numpy as np
+import time
 
 
 class Agent(object, metaclass=ABCMeta):
@@ -80,6 +82,9 @@ class HRLAgent(Agent, metaclass=ABCMeta):
     """Abstract HRL agent class."""
     training = True
 
+    def set_final_goal(self, fg):
+        self.fg = fg
+
     def train(self, global_step: int) -> Any:
         """Trains the HRL agent.
 
@@ -95,10 +100,58 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def step(self, s, env, step, global_step=0, explore=False) -> Any:
-        """ 
+        """
         Take an action and step in the environment.
         """
         raise NotImplementedError()
+
+    def end_episode(self, episode, logger=None):
+        raise NotImplementedError
+
+    def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
+        if save_video:
+            from OpenGL import GL
+            import gym
+            env = gym.wrappers.Monitor(env, directory='video',
+                                       write_upon_reset=True, force=True, resume=True, mode='evaluation')
+            render = False
+
+        success = 0
+        rewards = []
+        env.evaluate = True
+        for e in range(eval_episodes):
+            obs = env.reset()
+            fg = obs['desired_goal']
+            s = obs['observation']
+            done = False
+            reward_episode_sum = 0
+            step = 0
+
+            self.set_final_goal(fg)
+
+            while not done:
+                if render:
+                    env.render()
+                if sleep > 0:
+                    time.sleep(sleep)
+
+                a, r, n_s, done = self.step(s, env, step)
+                reward_episode_sum += r
+
+                s = n_s
+                step += 1
+                self.end_step()
+            else:
+                error = np.sqrt(np.sum(np.square(fg-s[:2])))
+                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f' % (fg[0], fg[1], s[0], s[1], error))
+                rewards.append(reward_episode_sum)
+                success += 1 if error <= 5 else 0
+                self.end_episode(e)
+
+        env.evaluate = False
+        return np.array(rewards), success/eval_episodes
+
+
 class AttributeSavingMixin(object):
     """Mixin that provides save and load functionalities."""
 
