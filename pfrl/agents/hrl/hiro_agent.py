@@ -10,7 +10,7 @@ from pfrl.replay_buffers import (
     LowerControllerReplayBuffer,
     HigherControllerReplayBuffer
 )
-from pfrl import explorers, replay_buffers
+from pfrl import explorers, replay_buffer, replay_buffers
 
 from pfrl.agents import TD3
 
@@ -46,6 +46,7 @@ class HRLControllerBase():
             scale,
             model_path,
             name,
+            replay_buffer,
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -67,7 +68,7 @@ class HRLControllerBase():
         self.policy_freq = policy_freq
         self.tau = tau
         # create td3 agent
-
+        
         policy = nn.Sequential(
             nn.Linear(state_dim + goal_dim, 400),
             nn.ReLU(),
@@ -78,7 +79,7 @@ class HRLControllerBase():
             pfrl.policies.DeterministicHead(),
             )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
-
+        
         def make_q_func_with_optimizer():
             q_func = nn.Sequential(
                 pfrl.nn.ConcatObsAndAction(),
@@ -94,7 +95,6 @@ class HRLControllerBase():
         q_func1, q_func1_optimizer = make_q_func_with_optimizer()
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
         explorer = explorers.AdditiveGaussian(
             scale=0.1, low=-1, high=1
         )
@@ -129,7 +129,7 @@ class HRLControllerBase():
             policy_optimizer,
             q_func1_optimizer,
             q_func2_optimizer,
-            rbuf,
+            replay_buffer,
             gamma=gamma,
             soft_update_tau=tau,
             explorer=explorer,
@@ -202,6 +202,7 @@ class LowerController(HRLControllerBase):
             scale,
             model_path,
             name,
+            replay_buffer,
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=1.0,
@@ -217,6 +218,7 @@ class LowerController(HRLControllerBase):
                                             scale,
                                             model_path,
                                             name,
+                                            replay_buffer,
                                             actor_lr,
                                             critic_lr,
                                             expl_noise,
@@ -247,6 +249,7 @@ class HigherController(HRLControllerBase):
             scale,
             model_path,
             name,
+            replay_buffer,
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -262,6 +265,7 @@ class HigherController(HRLControllerBase):
                                                 scale,
                                                 model_path,
                                                 name,
+                                                replay_buffer,
                                                 actor_lr,
                                                 critic_lr,
                                                 expl_noise,
@@ -380,6 +384,10 @@ class HIROAgent(HRLAgent):
 
         self.model_save_freq = model_save_freq
 
+        # create replay buffers
+        self.low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size, batch_size)
+        self.high_level_replay_buffer = HigherControllerReplayBuffer(buffer_size, batch_size)
+
         # higher td3 controller
         self.high_con = HigherController(
             state_dim=state_dim,
@@ -387,7 +395,8 @@ class HIROAgent(HRLAgent):
             action_dim=subgoal_dim,
             scale=scale_high,
             model_path=model_path,
-            policy_freq=policy_freq_high
+            policy_freq=policy_freq_high,
+            replay_buffer=self.high_level_replay_buffer
             )
 
         # lower td3 controller
@@ -397,12 +406,9 @@ class HIROAgent(HRLAgent):
             action_dim=action_dim,
             scale=scale_low,
             model_path=model_path,
-            policy_freq=policy_freq_low
+            policy_freq=policy_freq_low,
+            replay_buffer=self.low_level_replay_buffer
             )
-
-        # create replay buffers
-        self.low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size, batch_size)
-        self.high_level_replay_buffer = HigherControllerReplayBuffer(buffer_size, batch_size)
 
         self.buffer_freq = buffer_freq
 
