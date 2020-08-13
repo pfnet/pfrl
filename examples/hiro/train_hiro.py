@@ -311,7 +311,8 @@ def main():
             [functools.partial(make_panda_env, idx, test) for idx in range(args.num_envs)]
         )
 
-    eval_env = make_batch_panda_env(test=True)
+    # eval_env = make_batch_panda_env(test=True)
+    eval_env = make_panda_env(0, test=True)
     n_actions = eval_env.action_space.n
 
     q_func = GraspingQFunction(n_actions, max_episode_steps)
