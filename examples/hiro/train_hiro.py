@@ -255,8 +255,7 @@ def main():
         env = pandaPushGymGoalEnv(renders=args.render and (args.demo or not test),
                                   max_steps=max_episode_steps)
         # Disable file caching to keep memory usage small
-        env._p.setPhysicsEngineParameter(enableFileCaching=False)
-
+        print(env)
         env.seed(int(env_seed))
         if test and args.record:
             assert args.render, "To use --record, --render needs be specified."
@@ -313,7 +312,7 @@ def main():
 
     # eval_env = make_batch_panda_env(test=True)
     eval_env = make_panda_env(0, test=True)
-    n_actions = eval_env.action_space.n
+    n_actions = eval_env.action_space.shape[0]
 
     q_func = GraspingQFunction(n_actions, max_episode_steps)
 

@@ -551,3 +551,8 @@ class HIROAgent(HRLAgent):
     def load(self, episode):
         self.low_con.load(episode)
         self.high_con.load(episode)
+
+
+if __name__ == '__main__':
+    rbf = LowerControllerReplayBuffer(10**6)
+    controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
