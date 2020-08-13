@@ -94,7 +94,7 @@ class HRLControllerBase():
 
         q_func1, q_func1_optimizer = make_q_func_with_optimizer()
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
-
+        # have proper low and high values from action space.
         explorer = explorers.AdditiveGaussian(
             scale=0.1, low=-1, high=1
         )

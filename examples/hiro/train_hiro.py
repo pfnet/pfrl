@@ -243,6 +243,28 @@ def main():
 
     max_episode_steps = 8
 
+    def make_panda_env(idx, test):
+        from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
+            pandaPushGymGoalEnv
+        )  # NOQA
+
+        # use different seeds for train vs test envs
+        process_seed = int(process_seeds[idx])
+        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
+        utils.set_random_seed(env_seed)
+        env = pandaPushGymGoalEnv(renders=args.render and (args.demo or not test),
+                                  max_steps=max_episode_steps)
+        # Disable file caching to keep memory usage small
+        env._p.setPhysicsEngineParameter(enableFileCaching=False)
+
+        env.seed(int(env_seed))
+        if test and args.record:
+            assert args.render, "To use --record, --render needs be specified."
+            video_dir = os.path.join(args.outdir, "video_{}".format(idx))
+            os.mkdir(video_dir)
+            env = RecordMovie(env, video_dir)
+        return env
+
     def make_env(idx, test):
         from pybullet_envs.bullet.kuka_diverse_object_gym_env import (
             KukaDiverseObjectEnv,
@@ -252,7 +274,6 @@ def main():
         process_seed = int(process_seeds[idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         # Set a random seed for this subprocess
-        utils.set_random_seed(env_seed)
         env = KukaDiverseObjectEnv(
             isDiscrete=True,
             renders=args.render and (args.demo or not test),
@@ -285,7 +306,12 @@ def main():
             [functools.partial(make_env, idx, test) for idx in range(args.num_envs)]
         )
 
-    eval_env = make_batch_env(test=True)
+    def make_batch_panda_env(test):
+        return pfrl.envs.MultiprocessVectorEnv(
+            [functools.partial(make_panda_env, idx, test) for idx in range(args.num_envs)]
+        )
+
+    eval_env = make_batch_panda_env(test=True)
     n_actions = eval_env.action_space.n
 
     q_func = GraspingQFunction(n_actions, max_episode_steps)
@@ -312,6 +338,7 @@ def main():
         args.final_exploration_steps,
         lambda: np.random.randint(n_actions),
     )
+    # create the agent, in my case.
 
     def phi(x):
         # Feature extractor
@@ -319,7 +346,6 @@ def main():
         # Normalize RGB values: [0, 255] -> [0, 1]
         norm_image = np.asarray(image, dtype=np.float32) / 255
         return norm_image, elapsed_steps
-
     agent = pfrl.agents.DoubleDQN(
         q_func,
         opt,
@@ -336,6 +362,7 @@ def main():
     )
 
     if args.load:
+        # load weights from agent if arg supplied
         agent.load(args.load)
 
     if args.demo:
