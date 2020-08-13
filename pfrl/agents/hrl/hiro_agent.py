@@ -1,4 +1,5 @@
 from typing import Any
+from numpy.core.numeric import True_
 import torch
 from torch import nn
 import numpy as np
@@ -103,7 +104,7 @@ class HRLControllerBase():
             """
             Select random actions until model is updated one or more times.
             """
-            return np.random.uniform(-1, 1).astype(np.float32)
+            return np.random.uniform(-1, 1)
 
         self.agent = TD3(
             policy,
@@ -116,8 +117,8 @@ class HRLControllerBase():
             gamma=gamma,
             soft_update_tau=tau,
             explorer=explorer,
-            update_interval=policy_freq,
-            burnin_action_func=burnin_action_func
+            update_interval=policy_freq
+            # burnin_action_func=burnin_action_func
         )
 
         self._initialized = False
@@ -127,25 +128,25 @@ class HRLControllerBase():
         """
         save the internal state of the TD3 agent.
         """
-        self.agent.save('dirname')
+        self.agent.save('models')
 
     def load(self):
         """
         load the internal state of the TD3 agent.
         """
-        self.agent.load('dirname')
+        self.agent.load('models')
 
     def policy(self, state, goal):
         """
         run the policy (actor).
         """
-        return self.agent.act([torch.cat([state, goal])])
+        return self.agent.act(torch.cat([state, goal]))
 
     def _train(self, states, goals, actions, rewards, n_states, n_goals, not_done):
         """
         train the model.
         """
-        self.agent.batch_observe(torch.cat([states, goals]), rewards, not_done, None)
+        self.agent.observe(torch.cat([states, goals]), rewards, not_done, None)
 
     def train(self, replay_buffer, iterations=1):
         """
@@ -552,7 +553,11 @@ class HIROAgent(HRLAgent):
         self.low_con.load(episode)
         self.high_con.load(episode)
 
-
+print(__name__)
 if __name__ == '__main__':
     rbf = LowerControllerReplayBuffer(10**6)
     controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
+    actions = controller.policy(torch.ones(33), torch.ones(3))
+    # states, goals, actions, rewards, 
+    controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
+    print(actions)
