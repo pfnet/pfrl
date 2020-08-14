@@ -14,7 +14,7 @@ from pfrl.replay_buffers import (
 from pfrl import explorers, replay_buffer, replay_buffers
 
 from pfrl.agents import TD3
-
+from pfrl.agents import GoalConditionedTD3
 
 def _is_update(episode, freq, ignore=0, rem=0):
     if episode != ignore and episode % freq == rem:
@@ -106,7 +106,7 @@ class HRLControllerBase():
             """
             return np.random.uniform(-1, 1)
 
-        self.agent = TD3(
+        self.agent = GoalConditionedTD3(
             policy,
             q_func1,
             q_func2,
@@ -140,13 +140,13 @@ class HRLControllerBase():
         """
         run the policy (actor).
         """
-        return self.agent.act(torch.cat([state, goal]))
+        return self.agent.act_with_goal(state, goal)
 
     def _train(self, states, goals, actions, rewards, n_states, n_goals, not_done):
         """
         train the model.
         """
-        self.agent.observe(torch.cat([states, goals]), rewards, not_done, None)
+        self.agent.observe_with_goal(states, goals, rewards, not not_done, None)
 
     def train(self, replay_buffer, iterations=1):
         """
@@ -560,4 +560,10 @@ if __name__ == '__main__':
     actions = controller.policy(torch.ones(33), torch.ones(3))
     # states, goals, actions, rewards, 
     controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
+
+    # stuff happens here!!!
+    actions = controller.policy(torch.ones(33), torch.ones(3))
+    # states, goals, actions, rewards, 
+    controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
+
     print(actions)

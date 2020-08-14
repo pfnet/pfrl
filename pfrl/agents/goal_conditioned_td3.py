@@ -251,7 +251,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         if self.burnin_action_func is not None and self.policy_n_updates == 0:
             batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
         else:
-            batch_onpolicy_action = self.batch_select_onpolicy_action(torch.cat([batch_obs, batch_goal]))
+            concat_states = []
+            for idx, ob in enumerate(batch_obs):
+                concat_states.append(torch.cat(ob, batch_goal[idx]))
+            batch_onpolicy_action = self.batch_select_onpolicy_action(concat_states)
             batch_action = [
                 self.explorer.select_action(self.t, lambda: batch_onpolicy_action[i])
                 for i in range(len(batch_onpolicy_action))
