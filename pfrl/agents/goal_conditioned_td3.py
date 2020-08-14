@@ -7,8 +7,11 @@ import torch
 from torch.nn import functional as F
 
 import pfrl
-from pfrl.agent import AttributeSavingMixin
-from pfrl.agent import BatchAgent
+from pfrl.agent import (
+    GoalConditionedBatchAgent,
+    BatchAgent,
+    AttributeSavingMixin
+)
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
@@ -28,7 +31,7 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-class GoalConditionedTD3(TD3):
+class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     """
     Goal conditioned
     Twin Delayed Deep Deterministic Policy Gradients (TD3).
@@ -221,23 +224,44 @@ class GoalConditionedTD3(TD3):
         else:
             return self._batch_act_eval(batch_obs)
 
-    def batch_act(self, batch_obs, batch_goal):
+    def batch_act_with_goal(self, batch_obs, batch_goal):
         if self.training:
-            return self._batch_act_train(batch_obs)
+            return self._batch_act_train_goal(batch_obs, batch_goal)
         else:
-            return self._batch_act_eval(batch_obs)
+            return self._batch_act_eval_goal(batch_obs)
 
-    def batch_observe_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
+    def batch_observe_with_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         if self.training:
-            self._batch_observe_train(batch_obs, batch_reward, batch_done, batch_reset)
+            self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
 
     def batch_observe(self, batch_obs, batch_reward, batch_done, batch_reset):
         if self.training:
             self._batch_observe_train(batch_obs, batch_reward, batch_done, batch_reset)
 
+    def _batch_act_eval_goal(self, batch_obs, batch_goal):
+        assert not self.training
+        return self.batch_select_onpolicy_action(torch.cat([batch_obs, batch_goal]))
+
     def _batch_act_eval(self, batch_obs):
         assert not self.training
         return self.batch_select_onpolicy_action(batch_obs)
+
+    def _batch_act_train_goal(self, batch_obs, batch_goal):
+        assert self.training
+        if self.burnin_action_func is not None and self.policy_n_updates == 0:
+            batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
+        else:
+            batch_onpolicy_action = self.batch_select_onpolicy_action(torch.cat([batch_obs, batch_goal]))
+            batch_action = [
+                self.explorer.select_action(self.t, lambda: batch_onpolicy_action[i])
+                for i in range(len(batch_onpolicy_action))
+            ]
+
+        self.batch_last_obs = list(batch_obs)
+        self.batch_last_goal = list(batch_goal)
+        self.batch_last_action = list(batch_action)
+
+        return batch_action
 
     def _batch_act_train(self, batch_obs):
         assert self.training
@@ -260,19 +284,23 @@ class GoalConditionedTD3(TD3):
         for i in range(len(batch_obs)):
             self.t += 1
             if self.batch_last_obs[i] is not None:
+                assert self.batch_last_goal[i] is not None
                 assert self.batch_last_action[i] is not None
                 # Add a transition to the replay buffer
                 self.replay_buffer.append(
                     state=self.batch_last_obs[i],
+                    goal=self.batch_last_goal[i],
                     action=self.batch_last_action[i],
                     reward=batch_reward[i],
                     next_state=batch_obs[i],
+                    next_goal=batch_goal[i],
                     next_action=None,
                     is_state_terminal=batch_done[i],
                     env_id=i,
                 )
                 if batch_reset[i] or batch_done[i]:
                     self.batch_last_obs[i] = None
+                    self.batch_last_goal[i] = None
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
             self.replay_updater.update_if_necessary(self.t)

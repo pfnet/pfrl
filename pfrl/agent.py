@@ -270,3 +270,52 @@ class BatchAgent(Agent, metaclass=ABCMeta):
             None
         """
         raise NotImplementedError()
+
+
+class GoalConditionedBatchAgent(BatchAgent, metaclass=ABCMeta):
+    """Abstract GOAL conditioned agent class that can interact with a batch of envs."""
+
+    def act_with_goal(self, obs: Any, goal: Any) -> Any:
+        return self.batch_act_with_goal([obs], [goal])[0]
+
+    def observe_with_goal(self, obs: Any, goals: Any, reward: float, done: bool, reset: bool) -> None:
+        self.batch_observe_with_goal([obs], [goals], [reward], [done], [reset])
+
+    @abstractmethod
+    def batch_act_with_goal(self, batch_obs: Sequence[Any], batch_goal: Sequence[Any]) -> Sequence[Any]:
+        """Select a batch of actions.
+
+        Args:
+            batch_obs (Sequence of ~object): Observations.
+            batch_goal (Sequence of ~object): Goals.
+
+        Returns:
+            Sequence of ~object: Actions.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def batch_observe_with_goal(
+        self,
+        batch_obs: Sequence[Any],
+        batch_goal: Sequence[Any],
+        batch_reward: Sequence[float],
+        batch_done: Sequence[bool],
+        batch_reset: Sequence[bool],
+    ) -> None:
+        """Observe a batch of action consequences.
+
+        Args:
+            batch_obs (Sequence of ~object): Observations.
+            batch_goal (Sequence of ~object): Goals.
+            batch_reward (Sequence of float): Rewards.
+            batch_done (Sequence of boolean): Boolean values where True
+                indicates the current state is terminal.
+            batch_reset (Sequence of boolean): Boolean values where True
+                indicates the current episode will be reset, even if the
+                current state is not terminal.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError()
