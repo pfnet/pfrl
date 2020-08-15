@@ -1,5 +1,4 @@
 from typing import Any
-from numpy.core.numeric import True_
 import torch
 from torch import nn
 import numpy as np
@@ -55,7 +54,9 @@ class HRLControllerBase():
             noise_clip=0.5,
             gamma=0.99,
             policy_freq=2,
-            tau=0.005):
+            tau=0.005,
+            replay_start_size=110,
+            is_low_level=True):
         # example name- 'td3_low' or 'td3_high'
         self.name = name
         self.scale = scale
@@ -105,7 +106,7 @@ class HRLControllerBase():
             Select random actions until model is updated one or more times.
             """
             return np.random.uniform(-1, 1)
-
+        # replay start sizes - get it
         self.agent = GoalConditionedTD3(
             policy,
             q_func1,
@@ -117,7 +118,9 @@ class HRLControllerBase():
             gamma=gamma,
             soft_update_tau=tau,
             explorer=explorer,
-            update_interval=policy_freq
+            update_interval=policy_freq,
+            replay_start_size=replay_start_size,
+            is_low_level=is_low_level
             # burnin_action_func=burnin_action_func
         )
 
@@ -194,7 +197,8 @@ class LowerController(HRLControllerBase):
             noise_clip=0.5,
             gamma=0.99,
             policy_freq=2,
-            tau=0.005):
+            tau=0.005,
+            is_low_level=True):
         super(LowerController, self).__init__(
                                             state_dim,
                                             goal_dim,
@@ -210,12 +214,11 @@ class LowerController(HRLControllerBase):
                                             noise_clip,
                                             gamma,
                                             policy_freq,
-                                            tau)
+                                            tau,
+                                            is_low_level=is_low_level)
         self.name = name
 
     def train(self, replay_buffer):
-        if not self._initialized:
-            self.agent.sync_target_network()
 
         states, sgoals, actions, n_states, n_sgoals, rewards, not_done = replay_buffer.sample()
 
@@ -241,7 +244,8 @@ class HigherController(HRLControllerBase):
             noise_clip=0.5,
             gamma=0.99,
             policy_freq=2,
-            tau=0.005):
+            tau=0.005,
+            is_low_level=False):
         super(HigherController, self).__init__(
                                                 state_dim,
                                                 goal_dim,
@@ -257,7 +261,8 @@ class HigherController(HRLControllerBase):
                                                 noise_clip,
                                                 gamma,
                                                 policy_freq,
-                                                tau)
+                                                tau,
+                                                is_low_level=is_low_level)
         self.name = 'high'
         self.action_dim = action_dim
 
@@ -326,8 +331,6 @@ class HigherController(HRLControllerBase):
         train the high level controller with
         the novel off policy correction.
         """
-        if not self._initialized:
-            self.agent.sync_target_network()
         states, goals, actions, n_states, rewards, not_done, states_arr, actions_arr = replay_buffer.sample()
 
         actions = self.off_policy_corrections(
@@ -555,15 +558,14 @@ class HIROAgent(HRLAgent):
 
 print(__name__)
 if __name__ == '__main__':
-    rbf = LowerControllerReplayBuffer(10**6)
+    rbf = LowerControllerReplayBuffer(110)
     controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
     actions = controller.policy(torch.ones(33), torch.ones(3))
-    # states, goals, actions, rewards, 
+    # states, goals, actions, rewards,
     controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
 
     # stuff happens here!!!
-    actions = controller.policy(torch.ones(33), torch.ones(3))
-    # states, goals, actions, rewards, 
-    controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
-
-    print(actions)
+    for i in range(10000):
+        actions = controller.policy(torch.ones(33), torch.ones(3))
+        # states, goals, actions, rewards, 
+        controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)

@@ -1,3 +1,4 @@
+from pfrl.utils import env_modifiers
 from .replay_buffer import ReplayBuffer
 
 class LowerControllerReplayBuffer(ReplayBuffer):
@@ -91,6 +92,7 @@ class HigherControllerReplayBuffer(ReplayBuffer):
             is_state_terminal=is_state_terminal,
             state_arr=state_arr,
             action_arr=action_arr,
+            env_id=env_id,
             **kwargs
         )
         last_n_transitions.append(experience)
