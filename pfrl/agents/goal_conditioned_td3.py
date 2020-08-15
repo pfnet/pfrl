@@ -15,7 +15,7 @@ from pfrl.agent import (
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import batch_experiences_with_goal
+from pfrl.replay_buffer import high_level_batch_experiences_with_goal, low_level_batch_experiences_with_goal
 from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
 
@@ -108,10 +108,12 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         burnin_action_func=None,
         policy_update_delay=2,
         is_low_level=True,
+        buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
         # determines if we're dealing with a low level controller.
         self.is_low_level = is_low_level
+        self.buffer_freq = buffer_freq
         self.state_arr = []
         self.action_arr = []
         super(GoalConditionedTD3, self).__init__(policy,
@@ -215,12 +217,16 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""
+        if self.is_low_level:
+            batch = low_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
+            self.update_q_func_with_goal(batch)
+            if self.q_func_n_updates % self.policy_update_delay == 0:
+                self.update_policy_with_goal(batch)
+                self.sync_target_network()
+        else:
+            # dealing with high level controller
+            batch = high_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
 
-        batch = batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
-        self.update_q_func_with_goal(batch)
-        if self.q_func_n_updates % self.policy_update_delay == 0:
-            self.update_policy_with_goal(batch)
-            self.sync_target_network()
 
     def batch_select_onpolicy_action(self, batch_obs):
         with torch.no_grad(), pfrl.utils.evaluating(self.policy):
@@ -316,18 +322,21 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                         env_id=i,
                     )
                 else:
-                    self.replay_buffer.append(
-                        state=self.batch_last_obs[i],
-                        goal=self.batch_last_goal[i],
-                        action=self.batch_last_action[i],
-                        reward=batch_reward[i],
-                        next_state=batch_obs[i],
-                        next_action=None,
-                        is_state_terminal=batch_done[i],
-                        state_arr=self.state_arr,
-                        action_arr=self.action_arr,
-                        env_id=i
-                    )
+                    if self.t % self.buffer_freq == 1:
+                        self.replay_buffer.append(
+                            state=self.batch_last_obs[i],
+                            goal=self.batch_last_goal[i],
+                            action=self.batch_last_action[i],
+                            reward=batch_reward[i],
+                            next_state=batch_obs[i],
+                            next_action=None,
+                            is_state_terminal=batch_done[i],
+                            state_arr=self.state_arr,
+                            action_arr=self.action_arr,
+                            env_id=i
+                        )
+                        self.state_arr = []
+                        self.action_arr = []
                     self.state_arr.append(self.batch_last_obs[i])
                     self.action_arr.append(self.batch_last_action[i])
 

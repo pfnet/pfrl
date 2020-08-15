@@ -56,7 +56,8 @@ class HRLControllerBase():
             policy_freq=2,
             tau=0.005,
             replay_start_size=110,
-            is_low_level=True):
+            is_low_level=True,
+            buffer_freq=10):
         # example name- 'td3_low' or 'td3_high'
         self.name = name
         self.scale = scale
@@ -120,7 +121,8 @@ class HRLControllerBase():
             explorer=explorer,
             update_interval=policy_freq,
             replay_start_size=replay_start_size,
-            is_low_level=is_low_level
+            is_low_level=is_low_level,
+            buffer_freq=buffer_freq
             # burnin_action_func=burnin_action_func
         )
 
@@ -245,7 +247,8 @@ class HigherController(HRLControllerBase):
             gamma=0.99,
             policy_freq=2,
             tau=0.005,
-            is_low_level=False):
+            is_low_level=False,
+            buffer_freq=10):
         super(HigherController, self).__init__(
                                                 state_dim,
                                                 goal_dim,
@@ -262,7 +265,8 @@ class HigherController(HRLControllerBase):
                                                 gamma,
                                                 policy_freq,
                                                 tau,
-                                                is_low_level=is_low_level)
+                                                is_low_level=is_low_level,
+                                                buffer_freq=buffer_freq)
         self.name = 'high'
         self.action_dim = action_dim
 
@@ -556,16 +560,20 @@ class HIROAgent(HRLAgent):
         self.low_con.load(episode)
         self.high_con.load(episode)
 
-print(__name__)
-if __name__ == '__main__':
-    rbf = LowerControllerReplayBuffer(110)
-    controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
-    actions = controller.policy(torch.ones(33), torch.ones(3))
-    # states, goals, actions, rewards,
-    controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
 
-    # stuff happens here!!!
-    for i in range(10000):
+if __name__ == '__main__':
+
+    high_rbf = HigherControllerReplayBuffer(1100)
+    controller = HigherController(33, 3, 7, 1, 'model', 'high', high_rbf)
+
+    # rbf = LowerControllerReplayBuffer(110)
+    # controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
+    # actions = controller.policy(torch.ones(33), torch.ones(3))
+    # # states, goals, actions, rewards,
+    # controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
+
+    # # stuff happens here!!!
+    for i in range(2000):
         actions = controller.policy(torch.ones(33), torch.ones(3))
-        # states, goals, actions, rewards, 
+    #     # states, goals, actions, rewards,
         controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
