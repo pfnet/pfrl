@@ -200,10 +200,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def high_level_update_q_func_with_goal(self, batch):
         """
         Compute loss for a given Q-function, or critics
+        for the high level controller
         """
 
         batch_next_state = batch["next_state"]
-        batch_next_goal = batch["next_goal"]
         batch_rewards = batch["reward"]
         batch_terminal = batch["is_state_terminal"]
         batch_state = batch["state"]
@@ -217,10 +217,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             self.target_q_func2
         ):
             next_actions = self.target_policy_smoothing_func(
-                self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1)).sample()
+                self.target_policy(torch.cat([batch_next_state, batch_goal], -1)).sample()
             )
-            next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
-            next_q2 = self.target_q_func2((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
+            next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_goal], -1), next_actions))
+            next_q2 = self.target_q_func2((torch.cat([batch_next_state, batch_goal], -1), next_actions))
             next_q = torch.min(next_q1, next_q2)
 
             target_q = batch_rewards + batch_discount * (
@@ -284,8 +284,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                 self.sync_target_network()
         else:
             # dealing with high level controller
+            # off policy correction is already taken care of
             batch = high_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
-            # off policy corrections
 
             self.update_q_func_with_goal(batch)
             if self.q_func_n_updates % self.policy_update_delay == 0:
@@ -353,6 +353,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                 assert self.batch_last_action[i] is not None
                 # Add a transition to the replay buffer
                 if self.is_low_level:
+                    # low level controller
                     self.replay_buffer.append(
                         state=self.batch_last_obs[i],
                         goal=self.batch_last_goal[i],
@@ -365,6 +366,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                         env_id=i,
                     )
                 else:
+                    # high level controller
                     if self.t % self.buffer_freq == 0:
                         if len(self.state_arr) == self.buffer_freq:
                             self.replay_buffer.append(
