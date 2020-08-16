@@ -364,6 +364,7 @@ class HigherController(HRLControllerBase):
             experience['action'] = tensor_actions
             self.agent.high_level_update_batch(experience)
 
+
 class HIROAgent(HRLAgent):
     def __init__(self,
                  state_dim,
