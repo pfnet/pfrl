@@ -347,7 +347,6 @@ class HigherController(HRLControllerBase):
         if i > 120:
             batch = self.agent.replay_buffer_sample()
             experience = high_level_batch_experiences_with_goal(batch, self.device, lambda x: x, self.gamma)
-            m = 1
             actions = experience['action']
             action_arr = experience['action_arr']
             state_arr = experience['state_arr']
@@ -582,7 +581,7 @@ if __name__ == '__main__':
     higher_controller = HigherController(33, 3, 7, np.ones(7), 'model', 'high', high_rbf)
 
     rbf = LowerControllerReplayBuffer(110)
-    lower_controller = LowerController(33, 3, 7, np.ones(7), 'model', 'controller', rbf)
+    lower_controller = LowerController(33, 7, 7, np.ones(7), 'model', 'controller', rbf)
     # actions = controller.policy(torch.ones(33), torch.ones(3))
     # # states, goals, actions, rewards,
     # controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
