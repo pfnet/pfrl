@@ -274,6 +274,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.policy_optimizer.step()
         self.policy_n_updates += 1
 
+    def sample_if_possible(self):
+        sample = self.replay_updater.can_update_then_sample(self.t)
+        return sample if not sample else sample[0]
+
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""
         if self.is_low_level:
@@ -287,18 +291,26 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             # off policy correction is already taken care of
             batch = high_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
 
-            self.update_q_func_with_goal(batch)
+            self.high_level_update_q_func_with_goal(batch)
             if self.q_func_n_updates % self.policy_update_delay == 0:
                 self.update_policy_with_goal(batch)
                 self.sync_target_network()
 
-    def off_policy_correction(self, batch):
-        """
-        off policy correction from HIRO.
-        """
-        pass
+    def high_level_update_batch(self, batch, errors_out=None):
+        """Update the model from experiences"""
+        assert self.is_low_level is False
+        # dealing with high level controller
+
+        self.high_level_update_q_func_with_goal(batch)
+        if self.q_func_n_updates % self.policy_update_delay == 0:
+            self.update_policy_with_goal(batch)
+            self.sync_target_network()
+
 
     def replay_buffer_sample(self):
+        """
+        get some samples from the replay buffer.
+        """
         return self.replay_buffer.sample(self.minibatch_size)
 
     def batch_select_onpolicy_action(self, batch_obs):
@@ -391,7 +403,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.batch_last_goal[i] = None
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
-            self.replay_updater.update_if_necessary(self.t)
+            if self.is_low_level:
+                self.replay_updater.update_if_necessary(self.t)
 
     def get_statistics(self):
         return [

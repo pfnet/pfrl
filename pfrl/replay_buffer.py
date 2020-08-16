@@ -456,6 +456,39 @@ class ReplayUpdater(object):
         self.replay_start_size = replay_start_size
         self.update_interval = update_interval
 
+    def can_update_then_sample(self, iteration):
+        """If we can update the model if the condition is met,
+            return a sampling from the replay buffer.
+
+        Args:
+            iteration (int): Timestep.
+
+        Returns:
+            bool: True iff the condition was updated this time.
+        """
+        if len(self.replay_buffer) < self.replay_start_size:
+            return False
+
+        if self.episodic_update and self.replay_buffer.n_episodes < self.batchsize:
+            return False
+
+        if iteration % self.update_interval != 0:
+            return False
+
+        all_experiences = []
+
+        for _ in range(self.n_times_update):
+            if self.episodic_update:
+                episodes = self.replay_buffer.sample_episodes(
+                    self.batchsize, self.episodic_update_len
+                )
+                all_experiences.append(episodes)
+            else:
+                transitions = self.replay_buffer.sample(self.batchsize)
+                all_experiences.append(transitions)
+
+        return all_experiences
+
     def update_if_necessary(self, iteration):
         """Update the model if the condition is met.
 
@@ -465,7 +498,6 @@ class ReplayUpdater(object):
         Returns:
             bool: True iff the condition was updated this time.
         """
-        print(len(self.replay_buffer))
         if len(self.replay_buffer) < self.replay_start_size:
             return False
 
