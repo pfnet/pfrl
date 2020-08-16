@@ -288,6 +288,12 @@ def high_level_batch_experiences_with_goal(experiences, device, phi, gamma, batc
     Returns:
         dict of batched transitions
     """
+    state_arr = []
+    for elem in experiences:
+        temp = []
+        for state in elem[0]["state_arr"]:
+            temp.append(np.array(state))
+        state_arr.append(temp)
 
     batch_exp = {
         "state": batch_states([elem[0]["state"] for elem in experiences], device, phi),
@@ -318,7 +324,7 @@ def high_level_batch_experiences_with_goal(experiences, device, phi, gamma, batc
             [elem[0]["action_arr"] for elem in experiences], device=device
         ),
         "state_arr": torch.as_tensor(
-            [elem[0]["state_arr"] for elem in experiences], device=device
+            state_arr, device=device
         ),
         "discount": torch.as_tensor(
             [(gamma ** len(elem)) for elem in experiences],

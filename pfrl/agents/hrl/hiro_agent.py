@@ -11,7 +11,7 @@ from pfrl.replay_buffers import (
     HigherControllerReplayBuffer
 )
 from pfrl import explorers, replay_buffer, replay_buffers
-
+from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import TD3
 from pfrl.agents import GoalConditionedTD3
 
@@ -57,7 +57,8 @@ class HRLControllerBase():
             tau=0.005,
             replay_start_size=110,
             is_low_level=True,
-            buffer_freq=10):
+            buffer_freq=10,
+            minibatch_size=10):
         # example name- 'td3_low' or 'td3_high'
         self.name = name
         self.scale = scale
@@ -70,6 +71,7 @@ class HRLControllerBase():
         self.gamma = gamma
         self.policy_freq = policy_freq
         self.tau = tau
+        self.minibatch_size = minibatch_size
         # create td3 agent
 
         policy = nn.Sequential(
@@ -122,7 +124,8 @@ class HRLControllerBase():
             update_interval=policy_freq,
             replay_start_size=replay_start_size,
             is_low_level=is_low_level,
-            buffer_freq=buffer_freq
+            buffer_freq=buffer_freq,
+            minibatch_size=minibatch_size
             # burnin_action_func=burnin_action_func
         )
 
@@ -200,7 +203,8 @@ class LowerController(HRLControllerBase):
             gamma=0.99,
             policy_freq=2,
             tau=0.005,
-            is_low_level=True):
+            is_low_level=True,
+            minibatch_size=10):
         super(LowerController, self).__init__(
                                             state_dim,
                                             goal_dim,
@@ -217,7 +221,8 @@ class LowerController(HRLControllerBase):
                                             gamma,
                                             policy_freq,
                                             tau,
-                                            is_low_level=is_low_level)
+                                            is_low_level=is_low_level,
+                                            minibatch_size=minibatch_size)
         self.name = name
 
     def train(self, replay_buffer):
@@ -248,7 +253,8 @@ class HigherController(HRLControllerBase):
             policy_freq=2,
             tau=0.005,
             is_low_level=False,
-            buffer_freq=10):
+            buffer_freq=10,
+            minibatch_size=10):
         super(HigherController, self).__init__(
                                                 state_dim,
                                                 goal_dim,
@@ -266,7 +272,8 @@ class HigherController(HRLControllerBase):
                                                 policy_freq,
                                                 tau,
                                                 is_low_level=is_low_level,
-                                                buffer_freq=buffer_freq)
+                                                buffer_freq=buffer_freq,
+                                                minibatch_size=minibatch_size)
         self.name = 'high'
         self.action_dim = action_dim
 
@@ -319,7 +326,7 @@ class HigherController(HRLControllerBase):
             subgoal = candidates[:,c]
             candidate = (subgoal + states[:, 0, :self.action_dim])[:, None] - states[:, :, :self.action_dim]
             candidate = candidate.reshape(*goal_shape)
-            policy_actions[c] = low_con.policy(observations, candidate)
+            policy_actions[c] = low_con.policy(torch.tensor(observations).float(), torch.tensor(candidate).float())
 
         difference = (policy_actions - true_actions)
         difference = np.where(difference != -np.inf, difference, 0)
@@ -330,21 +337,29 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def train(self, replay_buffer, low_con):
+    def train(self, low_con, i, states, goals, actions, rewards, n_states, n_goals, not_done):
         """
         train the high level controller with
         the novel off policy correction.
         """
-        states, goals, actions, n_states, rewards, not_done, states_arr, actions_arr = replay_buffer.sample()
+        # sample from replay buffer.
+        # states, goals, actions, n_states, rewards, not_done, states_arr, actions_arr = replay_buffer.sample()
+        if i > 120:
+            batch = self.agent.replay_buffer_sample()
+            experience = high_level_batch_experiences_with_goal(batch, self.device, lambda x: x, self.gamma)
+            m = 1
+            actions = experience['action']
+            action_arr = experience['action_arr']
+            state_arr = experience['state_arr']
 
-        actions = self.off_policy_corrections(
-            low_con,
-            replay_buffer.batch_size,
-            actions.cpu().data.numpy(),
-            states_arr.cpu().data.numpy(),
-            actions_arr.cpu().data.numpy())
+            actions = self.off_policy_corrections(
+                low_con,
+                self.minibatch_size,
+                actions.cpu().data.numpy(),
+                state_arr.cpu().data.numpy(),
+                action_arr.cpu().data.numpy())
 
-        actions = get_tensor(actions)
+        # actions = get_tensor(actions)
 
         return self._train(states, goals, actions, rewards, n_states, goals, not_done)
 
@@ -564,16 +579,16 @@ class HIROAgent(HRLAgent):
 if __name__ == '__main__':
 
     high_rbf = HigherControllerReplayBuffer(1100)
-    controller = HigherController(33, 3, 7, 1, 'model', 'high', high_rbf)
+    higher_controller = HigherController(33, 3, 7, np.ones(7), 'model', 'high', high_rbf)
 
-    # rbf = LowerControllerReplayBuffer(110)
-    # controller = LowerController(33, 3, 7, 1, 'model', 'controller', rbf)
+    rbf = LowerControllerReplayBuffer(110)
+    lower_controller = LowerController(33, 3, 7, np.ones(7), 'model', 'controller', rbf)
     # actions = controller.policy(torch.ones(33), torch.ones(3))
     # # states, goals, actions, rewards,
     # controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
 
     # # stuff happens here!!!
     for i in range(2000):
-        actions = controller.policy(torch.ones(33), torch.ones(3))
+        actions = higher_controller.policy(torch.ones(33), torch.ones(3))
     #     # states, goals, actions, rewards,
-        controller._train(torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
+        higher_controller.train(lower_controller, i, torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
