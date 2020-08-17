@@ -82,6 +82,22 @@ class HRLAgent(Agent, metaclass=ABCMeta):
     """Abstract HRL agent class."""
     training = True
 
+    def act(self, obs: Any) -> Any:
+        """Select an action.
+
+        Returns:
+            ~object: action
+        """
+        raise NotImplementedError()
+
+    def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
+        """Observe consequences of the last action.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError()
+
     def set_final_goal(self, fg):
         self.fg = fg
 
@@ -106,7 +122,19 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def end_episode(self, episode, logger=None):
-        raise NotImplementedError
+        raise NotImplementedError()
+
+    def get_statistics(self) -> List[Tuple[str, Any]]:
+        """Get statistics of the agent.
+
+        Returns:
+            List of two-item tuples. The first item in a tuple is a str that
+            represents the name of item, while the second item is a value to be
+            recorded.
+
+            Example: [('average_loss': 0), ('average_value': 1), ...]
+        """
+        pass
 
     def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
         if save_video:

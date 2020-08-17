@@ -313,7 +313,7 @@ def main():
     # eval_env = make_batch_panda_env(test=True)
     eval_env = make_panda_env(0, test=True)
     n_actions = eval_env.action_space.shape[0]
-
+    
     q_func = GraspingQFunction(n_actions, max_episode_steps)
 
     # Use the hyper parameters of the Nature paper
