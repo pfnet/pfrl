@@ -451,6 +451,7 @@ class HIROAgent(HRLAgent):
         # Higher Level Controller
         if explore:
             # Take random action for start_training steps
+            # get next subgoal
             if global_step < self.start_training_steps:
                 n_sg = self.subgoal.action_space.sample()
             else:
@@ -459,6 +460,8 @@ class HIROAgent(HRLAgent):
             n_sg = self._choose_subgoal(step, s, self.sg, n_s)
         # next subgoal
         self.n_sg = n_sg
+
+        self.sr = self.low_reward(s, self.sg, n_s)
         # return action, reward, next state, done
         return a, r, n_s, done
 
@@ -498,12 +501,12 @@ class HIROAgent(HRLAgent):
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
             # the start training steps
-            self.low_con.train(a, r, n_s, done)
+            self.low_con.train(a, self.sr, self.n_sg, n_s, done)
             # update losses
 
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, a, r, self.fg, n_s, done)
+                self.high_con.train(self.low_con, self.n_sg, r, self.fg, n_s, done)
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -615,14 +618,17 @@ if __name__ == '__main__':
         final_goal = obs['desired_goal']
         state = obs['observation']
         hiro_agent.set_final_goal(final_goal)
+        done = False
+        episode = 1
         # while loop here
-        while True:
+        while not done:
             a, r, n_s, done = hiro_agent.step(state, env, step, global_step, explore=True)
             step += 1
             global_step += 1
             hiro_agent.train(global_step, a, r, n_s, done)
-            # add to replay buffer, append
 
+            hiro_agent.end_step()
+        hiro_agent.end_episode(episode)
     # for i in range(20000):
     #     # actions = lower_controller.policy(torch.ones(33), torch.ones(7))
 
