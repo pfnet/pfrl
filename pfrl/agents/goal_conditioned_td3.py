@@ -113,6 +113,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     ):
         # determines if we're dealing with a low level controller.
         self.is_low_level = is_low_level
+        self.cumulative_reward = False
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
         self.state_arr = []
@@ -358,6 +359,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
     def _batch_observe_train_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         assert self.training
+        if not self.cumulative_reward:
+            self.cumulative_reward = np.zeros(len(batch_obs))
         for i in range(len(batch_obs)):
             self.t += 1
             if self.batch_last_obs[i] is not None:
@@ -381,11 +384,12 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     # high level controller
                     if self.t % self.buffer_freq == 0:
                         if len(self.state_arr) == self.buffer_freq:
+                            self.cumulative_reward[i] += batch_reward[i]
                             self.replay_buffer.append(
                                 state=self.batch_last_obs[i],
                                 goal=self.batch_last_goal[i],
                                 action=self.batch_last_action[i],
-                                reward=batch_reward[i],
+                                reward=self.cumulative_reward[i],
                                 next_state=batch_obs[i],
                                 next_action=None,
                                 is_state_terminal=batch_done[i],
@@ -395,6 +399,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                             )
                         self.state_arr = []
                         self.action_arr = []
+                        self.cumulative_reward = np.zeros(len(batch_obs))
                     self.state_arr.append(self.batch_last_obs[i])
                     self.action_arr.append(self.batch_last_action[i])
 

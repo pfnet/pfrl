@@ -502,11 +502,10 @@ class HIROAgent(HRLAgent):
             # start training once the global step surpasses
             # the start training steps
             self.low_con.train(a, self.sr, self.n_sg, n_s, done)
-            # update losses
 
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.n_sg, r, self.fg, n_s, done)
+                self.high_con.train(self.low_con, self.n_sg, self.reward_scaling * r, self.fg, n_s, done)
 
     def _choose_action_with_noise(self, s, sg):
         """
