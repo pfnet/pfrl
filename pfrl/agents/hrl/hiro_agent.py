@@ -148,20 +148,19 @@ class HRLControllerBase():
         """
         run the policy (actor).
         """
-        return self.agent.act_with_goal(state, goal)
+        return self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
 
-    def _train(self, states, goals, actions, rewards, n_states, n_goals, not_done):
+    def _train(self, states, goals, rewards, done):
         """
         train the model.
         """
-        self.agent.observe_with_goal(states, goals, rewards, not not_done, None)
+        self.agent.observe_with_goal(states, goals, rewards, done, None)
 
-    def train(self, replay_buffer, iterations=1):
+    def train(self, states, goals, rewards, done, iterations=1):
         """
         get data from the replay buffer, and train.
         """
-        states, goals, actions, n_states, rewards, not_done = replay_buffer.sample()
-        return self._train(states, goals, actions, rewards, n_states, goals, not_done)
+        return self._train(states, goals, rewards, goals, done)
 
     def policy_with_noise(self, state, goal):
         """
@@ -225,11 +224,10 @@ class LowerController(HRLControllerBase):
                                             minibatch_size=minibatch_size)
         self.name = name
 
-    def train(self, replay_buffer):
+    def train(self, a, r, g, n_s, done, step):
 
-        states, sgoals, actions, n_states, n_sgoals, rewards, not_done = replay_buffer.sample()
-
-        return self._train(states, sgoals, actions, rewards, n_states, n_sgoals, not_done)
+        # return self._train
+        return self._train(n_s, g, r, done)
 
 
 # higher controller
@@ -337,13 +335,13 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def train(self, low_con, states, goals, actions, rewards, n_states, n_goals, not_done):
+    def train(self, low_con, a, r, g, n_s, done, step):
         """
         train the high level controller with
         the novel off policy correction.
         """
         # step 1 - record experience in replay buffer
-        self._train(states, goals, actions, rewards, n_states, goals, not_done)
+        self._train(n_s, g, r, done)
 
         # step 2 - if we can update, sample from replay buffer first
         batch = self.agent.sample_if_possible()
@@ -443,7 +441,7 @@ class HIROAgent(HRLAgent):
                 a = env.action_space.sample()
             # take action with noise
             else:
-                a = self._choose_action_with_noise(s, self.sg)
+                a = self._choose_action(s, self.sg)
         else:
             a = self._choose_action(s, self.sg)
 
@@ -456,12 +454,12 @@ class HIROAgent(HRLAgent):
             if global_step < self.start_training_steps:
                 n_sg = self.subgoal.action_space.sample()
             else:
-                n_sg = self._choose_subgoal_with_noise(step, s, self.sg, n_s)
+                n_sg = self._choose_subgoal(step, s, self.sg, n_s)
         else:
             n_sg = self._choose_subgoal(step, s, self.sg, n_s)
         # next subgoal
         self.n_sg = n_sg
-
+        # return action, reward, next state, done
         return a, r, n_s, done
 
     def append(self, step, s, a, n_s, r, d):
@@ -496,16 +494,16 @@ class HIROAgent(HRLAgent):
         self.buf[6].append(s)
         self.buf[7].append(a)
 
-    def train(self, global_step) -> Any:
+    def train(self, global_step, a, r, n_s, done) -> Any:
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
             # the start training steps
-            self.low_con.train(self.low_level_replay_buffer)
+            self.low_con.train(a, r, n_s, done)
             # update losses
 
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.high_level_replay_buffer, self.low_con)
+                self.high_con.train(self.low_con, a, r, self.fg, n_s, done)
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -590,7 +588,7 @@ if __name__ == '__main__':
     lower_controller = LowerController(33, 7, 7, np.ones(7), 'model', 'controller', rbf)
     hiro_agent = HIROAgent(state_dim=33,
                            action_dim=7,
-                           goal_dim=7,
+                           goal_dim=3,
                            subgoal_dim=7,
                            scale_low=1,
                            start_training_steps=100,
@@ -602,7 +600,29 @@ if __name__ == '__main__':
                            train_freq=100,
                            reward_scaling=0.1,
                            policy_freq_high=2,
-                           policy_freq_low=2)
+                           policy_freq_low=2
+                           )
+    # temp - import env here for now
+    from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
+            pandaPushGymGoalEnv
+        )  # NOQA
+    env = pandaPushGymGoalEnv()
+
+    obs = env.reset()
+    global_step = 0
+    while global_step < 10:
+        step = 0
+        final_goal = obs['desired_goal']
+        state = obs['observation']
+        hiro_agent.set_final_goal(final_goal)
+        # while loop here
+        while True:
+            a, r, n_s, done = hiro_agent.step(state, env, step, global_step, explore=True)
+            step += 1
+            global_step += 1
+            hiro_agent.train(global_step, a, r, n_s, done)
+            # add to replay buffer, append
+
     # for i in range(20000):
     #     # actions = lower_controller.policy(torch.ones(33), torch.ones(7))
 
