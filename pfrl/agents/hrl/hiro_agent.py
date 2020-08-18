@@ -154,7 +154,7 @@ class HRLControllerBase():
         """
         train the model.
         """
-        self.agent.observe_with_goal(states, goals, rewards, done, None)
+        self.agent.observe_with_goal(torch.FloatTensor(states), torch.FloatTensor(goals), rewards, done, None)
 
     def train(self, states, goals, rewards, done, iterations=1):
         """
