@@ -505,6 +505,7 @@ class HIROAgent(HRLAgent):
 
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
+                # 10, in this case.
                 self.high_con.train(self.low_con, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
 
     def _choose_action_with_noise(self, s, sg):
@@ -656,6 +657,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
             global_step += 1
 
             agent.end_step()
+        print(episode_reward)
         agent.end_episode(e)
 
 
@@ -687,25 +689,7 @@ if __name__ == '__main__':
             pandaPushGymGoalEnv
         )  # NOQA
     env = pandaPushGymGoalEnv()
-
-    obs = env.reset()
-    global_step = 0
-    while global_step < 10:
-        step = 0
-        final_goal = obs['desired_goal']
-        state = obs['observation']
-        hiro_agent.set_final_goal(final_goal)
-        done = False
-        episode = 1
-        # while loop here
-        while not done:
-            a, r, n_s, done = hiro_agent.step(state, env, step, global_step, explore=True)
-            hiro_agent.train(global_step, a, r, n_s, done)
-            step += 1
-            global_step += 1
-
-            hiro_agent.end_step()
-        hiro_agent.end_episode(episode)
+    test_e2e(100000, env, hiro_agent)
     # for i in range(20000):
     #     # actions = lower_controller.policy(torch.ones(33), torch.ones(7))
 

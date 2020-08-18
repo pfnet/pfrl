@@ -381,7 +381,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                         env_id=i,
                     )
                 else:
-                    # high level controller
+                    # high level controller, called every 10 times in
+                    # the hiro paper.
                     if len(self.state_arr) == self.buffer_freq:
                         self.cumulative_reward[i] += batch_reward[i]
                         self.replay_buffer.append(
