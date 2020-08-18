@@ -3,6 +3,7 @@ import copy
 from logging import getLogger
 
 import numpy as np
+from pybullet_robot_envs.examples.algos.test.baselines.panda_envs.test_TD3_pushing_HER import action
 import torch
 from torch.nn import functional as F
 
@@ -116,8 +117,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.cumulative_reward = False
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
-        self.state_arr = []
-        self.action_arr = []
         super(GoalConditionedTD3, self).__init__(policy,
                                                  q_func1,
                                                  q_func2,
@@ -330,6 +329,12 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         if self.training:
             self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
 
+    def batch_observe_with_goal_state_action_arr(self, state_arr, action_arr, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
+        if self.training:
+            self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset,
+                                           state_arr=state_arr, action_arr=action_arr)
+
+
     def _batch_act_eval_goal(self, batch_obs, batch_goal):
         assert not self.training
         concat_states = []
@@ -357,7 +362,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
         return batch_action
 
-    def _batch_observe_train_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
+    def _batch_observe_train_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset, state_arr=None, action_arr=None):
         assert self.training
         if not self.cumulative_reward:
             self.cumulative_reward = np.zeros(len(batch_obs))
@@ -383,7 +388,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                 else:
                     # high level controller, called every 10 times in
                     # the hiro paper.
-                    if len(self.state_arr) == self.buffer_freq:
+                    arrs_exist = (state_arr is not None) and (action_arr is not None) 
+                    if len(self.state_arr) == self.buffer_freq and arrs_exist:
                         self.cumulative_reward[i] += batch_reward[i]
                         self.replay_buffer.append(
                             state=self.batch_last_obs[i],
@@ -393,15 +399,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                             next_state=batch_obs[i],
                             next_action=None,
                             is_state_terminal=batch_done[i],
-                            state_arr=self.state_arr,
-                            action_arr=self.action_arr,
+                            state_arr=state_arr,
+                            action_arr=action_arr,
                             env_id=i
                         )
-                        self.state_arr = []
-                        self.action_arr = []
                         self.cumulative_reward = np.zeros(len(batch_obs))
-                    self.state_arr.append(self.batch_last_obs[i])
-                    self.action_arr.append(self.batch_last_action[i])
 
                 if batch_reset[i] or batch_done[i]:
                     self.batch_last_obs[i] = None

@@ -150,11 +150,20 @@ class HRLControllerBase():
         """
         return self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
 
-    def _train(self, states, goals, rewards, done):
+    def _train(self, states, goals, rewards, done, state_arr=None, action_arr=None):
         """
         train the model.
         """
         self.agent.observe_with_goal(torch.FloatTensor(states), torch.FloatTensor(goals), rewards, done, None)
+
+    def _train_with_state_action_arr(self, states, goals, rewards, done, state_arr=None, action_arr=None):
+        """
+        trains with the state and action arr.
+        """
+        self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
+                                                      torch.FloatTensor(action_arr), 
+                                                      torch.FloatTensor(states), 
+                                                      torch.FloatTensor(goals), rewards, done)
 
     def train(self, states, goals, rewards, done, iterations=1):
         """
@@ -335,7 +344,7 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def train(self, low_con, a, r, g, n_s, done, step):
+    def train(self, low_con, state_arr, action_arr, a, r, g, n_s, done, step):
         """
         train the high level controller with
         the novel off policy correction.
@@ -426,6 +435,8 @@ class HIROAgent(HRLAgent):
         self.buf = [None, None, None, 0, None, None, [], []]
         self.fg = np.array([0, 0])
         self.sg = self.subgoal.action_space.sample()
+        self.state_arr = []
+        self.action_arr = []
 
         self.start_training_steps = start_training_steps
 
@@ -497,16 +508,20 @@ class HIROAgent(HRLAgent):
         self.buf[6].append(s)
         self.buf[7].append(a)
 
-    def train(self, global_step, a, r, n_s, done) -> Any:
+    def train(self, global_step, s, a, r, n_s, done) -> Any:
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
             # the start training steps
             self.low_con.train(a, self.sr, self.n_sg, n_s, done, global_step)
 
+            # accumulate state and action arr
+            self.action_arr.append(a)
+            self.state_arr.append(s)
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
-                # 10, in this case.
-                self.high_con.train(self.low_con, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
+                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
+                self.action_arr = []
+                self.state_arr = []
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -647,7 +662,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
             # Take action, and step in the environment
             a, r, n_s, done = agent.step(s, env, step, global_step, explore=True)
 
-            agent.train(global_step, a, r, n_s, done)
+            agent.train(global_step, s, a, r, n_s, done)
 
             s = n_s
 
