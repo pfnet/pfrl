@@ -12,8 +12,8 @@ from pfrl.replay_buffers import (
 )
 from pfrl import explorers, replay_buffer, replay_buffers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
-from pfrl.agents import TD3
 from pfrl.agents import GoalConditionedTD3
+import time
 
 def _is_update(episode, freq, ignore=0, rem=0):
     if episode != ignore and episode % freq == rem:
@@ -579,6 +579,84 @@ class HIROAgent(HRLAgent):
     def load(self, episode):
         self.low_con.load(episode)
         self.high_con.load(episode)
+
+    def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
+        if save_video:
+            from OpenGL import GL
+            import gym
+            env = gym.wrappers.Monitor(env, directory='video',
+                                    write_upon_reset=True, force=True, resume=True, mode='evaluation')
+            render = False
+
+        success = 0
+        rewards = []
+        env.evaluate = True
+        for e in range(eval_episodes):
+            obs = env.reset()
+            fg = obs['desired_goal']
+            s = obs['observation']
+            done = False
+            reward_episode_sum = 0
+            step = 0
+
+            self.set_final_goal(fg)
+
+            while not done:
+                if render:
+                    print("here")
+                    env.render()
+                if sleep > 0:
+                    time.sleep(sleep)
+
+                a, r, n_s, done = self.step(s, env, step)
+                reward_episode_sum += r
+
+                s = n_s
+                step += 1
+                self.end_step()
+            else:
+                error = np.sqrt(np.sum(np.square(fg-s[:2])))
+                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
+                rewards.append(reward_episode_sum)
+                success += 1 if error <=5 else 0
+                self.end_episode(e)
+
+        env.evaluate = False
+        return np.array(rewards), success/eval_episodes
+
+
+
+def test_e2e(num_episodes, env, agent: HIROAgent):
+    """
+    tests the e2e flow of hiro and the panda.
+    """
+    global_step = 0
+
+    for e in np.arange(num_episodes) + 1:
+        obs = env.reset()
+        fg = obs['desired_goal']
+        s = obs['observation']
+        done = False
+
+        step = 0
+        episode_reward = 0
+
+        agent.set_final_goal(fg)
+        while not done:
+            # Take action, and step in the environment
+            a, r, n_s, done = agent.step(s, env, step, global_step, explore=True)
+
+            agent.train(global_step, a, r, n_s, done)
+
+            s = n_s
+
+            episode_reward += r
+
+            step += 1
+            global_step += 1
+
+            agent.end_step()
+        agent.end_episode(e)
 
 
 if __name__ == '__main__':
