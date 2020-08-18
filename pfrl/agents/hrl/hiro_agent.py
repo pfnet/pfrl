@@ -205,21 +205,21 @@ class LowerController(HRLControllerBase):
             is_low_level=True,
             minibatch_size=10):
         super(LowerController, self).__init__(
-                                            state_dim,
-                                            goal_dim,
-                                            action_dim,
-                                            scale,
-                                            model_path,
-                                            name,
-                                            replay_buffer,
-                                            actor_lr,
-                                            critic_lr,
-                                            expl_noise,
-                                            policy_noise,
-                                            noise_clip,
-                                            gamma,
-                                            policy_freq,
-                                            tau,
+                                            state_dim=state_dim,
+                                            goal_dim=goal_dim,
+                                            action_dim=action_dim,
+                                            scale=scale,
+                                            model_path=model_path,
+                                            replay_buffer=replay_buffer,
+                                            name=name,
+                                            actor_lr=actor_lr,
+                                            critic_lr=critic_lr,
+                                            expl_noise=expl_noise,
+                                            policy_noise=policy_noise,
+                                            noise_clip=noise_clip,
+                                            gamma=gamma,
+                                            policy_freq=policy_freq,
+                                            tau=tau,
                                             is_low_level=is_low_level,
                                             minibatch_size=minibatch_size)
         self.name = name
@@ -254,21 +254,21 @@ class HigherController(HRLControllerBase):
             buffer_freq=10,
             minibatch_size=10):
         super(HigherController, self).__init__(
-                                                state_dim,
-                                                goal_dim,
-                                                action_dim,
-                                                scale,
-                                                model_path,
-                                                name,
-                                                replay_buffer,
-                                                actor_lr,
-                                                critic_lr,
-                                                expl_noise,
-                                                policy_noise,
-                                                noise_clip,
-                                                gamma,
-                                                policy_freq,
-                                                tau,
+                                                state_dim=state_dim,
+                                                goal_dim=goal_dim,
+                                                action_dim=action_dim,
+                                                scale=scale,
+                                                model_path=model_path,
+                                                name=name,
+                                                replay_buffer=replay_buffer,
+                                                actor_lr=actor_lr,
+                                                critic_lr=critic_lr,
+                                                expl_noise=expl_noise,
+                                                policy_noise=policy_noise,
+                                                noise_clip=noise_clip,
+                                                gamma=gamma,
+                                                policy_freq=policy_freq,
+                                                tau=tau,
                                                 is_low_level=is_low_level,
                                                 buffer_freq=buffer_freq,
                                                 minibatch_size=minibatch_size)
@@ -501,11 +501,11 @@ class HIROAgent(HRLAgent):
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
             # the start training steps
-            self.low_con.train(a, self.sr, self.n_sg, n_s, done)
+            self.low_con.train(a, self.sr, self.n_sg, n_s, done, global_step)
 
             if global_step % self.train_freq == 0:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.n_sg, self.reward_scaling * r, self.fg, n_s, done)
+                self.high_con.train(self.low_con, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -622,9 +622,9 @@ if __name__ == '__main__':
         # while loop here
         while not done:
             a, r, n_s, done = hiro_agent.step(state, env, step, global_step, explore=True)
+            hiro_agent.train(global_step, a, r, n_s, done)
             step += 1
             global_step += 1
-            hiro_agent.train(global_step, a, r, n_s, done)
 
             hiro_agent.end_step()
         hiro_agent.end_episode(episode)

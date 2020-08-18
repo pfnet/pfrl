@@ -382,21 +382,20 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     )
                 else:
                     # high level controller
-                    if self.t % self.buffer_freq == 0:
-                        if len(self.state_arr) == self.buffer_freq:
-                            self.cumulative_reward[i] += batch_reward[i]
-                            self.replay_buffer.append(
-                                state=self.batch_last_obs[i],
-                                goal=self.batch_last_goal[i],
-                                action=self.batch_last_action[i],
-                                reward=self.cumulative_reward[i],
-                                next_state=batch_obs[i],
-                                next_action=None,
-                                is_state_terminal=batch_done[i],
-                                state_arr=self.state_arr,
-                                action_arr=self.action_arr,
-                                env_id=i
-                            )
+                    if len(self.state_arr) == self.buffer_freq:
+                        self.cumulative_reward[i] += batch_reward[i]
+                        self.replay_buffer.append(
+                            state=self.batch_last_obs[i],
+                            goal=self.batch_last_goal[i],
+                            action=self.batch_last_action[i],
+                            reward=self.cumulative_reward[i],
+                            next_state=batch_obs[i],
+                            next_action=None,
+                            is_state_terminal=batch_done[i],
+                            state_arr=self.state_arr,
+                            action_arr=self.action_arr,
+                            env_id=i
+                        )
                         self.state_arr = []
                         self.action_arr = []
                         self.cumulative_reward = np.zeros(len(batch_obs))
