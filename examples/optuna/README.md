@@ -1,4 +1,4 @@
-# Example of Optuna-powered Hyper-parameters Tuning
+# Hyperparameter Tuning with Optuna
 
 Tune hyper parameters using [Optuna](https://optuna.org/).
 
