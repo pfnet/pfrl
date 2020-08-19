@@ -19,7 +19,7 @@ storage="sqlite:///example.db"
 study="optuna-pfrl-quickstart"
 pruner="HyperbandPruner"
 
-# In RL, higher score means better performance (`--direction maximize`)
+# In RL, higher score means better performance ("--direction maximize")
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # Start tuning hyper parameters
@@ -49,11 +49,24 @@ If you are interested in the `--optuna-pruner` argument above, see the
 
 ### Distributed Optimization
 
-The script is ready for parallel and distributed executions:
+The script can also be used as a "worker process" for parallel and distributed executions.
+
+#### Prerequisites
+
+Since [SQLite is not recommended for parallel optimization](https://optuna.readthedocs.io/en/latest/tutorial/004_distributed.html#distributed-optimization),
+we'll use PostgreSQL instead of SQLite hereafter.  
+
+- **Can access PostgreSQL** database named `${postgres_database}` running on a server `${host}`.
+- `psycopg2` (PostgreSQL python wrapper) https://pypi.org/project/psycopg2/
+  - `pip install psycopg2-binary` for installing stand-alone package
+  - `pip install psycopg2` also works when you [have PostgreSQL libraries on your machine](https://www.psycopg.org/docs/install.html#prerequisites).
+
+#### Create a study
 
 ```bash
 # DB specs. We assume PostgreSQL here but you can use various backend DB engines.
-# Note that SQLite is not recommended for parallel optimization.
+# Here, you must be able to access to a PostgreSQL database named ${postgres_database}
+# running on a server ${host}.
 postgres_user="user"
 postgres_password="password"
 postgres_host="host"
@@ -64,16 +77,14 @@ study="optuna-pfrl-distributed"
 pruner="HyperbandPruner"
 
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
-
-# You can run two processes parallelly (If your computation resource allows!)
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
 ```
 
-```bash
-# And Optuna works wherever the backend DB is accessible
-ssh some-server
+#### Run the optimization
 
+The script bellow can work wherever the backend DB is accessible.
+For distributed optimization, just run this script on multiple servers.
+
+```bash
 postgres_user="user"
 postgres_password="password"
 postgres_host="host"
@@ -83,5 +94,7 @@ storage="postgresql://${postgres_user}:${postgres_password}@${postgres_host}/${p
 study="optuna-pfrl-distributed"
 pruner="HyperbandPruner"
 
-python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" 
+# You can run two processes parallelly (If computation resource allows)
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
+python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
 ```
