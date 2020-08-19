@@ -19,7 +19,7 @@ storage="sqlite:///example.db"
 study="optuna-pfrl-quickstart"
 pruner="HyperbandPruner"
 
-# In common RL, higher score means better performance (`--direction maximize`)
+# In RL, higher score means better performance (`--direction maximize`)
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # Start tuning hyper parameters
