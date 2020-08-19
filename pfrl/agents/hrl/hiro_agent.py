@@ -350,7 +350,7 @@ class HigherController(HRLControllerBase):
         the novel off policy correction.
         """
         # step 1 - record experience in replay buffer
-        self._train(n_s, g, r, done)
+        self._train_with_state_action_arr(n_s, g, r, done, state_arr, action_arr)
 
         # step 2 - if we can update, sample from replay buffer first
         batch = self.agent.sample_if_possible()
@@ -639,7 +639,6 @@ class HIROAgent(HRLAgent):
 
         env.evaluate = False
         return np.array(rewards), success/eval_episodes
-
 
 
 def test_e2e(num_episodes, env, agent: HIROAgent):
