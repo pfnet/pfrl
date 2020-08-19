@@ -49,7 +49,7 @@ If you are interested in the `--optuna-pruner` argument above, see the
 
 ### Distributed Optimization
 
-You might have already noticed that the sample script can be executed in parallel, and distributed:
+The script is ready for parallel and distributed executions:
 
 ```bash
 # DB specs. We assume PostgreSQL here but you can use various backend DB engines.
