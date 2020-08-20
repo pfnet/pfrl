@@ -669,11 +669,3 @@ if __name__ == '__main__':
         )  # NOQA
     env = pandaPushGymGoalEnv()
     test_e2e(100000, env, hiro_agent)
-
-    # for i in range(20000):
-    #     # actions = lower_controller.policy(torch.ones(33), torch.ones(7))
-
-    #     # lower_controller._train(torch.ones(33), torch.ones(7), actions, 1, torch.ones(33), torch.ones(3), True)
-
-    #     actions = higher_controller.policy(torch.ones(33), torch.ones(3))
-    #     higher_controller.train(lower_controller, torch.ones(33), torch.ones(3), actions, 1, torch.ones(33), torch.ones(3), True)
