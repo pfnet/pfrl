@@ -301,7 +301,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             self.update_policy_with_goal(batch)
             self.sync_target_network()
 
-
     def replay_buffer_sample(self):
         """
         get some samples from the replay buffer.
