@@ -161,8 +161,8 @@ class HRLControllerBase():
         trains with the state and action arr.
         """
         self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
-                                                      torch.FloatTensor(action_arr), 
-                                                      torch.FloatTensor(states), 
+                                                      torch.FloatTensor(action_arr),
+                                                      torch.FloatTensor(states),
                                                       torch.FloatTensor(goals), rewards, done, None)
 
     def train(self, states, goals, rewards, done, iterations=1):
@@ -647,11 +647,6 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
 
 if __name__ == '__main__':
 
-    high_rbf = HigherControllerReplayBuffer(1100)
-    higher_controller = HigherController(33, 3, 7, np.ones(7), 'model', 'high', high_rbf)
-
-    rbf = LowerControllerReplayBuffer(110)
-    lower_controller = LowerController(33, 7, 7, np.ones(7), 'model', 'controller', rbf)
     hiro_agent = HIROAgent(state_dim=33,
                            action_dim=7,
                            goal_dim=3,
@@ -661,7 +656,7 @@ if __name__ == '__main__':
                            model_save_freq=10,
                            model_path='model',
                            buffer_size=10**6,
-                           batch_size=10,
+                           batch_size=100,
                            buffer_freq=10,
                            train_freq=10,
                            reward_scaling=0.1,
@@ -672,7 +667,7 @@ if __name__ == '__main__':
     from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
         )  # NOQA
-    env = pandaPushGymGoalEnv(renders=True)
+    env = pandaPushGymGoalEnv()
     test_e2e(100000, env, hiro_agent)
 
     # for i in range(20000):
