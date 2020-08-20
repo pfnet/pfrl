@@ -320,12 +320,8 @@ def high_level_batch_experiences_with_goal(experiences, device, phi, gamma, batc
             dtype=torch.float32,
             device=device,
         ),
-        "action_arr": torch.as_tensor(
-            [elem[0]["action_arr"] for elem in experiences], device=device
-        ),
-        "state_arr": torch.as_tensor(
-            state_arr, device=device
-        ),
+        "action_arr": batch_states([elem[0]["action_arr"] for elem in experiences], device, phi),
+        "state_arr": batch_states([elem[0]["state_arr"] for elem in experiences], device, phi),
         "discount": torch.as_tensor(
             [(gamma ** len(elem)) for elem in experiences],
             dtype=torch.float32,

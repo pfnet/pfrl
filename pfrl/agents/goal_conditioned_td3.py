@@ -3,16 +3,11 @@ import copy
 from logging import getLogger
 
 import numpy as np
-from pybullet_robot_envs.examples.algos.test.baselines.panda_envs.test_TD3_pushing_HER import action
 import torch
 from torch.nn import functional as F
 
 import pfrl
-from pfrl.agent import (
-    GoalConditionedBatchAgent,
-    BatchAgent,
-    AttributeSavingMixin
-)
+from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
@@ -389,7 +384,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     # high level controller, called every 10 times in
                     # the hiro paper.
                     arrs_exist = (state_arr is not None) and (action_arr is not None) 
-                    if len(self.state_arr) == self.buffer_freq and arrs_exist:
+                    if len(state_arr) == self.buffer_freq and arrs_exist:
                         self.cumulative_reward[i] += batch_reward[i]
                         self.replay_buffer.append(
                             state=self.batch_last_obs[i],

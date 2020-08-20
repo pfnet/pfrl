@@ -163,7 +163,7 @@ class HRLControllerBase():
         self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
                                                       torch.FloatTensor(action_arr), 
                                                       torch.FloatTensor(states), 
-                                                      torch.FloatTensor(goals), rewards, done)
+                                                      torch.FloatTensor(goals), rewards, done, None)
 
     def train(self, states, goals, rewards, done, iterations=1):
         """
@@ -476,37 +476,37 @@ class HIROAgent(HRLAgent):
         # return action, reward, next state, done
         return a, r, n_s, done
 
-    def append(self, step, s, a, n_s, r, d):
-        """
-        add experiences to the low and high level replay buffers.
-        """
-        self.sr = self.low_reward(s, self.sg, n_s)
+    # def append(self, step, s, a, n_s, r, d):
+    #     """
+    #     add experiences to the low and high level replay buffers.
+    #     """
+    #     self.sr = self.low_reward(s, self.sg, n_s)
 
-        # Low Replay Buffer
-        self.low_level_replay_buffer.append(s, self.sg, a, self.sr, n_s,
-                                            self.n_sg, is_state_terminal=d)
+    #     # Low Replay Buffer
+    #     self.low_level_replay_buffer.append(s, self.sg, a, self.sr, n_s,
+    #                                         self.n_sg, is_state_terminal=d)
 
-        # High Replay Buffer
-        if _is_update(step, self.buffer_freq, rem=1):
-            if len(self.buf[6]) == self.buffer_freq:
-                self.buf[4] = s
-                self.buf[5] = float(d)
-                self.high_level_replay_buffer.append(
-                    state=self.buf[0],
-                    goal=self.buf[1],
-                    action=self.buf[2],
-                    reward=self.buf[3],
-                    n_state=self.buf[4],
-                    is_state_terminal=self.buf[5],
-                    state_arr=np.array(self.buf[6]),
-                    action_arr=np.array(self.buf[7])
-                )
+    #     # High Replay Buffer
+    #     if _is_update(step, self.buffer_freq, rem=1):
+    #         if len(self.buf[6]) == self.buffer_freq:
+    #             self.buf[4] = s
+    #             self.buf[5] = float(d)
+    #             self.high_level_replay_buffer.append(
+    #                 state=self.buf[0],
+    #                 goal=self.buf[1],
+    #                 action=self.buf[2],
+    #                 reward=self.buf[3],
+    #                 n_state=self.buf[4],
+    #                 is_state_terminal=self.buf[5],
+    #                 state_arr=np.array(self.buf[6]),
+    #                 action_arr=np.array(self.buf[7])
+    #             )
 
-            self.buf = [s, self.fg, self.sg, 0, None, None, [], []]
+    #         self.buf = [s, self.fg, self.sg, 0, None, None, [], []]
 
-        self.buf[3] += self.reward_scaling * r
-        self.buf[6].append(s)
-        self.buf[7].append(a)
+    #     self.buf[3] += self.reward_scaling * r
+    #     self.buf[6].append(s)
+    #     self.buf[7].append(a)
 
     def train(self, global_step, s, a, r, n_s, done) -> Any:
         if global_step >= self.start_training_steps:
@@ -515,13 +515,15 @@ class HIROAgent(HRLAgent):
             self.low_con.train(a, self.sr, self.n_sg, n_s, done, global_step)
 
             # accumulate state and action arr
-            self.action_arr.append(a)
-            self.state_arr.append(s)
-            if global_step % self.train_freq == 0:
+
+            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
                 self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
                 self.action_arr = []
                 self.state_arr = []
+
+            self.action_arr.append(a)
+            self.state_arr.append(s)
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -666,7 +668,6 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
             s = n_s
 
             episode_reward += r
-
             step += 1
             global_step += 1
 
@@ -693,7 +694,7 @@ if __name__ == '__main__':
                            buffer_size=10**6,
                            batch_size=10,
                            buffer_freq=10,
-                           train_freq=100,
+                           train_freq=10,
                            reward_scaling=0.1,
                            policy_freq_high=2,
                            policy_freq_low=2
@@ -702,8 +703,9 @@ if __name__ == '__main__':
     from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
         )  # NOQA
-    env = pandaPushGymGoalEnv()
+    env = pandaPushGymGoalEnv(renders=True)
     test_e2e(100000, env, hiro_agent)
+
     # for i in range(20000):
     #     # actions = lower_controller.policy(torch.ones(33), torch.ones(7))
 
