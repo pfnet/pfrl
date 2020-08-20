@@ -100,7 +100,7 @@ class HRLControllerBase():
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
         # have proper low and high values from action space.
         explorer = explorers.AdditiveGaussian(
-            scale=0.1, low=-1, high=1
+            scale=0.1, low=-0.1, high=0.1
         )
 
         def burnin_action_func():
@@ -650,15 +650,23 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
 
 if __name__ == '__main__':
 
-    hiro_agent = HIROAgent(state_dim=33,
-                           action_dim=7,
-                           goal_dim=3,
+    from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
+            pandaPushGymGoalEnv
+        )  # NOQA
+    env = pandaPushGymGoalEnv()
+    env_action_dim = env.action_space.shape[0]
+    env_state_dim = env.observation_space.spaces['observation'].shape[0]
+    env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
+
+    hiro_agent = HIROAgent(state_dim=env_state_dim,
+                           action_dim=env_state_dim,
+                           goal_dim=env_goal_dim,
                            subgoal_dim=7,
                            scale_low=1,
                            start_training_steps=100,
                            model_save_freq=10,
                            model_path='model',
-                           buffer_size=10**6,
+                           buffer_size=200000,
                            batch_size=100,
                            buffer_freq=10,
                            train_freq=10,
@@ -667,8 +675,4 @@ if __name__ == '__main__':
                            policy_freq_low=2
                            )
 
-    from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
-            pandaPushGymGoalEnv
-        )  # NOQA
-    env = pandaPushGymGoalEnv()
     test_e2e(100000, env, hiro_agent)
