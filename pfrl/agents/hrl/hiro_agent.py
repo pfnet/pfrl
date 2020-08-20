@@ -590,6 +590,12 @@ class HIROAgent(HRLAgent):
         self.low_con.load(episode)
         self.high_con.load(episode)
 
+    def set_to_train_(self):
+        self.low_con.agent.training = True
+
+    def set_to_eval_(self):
+        self.low_con.agent.training = False
+
     def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
         if save_video:
             from OpenGL import GL
@@ -597,7 +603,7 @@ class HIROAgent(HRLAgent):
             env = gym.wrappers.Monitor(env, directory='video',
                                     write_upon_reset=True, force=True, resume=True, mode='evaluation')
             render = False
-
+        self.set_to_eval_()
         success = 0
         rewards = []
         env.evaluate = True
@@ -694,4 +700,5 @@ if __name__ == '__main__':
                            policy_freq_high=2,
                            policy_freq_low=2,
                            gpu=gpu)
+    hiro_agent.set_to_train_()
     test_e2e(25000, env, hiro_agent)
