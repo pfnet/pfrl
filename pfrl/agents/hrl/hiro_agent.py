@@ -14,6 +14,7 @@ from pfrl import explorers, replay_buffer, replay_buffers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import GoalConditionedTD3
 import time
+import os
 
 def _is_update(episode, freq, ignore=0, rem=0):
     if episode != ignore and episode % freq == rem:
@@ -134,11 +135,11 @@ class HRLControllerBase():
         self._initialized = False
         self.total_it = 0
 
-    def save(self):
+    def save(self, directory):
         """
         save the internal state of the TD3 agent.
         """
-        self.agent.save('models')
+        self.agent.save(directory)
 
     def load(self):
         """
@@ -365,7 +366,6 @@ class HigherController(HRLControllerBase):
             actions = experience['action']
             action_arr = experience['action_arr']
             state_arr = experience['state_arr']
-
             actions = self.off_policy_corrections(
                 low_con,
                 self.minibatch_size,
@@ -373,7 +373,7 @@ class HigherController(HRLControllerBase):
                 state_arr.cpu().data.numpy(),
                 action_arr.cpu().data.numpy())
 
-            tensor_actions = torch.FloatTensor(actions)
+            tensor_actions = torch.FloatTensor(actions).to(self.agent.device)
             # relabel actions
             experience['action'] = tensor_actions
 
@@ -574,8 +574,17 @@ class HIROAgent(HRLAgent):
         self.buf = [None, None, None, 0, None, None, [], []]
 
     def save(self, episode):
-        self.low_con.save(episode)
-        self.high_con.save(episode)
+        """
+        saves the model, aka the lower and higher controllers.
+        """
+        low_controller_dir = f'models/low_controller/episode_{episode}'
+        high_controller_dir = f'models/high_controller/episode_{episode}'
+
+        os.makedirs(low_controller_dir, exist_ok=True)
+        os.makedirs(high_controller_dir, exist_ok=True)
+
+        self.low_con.save(low_controller_dir)
+        self.high_con.save(high_controller_dir)
 
     def load(self, episode):
         self.low_con.load(episode)
@@ -633,6 +642,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
     global_step = 0
 
     for e in np.arange(num_episodes) + 1:
+        print("Episode", e)
         obs = env.reset()
         fg = obs['desired_goal']
         s = obs['observation']
@@ -668,7 +678,7 @@ if __name__ == '__main__':
     env_action_dim = env.action_space.shape[0]
     env_state_dim = env.observation_space.spaces['observation'].shape[0]
     env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
-    gpu = 0 if torch.device.is_available() else None
+    gpu = 0 if torch.cuda.is_available() else None
     hiro_agent = HIROAgent(state_dim=env_state_dim,
                            action_dim=env_action_dim,
                            goal_dim=env_goal_dim,
@@ -685,5 +695,4 @@ if __name__ == '__main__':
                            policy_freq_high=2,
                            policy_freq_low=2,
                            gpu=gpu)
-
-    test_e2e(100000, env, hiro_agent)
+    test_e2e(25000, env, hiro_agent)
