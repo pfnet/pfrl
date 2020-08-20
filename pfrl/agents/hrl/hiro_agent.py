@@ -58,7 +58,8 @@ class HRLControllerBase():
             replay_start_size=110,
             is_low_level=True,
             buffer_freq=10,
-            minibatch_size=10):
+            minibatch_size=100,
+            gpu=None):
         # example name- 'td3_low' or 'td3_high'
         self.name = name
         self.scale = scale
@@ -124,7 +125,8 @@ class HRLControllerBase():
             replay_start_size=replay_start_size,
             is_low_level=is_low_level,
             buffer_freq=buffer_freq,
-            minibatch_size=minibatch_size
+            minibatch_size=minibatch_size,
+            gpu=gpu
             # burnin_action_func=burnin_action_func
         )
         self.device = self.agent.device
@@ -212,7 +214,7 @@ class LowerController(HRLControllerBase):
             policy_freq=2,
             tau=0.005,
             is_low_level=True,
-            minibatch_size=10):
+            minibatch_size=100):
         super(LowerController, self).__init__(
                                             state_dim=state_dim,
                                             goal_dim=goal_dim,
@@ -261,7 +263,7 @@ class HigherController(HRLControllerBase):
             tau=0.005,
             is_low_level=False,
             buffer_freq=10,
-            minibatch_size=10):
+            minibatch_size=100):
         super(HigherController, self).__init__(
                                                 state_dim=state_dim,
                                                 goal_dim=goal_dim,
@@ -412,7 +414,8 @@ class HIROAgent(HRLAgent):
             scale=scale_high,
             model_path=model_path,
             policy_freq=policy_freq_high,
-            replay_buffer=self.high_level_replay_buffer
+            replay_buffer=self.high_level_replay_buffer,
+            minibatch_size=batch_size
             )
 
         # lower td3 controller
@@ -423,7 +426,8 @@ class HIROAgent(HRLAgent):
             scale=scale_low,
             model_path=model_path,
             policy_freq=policy_freq_low,
-            replay_buffer=self.low_level_replay_buffer
+            replay_buffer=self.low_level_replay_buffer,
+            minibatch_size=batch_size
             )
 
         self.buffer_freq = buffer_freq
@@ -659,7 +663,7 @@ if __name__ == '__main__':
     env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
 
     hiro_agent = HIROAgent(state_dim=env_state_dim,
-                           action_dim=env_state_dim,
+                           action_dim=env_action_dim,
                            goal_dim=env_goal_dim,
                            subgoal_dim=7,
                            scale_low=1,
