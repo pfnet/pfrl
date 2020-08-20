@@ -214,7 +214,8 @@ class LowerController(HRLControllerBase):
             policy_freq=2,
             tau=0.005,
             is_low_level=True,
-            minibatch_size=100):
+            minibatch_size=100,
+            gpu=None):
         super(LowerController, self).__init__(
                                             state_dim=state_dim,
                                             goal_dim=goal_dim,
@@ -232,7 +233,8 @@ class LowerController(HRLControllerBase):
                                             policy_freq=policy_freq,
                                             tau=tau,
                                             is_low_level=is_low_level,
-                                            minibatch_size=minibatch_size)
+                                            minibatch_size=minibatch_size,
+                                            gpu=gpu)
         self.name = name
 
     def train(self, a, r, g, n_s, done, step):
@@ -263,7 +265,8 @@ class HigherController(HRLControllerBase):
             tau=0.005,
             is_low_level=False,
             buffer_freq=10,
-            minibatch_size=100):
+            minibatch_size=100,
+            gpu=None):
         super(HigherController, self).__init__(
                                                 state_dim=state_dim,
                                                 goal_dim=goal_dim,
@@ -282,7 +285,8 @@ class HigherController(HRLControllerBase):
                                                 tau=tau,
                                                 is_low_level=is_low_level,
                                                 buffer_freq=buffer_freq,
-                                                minibatch_size=minibatch_size)
+                                                minibatch_size=minibatch_size,
+                                                gpu=gpu)
         self.name = 'high'
         self.action_dim = action_dim
 
@@ -392,7 +396,8 @@ class HIROAgent(HRLAgent):
                  train_freq,
                  reward_scaling,
                  policy_freq_high,
-                 policy_freq_low) -> None:
+                 policy_freq_low,
+                 gpu) -> None:
         """
         Constructor for the HIRO agent.
         """
@@ -415,7 +420,8 @@ class HIROAgent(HRLAgent):
             model_path=model_path,
             policy_freq=policy_freq_high,
             replay_buffer=self.high_level_replay_buffer,
-            minibatch_size=batch_size
+            minibatch_size=batch_size,
+            gpu=gpu
             )
 
         # lower td3 controller
@@ -427,7 +433,8 @@ class HIROAgent(HRLAgent):
             model_path=model_path,
             policy_freq=policy_freq_low,
             replay_buffer=self.low_level_replay_buffer,
-            minibatch_size=batch_size
+            minibatch_size=batch_size,
+            gpu=gpu
             )
 
         self.buffer_freq = buffer_freq
@@ -661,7 +668,7 @@ if __name__ == '__main__':
     env_action_dim = env.action_space.shape[0]
     env_state_dim = env.observation_space.spaces['observation'].shape[0]
     env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
-
+    gpu = 0 if torch.device.is_available() else None
     hiro_agent = HIROAgent(state_dim=env_state_dim,
                            action_dim=env_action_dim,
                            goal_dim=env_goal_dim,
@@ -676,7 +683,7 @@ if __name__ == '__main__':
                            train_freq=10,
                            reward_scaling=0.1,
                            policy_freq_high=2,
-                           policy_freq_low=2
-                           )
+                           policy_freq_low=2,
+                           gpu=gpu)
 
     test_e2e(100000, env, hiro_agent)
