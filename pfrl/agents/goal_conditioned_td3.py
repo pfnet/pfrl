@@ -317,7 +317,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         if self.training:
             return self._batch_act_train_goal(batch_obs, batch_goal)
         else:
-            return self._batch_act_eval_goal(batch_obs)
+            return self._batch_act_eval_goal(batch_obs, batch_goal)
 
     def batch_observe_with_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         if self.training:
@@ -333,7 +333,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         assert not self.training
         concat_states = []
         for idx, ob in enumerate(batch_obs):
-            concat_states.append(torch.cat([ob, batch_goal[idx]]))
+            concat_states.append(torch.cat([ob, batch_goal[idx]], dim=-1))
         return self.batch_select_onpolicy_action(concat_states)
 
     def _batch_act_train_goal(self, batch_obs, batch_goal):

@@ -16,6 +16,10 @@ from pfrl.agents import GoalConditionedTD3
 import time
 import os
 
+from envs import EnvWithGoal
+from envs.create_maze_env import create_maze_env
+
+
 def _is_update(episode, freq, ignore=0, rem=0):
     if episode != ignore and episode % freq == rem:
         return True
@@ -630,8 +634,8 @@ class HIROAgent(HRLAgent):
                 step += 1
                 self.end_step()
             else:
-                # error = np.sqrt(np.sum(np.square(fg-s[:2])))
-                # print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
+                error = np.sqrt(np.sum(np.square(fg-s[:2])))
+                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
                 rewards.append(reward_episode_sum)
                 # success += 1 if error <=5 else 0
                 self.end_episode(e)
@@ -671,6 +675,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
 
             agent.end_step()
         print('Episode Reward', episode_reward)
+        agent.evaluate_policy(env)
         agent.end_episode(e)
 
 
@@ -679,10 +684,17 @@ if __name__ == '__main__':
     from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
         )  # NOQA
-    env = pandaPushGymGoalEnv()
-    env_action_dim = env.action_space.shape[0]
-    env_state_dim = env.observation_space.spaces['observation'].shape[0]
-    env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
+    # other options: AntMaze, AntFall, AntPush
+    env = EnvWithGoal(create_maze_env('AntMaze'), 'AntMaze')
+    # env = pandaPushGymGoalEnv()
+    env_goal_dim = 2
+    env_state_dim = env.state_dim
+    env_action_dim = env.action_dim
+
+    # for the panda env
+    # env_action_dim = env.action_space.shape[0]
+    # env_state_dim = env.observation_space.spaces['observation'].shape[0]
+    # env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
     gpu = 0 if torch.cuda.is_available() else None
     hiro_agent = HIROAgent(state_dim=env_state_dim,
                            action_dim=env_action_dim,
@@ -700,5 +712,6 @@ if __name__ == '__main__':
                            policy_freq_high=2,
                            policy_freq_low=2,
                            gpu=gpu)
+    # set agent to be in training mode.
     hiro_agent.set_to_train_()
     test_e2e(25000, env, hiro_agent)
