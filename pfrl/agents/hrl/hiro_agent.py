@@ -457,11 +457,12 @@ class HIROAgent(HRLAgent):
             a = self._choose_action(s, self.sg)
 
         obs, r, done, _ = env.step(a)
+        # get next state
         n_s = obs['observation']
 
         # Higher Level Controller
+        # Take random action for start_training steps
         if explore:
-            # Take random action for start_training steps
             # get next subgoal
             if global_step < self.start_training_steps:
                 n_sg = self.subgoal.action_space.sample()
@@ -475,38 +476,6 @@ class HIROAgent(HRLAgent):
         self.sr = self.low_reward(s, self.sg, n_s)
         # return action, reward, next state, done
         return a, r, n_s, done
-
-    # def append(self, step, s, a, n_s, r, d):
-    #     """
-    #     add experiences to the low and high level replay buffers.
-    #     """
-    #     self.sr = self.low_reward(s, self.sg, n_s)
-
-    #     # Low Replay Buffer
-    #     self.low_level_replay_buffer.append(s, self.sg, a, self.sr, n_s,
-    #                                         self.n_sg, is_state_terminal=d)
-
-    #     # High Replay Buffer
-    #     if _is_update(step, self.buffer_freq, rem=1):
-    #         if len(self.buf[6]) == self.buffer_freq:
-    #             self.buf[4] = s
-    #             self.buf[5] = float(d)
-    #             self.high_level_replay_buffer.append(
-    #                 state=self.buf[0],
-    #                 goal=self.buf[1],
-    #                 action=self.buf[2],
-    #                 reward=self.buf[3],
-    #                 n_state=self.buf[4],
-    #                 is_state_terminal=self.buf[5],
-    #                 state_arr=np.array(self.buf[6]),
-    #                 action_arr=np.array(self.buf[7])
-    #             )
-
-    #         self.buf = [s, self.fg, self.sg, 0, None, None, [], []]
-
-    #     self.buf[3] += self.reward_scaling * r
-    #     self.buf[6].append(s)
-    #     self.buf[7].append(a)
 
     def train(self, global_step, s, a, r, n_s, done) -> Any:
         if global_step >= self.start_training_steps:
