@@ -293,7 +293,7 @@ class HigherController(HRLControllerBase):
 
     def off_policy_corrections(self, low_con, batch_size, sgoals, states, actions, candidate_goals=8):
         """
-        implementation of off policy correction in HIRO paper.
+        implementation of the novel off policy correction in the HIRO paper.
         """
 
         first_s = [s[0] for s in states]  # First x
@@ -613,7 +613,6 @@ class HIROAgent(HRLAgent):
 
             while not done:
                 if render:
-                    print("here")
                     env.render()
                 if sleep > 0:
                     time.sleep(sleep)
@@ -625,10 +624,10 @@ class HIROAgent(HRLAgent):
                 step += 1
                 self.end_step()
             else:
-                error = np.sqrt(np.sum(np.square(fg-s[:2])))
-                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
+                # error = np.sqrt(np.sum(np.square(fg-s[:2])))
+                # print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
                 rewards.append(reward_episode_sum)
-                success += 1 if error <=5 else 0
+                # success += 1 if error <=5 else 0
                 self.end_episode(e)
 
         env.evaluate = False
@@ -665,7 +664,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
             global_step += 1
 
             agent.end_step()
-        print(episode_reward)
+        print('Episode Reward', episode_reward)
         agent.end_episode(e)
 
 
