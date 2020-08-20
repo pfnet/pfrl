@@ -437,6 +437,7 @@ class HIROAgent(HRLAgent):
         self.sg = self.subgoal.action_space.sample()
         self.state_arr = []
         self.action_arr = []
+        self.cumulative_reward = 0
 
         self.start_training_steps = start_training_steps
 
@@ -487,12 +488,14 @@ class HIROAgent(HRLAgent):
 
             if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.reward_scaling * r, self.fg, n_s, done, global_step)
+                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, n_s, done, global_step)
                 self.action_arr = []
                 self.state_arr = []
+                self.cumulative_reward = 0
 
             self.action_arr.append(a)
             self.state_arr.append(s)
+            self.cumulative_reward += (self.reward_scaling * r)
 
     def _choose_action_with_noise(self, s, sg):
         """
@@ -663,7 +666,7 @@ if __name__ == '__main__':
                            policy_freq_high=2,
                            policy_freq_low=2
                            )
-    # temp - import env here for now
+
     from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
         )  # NOQA
