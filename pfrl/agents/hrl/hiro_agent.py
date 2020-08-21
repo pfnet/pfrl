@@ -605,7 +605,7 @@ class HIROAgent(HRLAgent):
             from OpenGL import GL
             import gym
             env = gym.wrappers.Monitor(env, directory='video',
-                                    write_upon_reset=True, force=True, resume=True, mode='evaluation')
+                                       write_upon_reset=True, force=True, resume=True, mode='evaluation')
             render = False
         self.set_to_eval_()
         success = 0
@@ -646,7 +646,7 @@ class HIROAgent(HRLAgent):
 
 def test_e2e(num_episodes, env, agent: HIROAgent):
     """
-    tests the e2e flow of hiro and the panda.
+    tests the e2e flow of hiro and the panda / any other env.
     """
     global_step = 0
 
@@ -684,6 +684,7 @@ if __name__ == '__main__':
     from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
         )  # NOQA
+
     # other options: AntMaze, AntFall, AntPush
     env = EnvWithGoal(create_maze_env('AntMaze'), 'AntMaze')
     # env = pandaPushGymGoalEnv()
@@ -695,6 +696,7 @@ if __name__ == '__main__':
     # env_action_dim = env.action_space.shape[0]
     # env_state_dim = env.observation_space.spaces['observation'].shape[0]
     # env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
+
     gpu = 0 if torch.cuda.is_available() else None
     hiro_agent = HIROAgent(state_dim=env_state_dim,
                            action_dim=env_action_dim,
