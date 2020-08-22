@@ -560,6 +560,9 @@ class HIROAgent(HRLAgent):
         return -np.sqrt(np.sum((abs_s - n_s[:sg.shape[0]])**2))
 
     def end_step(self):
+        """
+        ends a step within an episode.
+        """
         self.episode_subreward += self.sr
         self.sg = self.n_sg
 
