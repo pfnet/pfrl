@@ -447,7 +447,6 @@ class HIROAgent(HRLAgent):
         self.reward_scaling = reward_scaling
         self.episode_subreward = 0
         self.sr = 0
-        self.buf = [None, None, None, 0, None, None, [], []]
         self.fg = np.array([0, 0])
         self.sg = self.subgoal.action_space.sample()
         self.state_arr = []
