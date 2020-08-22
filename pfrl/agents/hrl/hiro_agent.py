@@ -676,6 +676,7 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
         print('Episode Reward', episode_reward)
         agent.evaluate_policy(env)
         agent.end_episode(e)
+    print('Total steps', global_step)
 
 
 if __name__ == '__main__':
