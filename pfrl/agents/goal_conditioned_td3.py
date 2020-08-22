@@ -191,7 +191,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
         self.q_func_n_updates += 1
 
-
     def high_level_update_q_func_with_goal(self, batch):
         """
         Compute loss for a given Q-function, or critics
@@ -247,7 +246,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q_func2_optimizer.step()
 
         self.q_func_n_updates += 1
-
 
     def update_policy_with_goal(self, batch):
         """Compute loss for actor."""
