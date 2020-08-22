@@ -2,6 +2,8 @@ from typing import Any
 import torch
 from torch import nn
 import numpy as np
+import time
+import os
 
 import pfrl
 from pfrl.agent import HRLAgent
@@ -10,11 +12,9 @@ from pfrl.replay_buffers import (
     LowerControllerReplayBuffer,
     HigherControllerReplayBuffer
 )
-from pfrl import explorers, replay_buffer, replay_buffers
+from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import GoalConditionedTD3
-import time
-import os
 
 from envs import EnvWithGoal
 from envs.create_maze_env import create_maze_env
@@ -24,20 +24,6 @@ def _is_update(episode, freq, ignore=0, rem=0):
     if episode != ignore and episode % freq == rem:
         return True
     return False
-
-
-def var(tensor):
-    if torch.cuda.is_available():
-        return tensor.cuda()
-    else:
-        return tensor
-
-
-def get_tensor(z):
-    if len(z.shape) == 1:
-        return var(torch.FloatTensor(z.copy())).unsqueeze(0)
-    else:
-        return var(torch.FloatTensor(z.copy()))
 
 # standard controller
 
@@ -171,26 +157,6 @@ class HRLControllerBase():
         get data from the replay buffer, and train.
         """
         return self._train(states, goals, rewards, goals, done)
-
-    def policy_with_noise(self, state, goal):
-        """
-        run the policy...with a little extra noise.
-        """
-        action = self.policy(state, goal)
-        action += self._sample_exploration_noise(action)
-        action = torch.min(action,  self.actor.scale)
-        action = torch.max(action, -self.actor.scale)
-        # to-do - is this needed?
-        return action.squeeze()
-
-    def _sample_exploration_noise(self, actions):
-        """
-        add a bit of noise to the policy to encourage exploration.
-        """
-        mean = torch.zeros(actions.size()).to(self.device)
-        var = torch.ones(actions.size()).to(self.device)
-        # expl_noise = self.expl_noise - (self.expl_noise/1200) * (self.total_it//10000)
-        return torch.normal(mean, self.expl_noise*var)
 
 
 # lower controller
@@ -505,23 +471,6 @@ class HIROAgent(HRLAgent):
             self.state_arr.append(s)
             self.cumulative_reward += (self.reward_scaling * r)
 
-    def _choose_action_with_noise(self, s, sg):
-        """
-        selects an action.
-        """
-        return self.low_con.policy_with_noise(s, sg)
-
-    def _choose_subgoal_with_noise(self, step, s, sg, n_s):
-        """
-        selects a subgoal for the low level controller, with noise.
-        """
-        if step % self.buffer_freq == 0:  # Should be zero
-            sg = self.high_con.policy_with_noise(s, self.fg)
-        else:
-            sg = self.subgoal_transition(s, sg, n_s)
-
-        return sg
-
     def _choose_action(self, s, sg):
         """
         runs the policy of the low level controller.
@@ -597,7 +546,7 @@ class HIROAgent(HRLAgent):
         try:
             self.low_con.load(low_controller_dir)
             self.high_con.load(high_controller_dir)
-        except:
+        except Exception as e:
             raise NotADirectoryError("Directory for loading internal state not found!")
 
     def set_to_train_(self):
@@ -612,7 +561,7 @@ class HIROAgent(HRLAgent):
         """
         sets an agent to eval - making
         for the deterministic policy of td3
-        """"
+        """
         self.low_con.agent.training = False
         self.high_con.agent.training = False
 
