@@ -575,7 +575,6 @@ class HIROAgent(HRLAgent):
 
         self.episode_subreward = 0
         self.sr = 0
-        self.buf = [None, None, None, 0, None, None, [], []]
 
     def save(self, episode):
         """
