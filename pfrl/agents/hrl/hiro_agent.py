@@ -139,11 +139,11 @@ class HRLControllerBase():
         """
         self.agent.save(directory)
 
-    def load(self):
+    def load(self, directory):
         """
         load the internal state of the TD3 agent.
         """
-        self.agent.load('models')
+        self.agent.load(directory)
 
     def policy(self, state, goal):
         """
@@ -592,8 +592,13 @@ class HIROAgent(HRLAgent):
         """
         loads from an episode.
         """
-        self.low_con.load(episode)
-        self.high_con.load(episode)
+        low_controller_dir = f'models/low_controller/episode_{episode}'
+        high_controller_dir = f'models/high_controller/episode_{episode}'
+        try:
+            self.low_con.load(low_controller_dir)
+            self.high_con.load(high_controller_dir)
+        except:
+            raise NotADirectoryError("Directory for loading internal state not found!")
 
     def set_to_train_(self):
         """
