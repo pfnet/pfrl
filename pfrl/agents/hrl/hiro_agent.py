@@ -109,11 +109,6 @@ class HRLControllerBase():
             scale=0.1, low=-0.1, high=0.1
         )
 
-        def burnin_action_func():
-            """
-            Select random actions until model is updated one or more times.
-            """
-            return np.random.uniform(-1, 1)
         # replay start sizes - get it
         self.agent = GoalConditionedTD3(
             policy,
@@ -132,7 +127,6 @@ class HRLControllerBase():
             buffer_freq=buffer_freq,
             minibatch_size=minibatch_size,
             gpu=gpu
-            # burnin_action_func=burnin_action_func
         )
         self.device = self.agent.device
 
@@ -567,6 +561,9 @@ class HIROAgent(HRLAgent):
         self.sg = self.n_sg
 
     def end_episode(self, episode, logger=None):
+        """
+        ends a full episode.
+        """
         if logger:
             # log
             logger.write('reward/Intrinsic Reward', self.episode_subreward, episode)
@@ -592,16 +589,32 @@ class HIROAgent(HRLAgent):
         self.high_con.save(high_controller_dir)
 
     def load(self, episode):
+        """
+        loads from an episode.
+        """
         self.low_con.load(episode)
         self.high_con.load(episode)
 
     def set_to_train_(self):
+        """
+        sets an agent to train - this
+        will make for a non-deterministic policy.
+        """
         self.low_con.agent.training = True
+        self.high_con.agent.training = True
 
     def set_to_eval_(self):
+        """
+        sets an agent to eval - making
+        for the deterministic policy of td3
+        """"
         self.low_con.agent.training = False
+        self.high_con.agent.training = False
 
     def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
+        """
+        evaluates the policy.
+        """
         if save_video:
             from OpenGL import GL
             import gym
