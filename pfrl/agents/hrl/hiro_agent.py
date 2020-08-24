@@ -90,12 +90,12 @@ class HRLControllerBase():
 
         q_func1, q_func1_optimizer = make_q_func_with_optimizer()
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
-        # have proper low and high values from action space.
+
+        # TODO - have proper low and high values from action space.
         explorer = explorers.AdditiveGaussian(
             scale=0.1, low=-0.1, high=0.1
         )
 
-        # replay start sizes - get it
         self.agent = GoalConditionedTD3(
             policy,
             q_func1,
@@ -526,7 +526,7 @@ class HIROAgent(HRLAgent):
 
     def save(self, episode):
         """
-        saves the model, aka the lower and higher controllers.
+        saves the model, aka the lower and higher controllers' parameters.
         """
         low_controller_dir = f'models/low_controller/episode_{episode}'
         high_controller_dir = f'models/high_controller/episode_{episode}'
