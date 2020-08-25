@@ -241,11 +241,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         if self.training:
             self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
 
-    def batch_observe_with_goal_state_action_arr(self, state_arr, action_arr, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
-        if self.training:
-            self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset,
-                                           state_arr=state_arr, action_arr=action_arr)
-
     def _batch_act_eval_goal(self, batch_obs, batch_goal):
         assert not self.training
         concat_states = []

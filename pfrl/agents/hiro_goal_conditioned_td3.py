@@ -8,7 +8,7 @@ from torch.nn import functional as F
 
 import pfrl
 from pfrl.agent import GoalConditionedBatchAgent
-from pfrl.agents import TD3
+from pfrl.agents import TD3, GoalConditionedTD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal, low_level_batch_experiences_with_goal
@@ -27,9 +27,9 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
+class HIROGoalConditionedTD3(GoalConditionedTD3):
     """
-    Goal conditioned
+    HIRO Goal conditioned (including support for high and low level controllers)
     Twin Delayed Deep Deterministic Policy Gradients (TD3).
 
     See http://arxiv.org/abs/1802.09477
@@ -112,7 +112,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.cumulative_reward = False
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
-        super(GoalConditionedTD3, self).__init__(policy,
+        super(HIROGoalConditionedTD3, self).__init__(policy,
                                                  q_func1,
                                                  q_func2,
                                                  policy_optimizer,
@@ -134,62 +134,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                                                  burnin_action_func,
                                                  policy_update_delay,
                                                  target_policy_smoothing_func)
-
-    def update_q_func_with_goal(self, batch):
-        """
-        Compute loss for a given Q-function, or critics
-        """
-
-        batch_next_state = batch["next_state"]
-        batch_next_goal = batch["next_goal"]
-        batch_rewards = batch["reward"]
-        batch_terminal = batch["is_state_terminal"]
-        batch_state = batch["state"]
-        batch_goal = batch["goal"]
-        batch_actions = batch["action"]
-        batch_discount = batch["discount"]
-
-        with torch.no_grad(), pfrl.utils.evaluating(
-            self.target_policy
-        ), pfrl.utils.evaluating(self.target_q_func1), pfrl.utils.evaluating(
-            self.target_q_func2
-        ):
-            next_actions = self.target_policy_smoothing_func(
-                self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1)).sample()
-            )
-            next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
-            next_q2 = self.target_q_func2((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
-            next_q = torch.min(next_q1, next_q2)
-
-            target_q = batch_rewards + batch_discount * (
-                1.0 - batch_terminal
-            ) * torch.flatten(next_q)
-
-        predict_q1 = torch.flatten(self.q_func1((torch.cat([batch_state, batch_goal], -1), batch_actions)))
-        predict_q2 = torch.flatten(self.q_func2((torch.cat([batch_state, batch_goal], -1), batch_actions)))
-
-        loss1 = F.mse_loss(target_q, predict_q1)
-        loss2 = F.mse_loss(target_q, predict_q2)
-
-        # Update stats
-        self.q1_record.extend(predict_q1.detach().cpu().numpy())
-        self.q2_record.extend(predict_q2.detach().cpu().numpy())
-        self.q_func1_loss_record.append(float(loss1))
-        self.q_func2_loss_record.append(float(loss2))
-
-        self.q_func1_optimizer.zero_grad()
-        loss1.backward()
-        if self.max_grad_norm is not None:
-            clip_l2_grad_norm_(self.q_func1.parameters(), self.max_grad_norm)
-        self.q_func1_optimizer.step()
-
-        self.q_func2_optimizer.zero_grad()
-        loss2.backward()
-        if self.max_grad_norm is not None:
-            clip_l2_grad_norm_(self.q_func2.parameters(), self.max_grad_norm)
-        self.q_func2_optimizer.step()
-
-        self.q_func_n_updates += 1
 
     def high_level_update_q_func_with_goal(self, batch):
         """
@@ -247,32 +191,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
         self.q_func_n_updates += 1
 
-    def update_policy_with_goal(self, batch):
-        """Compute loss for actor."""
-
-        batch_state = batch["state"]
-        batch_goal = batch["goal"]
-
-        onpolicy_actions = self.policy(torch.cat([batch_state, batch_goal], -1)).rsample()
-        q = self.q_func1((torch.cat([batch_state, batch_goal], -1), onpolicy_actions))
-
-        # Since we want to maximize Q, loss is negation of Q
-        loss = -torch.mean(q)
-
-        self.policy_loss_record.append(float(loss))
-        self.policy_optimizer.zero_grad()
-        loss.backward()
-        if self.max_grad_norm is not None:
-            clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
-        self.policy_optimizer.step()
-        self.policy_n_updates += 1
-
-    def sample_if_possible(self):
-        sample = self.replay_updater.can_update_then_sample(self.t)
-        return sample if not sample else sample[0]
-
     def update(self, experiences, errors_out=None):
-        """Update the model from experiences"""
+        """
+        Update the model from experiences
+        """
         if self.is_low_level:
             batch = low_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
             self.update_q_func_with_goal(batch)
@@ -299,60 +221,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             self.update_policy_with_goal(batch)
             self.sync_target_network()
 
-    def replay_buffer_sample(self):
-        """
-        get some samples from the replay buffer.
-        """
-        return self.replay_buffer.sample(self.minibatch_size)
-
-    def batch_select_onpolicy_action(self, batch_obs):
-        with torch.no_grad(), pfrl.utils.evaluating(self.policy):
-            batch_xs = self.batch_states(batch_obs, self.device, self.phi)
-            batch_action = self.policy(batch_xs).sample().cpu().numpy()
-        return list(batch_action)
-
-    def batch_act_with_goal(self, batch_obs, batch_goal):
-        if self.training:
-            return self._batch_act_train_goal(batch_obs, batch_goal)
-        else:
-            return self._batch_act_eval_goal(batch_obs, batch_goal)
-
-    def batch_observe_with_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
-        if self.training:
-            self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
-
     def batch_observe_with_goal_state_action_arr(self, state_arr, action_arr, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         if self.training:
             self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset,
                                            state_arr=state_arr, action_arr=action_arr)
-
-
-    def _batch_act_eval_goal(self, batch_obs, batch_goal):
-        assert not self.training
-        concat_states = []
-        for idx, ob in enumerate(batch_obs):
-            concat_states.append(torch.cat([ob, batch_goal[idx]], dim=-1))
-        return self.batch_select_onpolicy_action(concat_states)
-
-    def _batch_act_train_goal(self, batch_obs, batch_goal):
-        assert self.training
-        if self.burnin_action_func is not None and self.policy_n_updates == 0:
-            batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
-        else:
-            concat_states = []
-            for idx, ob in enumerate(batch_obs):
-                concat_states.append(torch.cat([ob, batch_goal[idx]], dim=-1))
-            batch_onpolicy_action = self.batch_select_onpolicy_action(concat_states)
-            batch_action = [
-                self.explorer.select_action(self.t, lambda: batch_onpolicy_action[i])
-                for i in range(len(batch_onpolicy_action))
-            ]
-
-        self.batch_last_obs = list(batch_obs)
-        self.batch_last_goal = list(batch_goal)
-        self.batch_last_action = list(batch_action)
-
-        return batch_action
 
     def _batch_observe_train_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset, state_arr=None, action_arr=None):
         assert self.training
@@ -404,14 +276,3 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.replay_buffer.stop_current_episode(env_id=i)
             if self.is_low_level:
                 self.replay_updater.update_if_necessary(self.t)
-
-    def get_statistics(self):
-        return [
-            ("average_q1", _mean_or_nan(self.q1_record)),
-            ("average_q2", _mean_or_nan(self.q2_record)),
-            ("average_q_func1_loss", _mean_or_nan(self.q_func1_loss_record)),
-            ("average_q_func2_loss", _mean_or_nan(self.q_func2_loss_record)),
-            ("average_policy_loss", _mean_or_nan(self.policy_loss_record)),
-            ("policy_n_updates", self.policy_n_updates),
-            ("q_func_n_updates", self.q_func_n_updates),
-        ]
