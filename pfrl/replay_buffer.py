@@ -202,7 +202,7 @@ def batch_experiences(experiences, device, phi, gamma, batch_states=batch_states
     return batch_exp
 
 
-def low_level_batch_experiences_with_goal(experiences, device, phi, gamma, batch_states=batch_states):
+def batch_experiences_with_goal(experiences, device, phi, gamma, batch_states=batch_states):
     """Takes a batch of k experiences each of which contains j
 
     consecutive transitions and vectorizes them, where j is between 1 and n.
