@@ -11,7 +11,7 @@ from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3, GoalConditionedTD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import high_level_batch_experiences_with_goal, low_level_batch_experiences_with_goal
+from pfrl.replay_buffer import high_level_batch_experiences_with_goal, batch_experiences_with_goal
 from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
 
@@ -196,7 +196,7 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
         Update the model from experiences
         """
         if self.is_low_level:
-            batch = low_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
+            batch = batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
             self.update_q_func_with_goal(batch)
             if self.q_func_n_updates % self.policy_update_delay == 0:
                 self.update_policy_with_goal(batch)
@@ -252,7 +252,8 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
                 else:
                     # high level controller, called every 10 times in
                     # the hiro paper.
-                    arrs_exist = (state_arr is not None) and (action_arr is not None) 
+                    arrs_exist = (state_arr is not None) and (action_arr is not None)
+                    
                     if len(state_arr) == self.buffer_freq and arrs_exist:
                         self.cumulative_reward[i] += batch_reward[i]
                         self.replay_buffer.append(

@@ -11,7 +11,7 @@ from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import high_level_batch_experiences_with_goal, batch_experiences_with_goal
+from pfrl.replay_buffer import batch_experiences_with_goal
 from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
 

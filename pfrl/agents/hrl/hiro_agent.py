@@ -1,4 +1,5 @@
 from typing import Any
+from pfrl.wrappers import render
 import torch
 from torch import nn
 import numpy as np
@@ -14,10 +15,10 @@ from pfrl.replay_buffers import (
 )
 from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
-from pfrl.agents import GoalConditionedTD3
+from pfrl.agents import HIROGoalConditionedTD3
 
-from envs import EnvWithGoal
-from envs.create_maze_env import create_maze_env
+from pfrl.agents.hrl.envs import EnvWithGoal
+from pfrl.agents.hrl.envs.create_maze_env import create_maze_env
 
 
 def _is_update(episode, freq, ignore=0, rem=0):
@@ -79,9 +80,9 @@ class HRLControllerBase():
         def make_q_func_with_optimizer():
             q_func = nn.Sequential(
                 pfrl.nn.ConcatObsAndAction(),
-                nn.Linear(state_dim + goal_dim + action_dim, 400),
+                nn.Linear(state_dim + goal_dim + action_dim, 300),
                 nn.ReLU(),
-                nn.Linear(400, 300),
+                nn.Linear(300, 300),
                 nn.ReLU(),
                 nn.Linear(300, 1),
             )
@@ -96,7 +97,7 @@ class HRLControllerBase():
             scale=0.1, low=-0.1, high=0.1
         )
 
-        self.agent = GoalConditionedTD3(
+        self.agent = HIROGoalConditionedTD3(
             policy,
             q_func1,
             q_func2,
@@ -643,7 +644,8 @@ def test_e2e(num_episodes, env, agent: HIROAgent):
 
             agent.end_step()
         print('Episode Reward', episode_reward)
-        agent.evaluate_policy(env)
+        # agent.evaluate_policy(env)
+        agent.set_to_train_()
         agent.end_episode(e)
     print('Total steps', global_step)
 
