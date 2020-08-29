@@ -65,16 +65,16 @@ def train_hrl_agent(
                 action = agent.act_low_level(obs, sg)
 
             # take a step in the environment
-            obs, r, done, info = env.step(action)
-            n_s = obs['observation']
+            obs_dict, r, done, info = env.step(action)
+            obs = obs_dict['observation']
 
             if explore:
                 if t < start_training_steps:
                     n_sg = subgoal.action_space.sample()
                 else:
-                    n_sg = agent.act_high_level(n_s, fg, t)
+                    n_sg = agent.act_high_level(obs, fg, t)
             else:
-                n_sg = agent.act_high_level(n_s, fg, t)
+                n_sg = agent.act_high_level(obs, fg, t)
 
             t += 1
             episode_r += r
@@ -82,7 +82,7 @@ def train_hrl_agent(
 
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
-            agent.observe(n_s, r, done, reset, t, start_training_steps)
+            agent.observe(obs, r, done, reset, t, start_training_steps)
 
             for hook in step_hooks:
                 hook(env, agent, t)
