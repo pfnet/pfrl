@@ -12,6 +12,8 @@ import numpy as np
 import datetime
 import copy
 
+from torch import sub
+
 
 def train_hrl_agent(
     agent,
@@ -25,6 +27,8 @@ def train_hrl_agent(
     successful_score=None,
     step_hooks=(),
     logger=None,
+    explore=True,
+    start_training_steps=0
 ):
 
     logger = logger or logging.getLogger(__name__)
@@ -33,6 +37,7 @@ def train_hrl_agent(
     episode_idx = 0
 
     global_step = 0
+    subgoal = None
     # o_0, r_0
     obs = env.reset()
     fg = obs['desired_goal']
@@ -46,8 +51,65 @@ def train_hrl_agent(
 
     episode_len = 0
     try:
-        while True:
-            pass
+        while t < steps:
+            # get action
+            if explore:
+                if t < start_training_steps:
+                    action = env.action_space.sample()
+                else:
+                    action = agent.act_low_level(obs, fg)
+            else:
+                action = agent.act_low_level(obs, fg)
+
+            # take a step in the environment
+            obs, r, done, info = env.step(action)
+            n_s = obs['observation']
+
+            if explore:
+                if t < start_training_steps:
+                    n_sg = subgoal.action_space.sample()
+                else:
+                    n_sg = agent.act_high_level(n_s, fg, t)
+            else:
+                n_sg = agent.act_high_level(n_s, fg, t)
+
+            t += 1
+            episode_r += r
+            episode_len += 1
+
+            reset = episode_len == max_episode_len or info.get("needs_reset", False)
+
+            agent.observe(n_s, r, done, reset, t)
+
+            for hook in step_hooks:
+                hook(env, agent, t)
+
+            if done or reset or t == steps:
+                logger.info(
+                    "outdir:%s step:%s episode:%s R:%s",
+                    outdir,
+                    t,
+                    episode_idx,
+                    episode_r,
+                )
+                logger.info("statistics:%s", agent.get_statistics())
+                if evaluator is not None:
+                    evaluator.evaluate_if_necessary(t=t, episodes=episode_idx + 1)
+                    if (
+                        successful_score is not None
+                        and evaluator.max_score >= successful_score
+                    ):
+                        break
+                if t == steps:
+                    break
+                # Start a new episode
+                episode_r = 0
+                episode_idx += 1
+                episode_len = 0
+                obs = env.reset()
+            if checkpoint_freq and t % checkpoint_freq == 0:
+                save_agent(agent, t, outdir, logger, suffix="_checkpoint")
+
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed

@@ -416,6 +416,8 @@ class HIROAgent(HRLAgent):
         """
         n_sg = self._choose_subgoal(step, self.last_obs, self.sg, obs)
         self.n_sg = n_sg
+        self.sr = self.low_reward(self.last_obs, self.sg, obs)
+
         return n_sg
 
     def act_low_level(self, obs, goal):
