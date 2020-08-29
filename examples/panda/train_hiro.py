@@ -233,47 +233,6 @@ def main():
             env = RecordMovie(env, video_dir)
         return env
 
-    def make_env(idx, test):
-        from pybullet_envs.bullet.kuka_diverse_object_gym_env import (
-            KukaDiverseObjectEnv,
-        )  # NOQA
-
-        # Use different random seeds for train and test envs
-        process_seed = int(process_seeds[idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
-        # Set a random seed for this subprocess
-        env = KukaDiverseObjectEnv(
-            isDiscrete=True,
-            renders=args.render and (args.demo or not test),
-            height=84,
-            width=84,
-            maxSteps=max_episode_steps,
-            isTest=test,
-        )
-        # Disable file caching to keep memory usage small
-        env._p.setPhysicsEngineParameter(enableFileCaching=False)
-        assert env.observation_space is None
-        env.observation_space = gym.spaces.Box(
-            low=0, high=255, shape=(84, 84, 3), dtype=np.uint8
-        )
-        # (84, 84, 3) -> (3, 84, 84)
-        env = TransposeObservation(env, (2, 0, 1))
-        env = ObserveElapsedSteps(env, max_episode_steps)
-        # KukaDiverseObjectEnv internally asserts int actions
-        env = CastAction(env, int)
-        env.seed(int(env_seed))
-        if test and args.record:
-            assert args.render, "To use --record, --render needs be specified."
-            video_dir = os.path.join(args.outdir, "video_{}".format(idx))
-            os.mkdir(video_dir)
-            env = RecordMovie(env, video_dir)
-        return env
-
-    def make_batch_env(test):
-        return pfrl.envs.MultiprocessVectorEnv(
-            [functools.partial(make_env, idx, test) for idx in range(args.num_envs)]
-        )
-
     def make_batch_panda_env(test):
         return pfrl.envs.MultiprocessVectorEnv(
             [functools.partial(make_panda_env, idx, test) for idx in range(args.num_envs)]
@@ -282,32 +241,7 @@ def main():
     # eval_env = make_batch_panda_env(test=True)
     eval_env = make_panda_env(0, test=True)
     n_actions = eval_env.action_space.shape[0]
-    
-    q_func = GraspingQFunction(n_actions, max_episode_steps)
-
     # Use the hyper parameters of the Nature paper
-    opt = pfrl.optimizers.RMSpropEpsInsideSqrt(
-        q_func.parameters(),
-        lr=args.lr,
-        alpha=0.95,
-        momentum=0.0,
-        eps=1e-2,
-        centered=True,
-    )
-
-    # Anneal beta from beta0 to 1 throughout training
-    betasteps = args.steps / args.update_interval
-    rbuf = replay_buffers.PrioritizedReplayBuffer(
-        10 ** 6, alpha=0.6, beta0=0.4, betasteps=betasteps
-    )
-
-    explorer = explorers.LinearDecayEpsilonGreedy(
-        1.0,
-        args.final_epsilon,
-        args.final_exploration_steps,
-        lambda: np.random.randint(n_actions),
-    )
-    # create the agent, in my case.
 
     def phi(x):
         # Feature extractor
