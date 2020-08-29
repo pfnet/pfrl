@@ -96,13 +96,13 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         pass
 
-    @abstractmethod
-    def act(self, obs: Any, goal: Any):
-        """
-        Selects an action,
-        based on a goal and observation.
-        """
-        pass
+    # @abstractmethod
+    # def act(self, obs: Any, goal: Any):
+    #     """
+    #     Selects an action,
+    #     based on a goal and observation.
+    #     """
+    #     pass
 
     def act(self, obs: Any) -> Any:
         """Select an action, based on an
@@ -114,14 +114,14 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         raise NotImplementedError()
 
 
-    def act(self, obs: Any, goal: Any) -> Any:
-        """Select an action, based on a goal
-        and observation.
+    # def act(self, obs: Any, goal: Any) -> Any:
+    #     """Select an action, based on a goal
+    #     and observation.
 
-        Returns:
-            ~object: action
-        """
-        raise NotImplementedError()
+    #     Returns:
+    #         ~object: action
+    #     """
+    #     raise NotImplementedError()
 
     def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
         """Observe consequences of the last action.
@@ -129,6 +129,7 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         Returns:
             None
         """
+        pass
 
     def set_final_goal(self, fg):
         """
@@ -141,12 +142,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
 
         Returns:
             None
-        """
-        raise NotImplementedError()
-
-    def append(self, step, s, a, n_s, r, d) -> Any:
-        """
-        Appends an experience to the replay buffer
         """
         raise NotImplementedError()
 

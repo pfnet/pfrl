@@ -39,11 +39,11 @@ def train_hrl_agent(
     global_step = 0
     subgoal = None
     # o_0, r_0
-    obs = env.reset()
+    obs_dict = env.reset()
 
-    fg = obs['desired_goal']
+    fg = obs_dict['desired_goal']
 
-    obs = obs['observation']
+    obs = obs_dict['observation']
     agent.set_final_goal(fg)
 
     sg = subgoal.action_space.sample()
@@ -109,9 +109,9 @@ def train_hrl_agent(
                 episode_r = 0
                 episode_idx += 1
                 episode_len = 0
-                obs = env.reset()
-                fg = obs['desired_goal']
-                s = obs['observation']
+                obs_dict = env.reset()
+                fg = obs_dict['desired_goal']
+                obs = obs_dict['observation']
             if checkpoint_freq and t % checkpoint_freq == 0:
                 save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
