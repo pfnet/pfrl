@@ -82,8 +82,27 @@ class HRLAgent(Agent, metaclass=ABCMeta):
     """Abstract HRL agent class."""
     training = True
 
+    @abstractmethod
+    def act(self, obs: Any, goal: Any):
+        """
+        Selects an action,
+        based on a goal and observation.
+        """
+        pass
+
     def act(self, obs: Any) -> Any:
-        """Select an action.
+        """Select an action, based on an
+        observation.
+
+        Returns:
+            ~object: action
+        """
+        raise NotImplementedError()
+
+
+    def act(self, obs: Any, goal: Any) -> Any:
+        """Select an action, based on a goal
+        and observation.
 
         Returns:
             ~object: action
@@ -91,6 +110,13 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
+        """Observe consequences of the last action.
+
+        Returns:
+            None
+        """
+
+    def observe(self, obs: Any, goal: Any, reward: float, done: bool, reset: bool) -> None:
         """Observe consequences of the last action.
 
         Returns:
