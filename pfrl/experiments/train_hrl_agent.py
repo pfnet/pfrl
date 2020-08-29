@@ -40,10 +40,13 @@ def train_hrl_agent(
     subgoal = None
     # o_0, r_0
     obs = env.reset()
+
     fg = obs['desired_goal']
 
     obs = obs['observation']
     agent.set_final_goal(fg)
+
+    sg = subgoal.action_space.sample()
 
     t = step_offset
     if hasattr(agent, "t"):
@@ -57,9 +60,9 @@ def train_hrl_agent(
                 if t < start_training_steps:
                     action = env.action_space.sample()
                 else:
-                    action = agent.act_low_level(obs, fg)
+                    action = agent.act_low_level(obs, sg)
             else:
-                action = agent.act_low_level(obs, fg)
+                action = agent.act_low_level(obs, sg)
 
             # take a step in the environment
             obs, r, done, info = env.step(action)
@@ -79,7 +82,7 @@ def train_hrl_agent(
 
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
-            agent.observe(n_s, r, done, reset, t)
+            agent.observe(n_s, r, done, reset, t, start_training_steps)
 
             for hook in step_hooks:
                 hook(env, agent, t)
@@ -107,6 +110,8 @@ def train_hrl_agent(
                 episode_idx += 1
                 episode_len = 0
                 obs = env.reset()
+                fg = obs['desired_goal']
+                s = obs['observation']
             if checkpoint_freq and t % checkpoint_freq == 0:
                 save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
