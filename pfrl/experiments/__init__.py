@@ -12,3 +12,5 @@ from pfrl.experiments.train_agent import train_agent_with_evaluation  # NOQA
 from pfrl.experiments.train_agent_async import train_agent_async  # NOQA
 from pfrl.experiments.train_agent_batch import train_agent_batch  # NOQA
 from pfrl.experiments.train_agent_batch import train_agent_batch_with_evaluation  # NOQA
+from pfrl.experiments.train_hrl_agent import train_hrl_agent # NOQA
+from pfrl.experiments.train_hrl_agent import train_hrl_agent_with_evaluation # NOQA

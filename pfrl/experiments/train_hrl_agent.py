@@ -83,7 +83,7 @@ def train_hrl_agent(
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
             agent.observe(obs, r, done, reset, t, start_training_steps)
-
+            sg = n_sg
             for hook in step_hooks:
                 hook(env, agent, t)
 

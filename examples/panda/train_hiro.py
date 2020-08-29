@@ -10,11 +10,9 @@ from torch import nn
 from pybullet_robot_envs.envs.panda_envs.panda_env import pandaEnv
 
 import pfrl
-from pfrl.q_functions import DiscreteActionValueHead
-from pfrl import experiments
-from pfrl import explorers
 from pfrl import utils
-from pfrl import replay_buffers
+from pfrl import experiments
+from pfrl.agents.hrl.hiro_agent import HIROAgent
 
 
 class CastAction(gym.ActionWrapper):
@@ -241,28 +239,28 @@ def main():
     # eval_env = make_batch_panda_env(test=True)
     eval_env = make_panda_env(0, test=True)
     n_actions = eval_env.action_space.shape[0]
-    # Use the hyper parameters of the Nature paper
 
-    def phi(x):
-        # Feature extractor
-        image, elapsed_steps = x
-        # Normalize RGB values: [0, 255] -> [0, 1]
-        norm_image = np.asarray(image, dtype=np.float32) / 255
-        return norm_image, elapsed_steps
-    agent = pfrl.agents.DoubleDQN(
-        q_func,
-        opt,
-        rbuf,
-        gpu=args.gpu,
-        gamma=args.gamma,
-        explorer=explorer,
-        minibatch_size=args.batch_size,
-        replay_start_size=args.replay_start_size,
-        target_update_interval=args.target_update_interval,
-        update_interval=args.update_interval,
-        batch_accumulator="sum",
-        phi=phi,
-    )
+    # Use the hyper parameters of the Nature paper
+    env_state_dim = eval_env.state_dim
+    env_action_dim = eval_env.action_dim
+    env_goal_dim = 5
+    gpu = 0 if torch.cuda.is_available() else None
+    agent = HIROAgent(state_dim=env_state_dim,
+                      action_dim=env_action_dim,
+                      goal_dim=env_goal_dim,
+                      subgoal_dim=7,
+                      scale_low=1,
+                      start_training_steps=100,
+                      model_save_freq=10,
+                      model_path='model',
+                      buffer_size=200000,
+                      batch_size=100,
+                      buffer_freq=10,
+                      train_freq=10,
+                      reward_scaling=0.1,
+                      policy_freq_high=2,
+                      policy_freq_low=2,
+                      gpu=gpu)
 
     if args.load:
         # load weights from agent if arg supplied
@@ -281,9 +279,9 @@ def main():
             )
         )
     else:
-        experiments.train_agent_batch(
+        experiments.train_hrl_agent(
             agent=agent,
-            env=make_batch_env(test=False),
+            env=make_panda_env(0, test=False),
             eval_env=eval_env,
             steps=args.steps,
             eval_n_steps=None,
@@ -293,6 +291,7 @@ def main():
             save_best_so_far_agent=False,
             log_interval=1000,
         )
+
 
 if __name__ == "__main__":
     main()

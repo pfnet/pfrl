@@ -414,7 +414,7 @@ class HIROAgent(HRLAgent):
         """
         high level actor
         """
-        n_sg = self._choose_subgoal(step, self.last_obs, self.sg, obs)
+        n_sg = self._choose_subgoal(step, self.last_obs, self.sg, obs, goal)
         self.n_sg = n_sg
 
         return n_sg
@@ -519,12 +519,12 @@ class HIROAgent(HRLAgent):
         """
         return self.low_con.policy(s, sg)
 
-    def _choose_subgoal(self, step, s, sg, n_s):
+    def _choose_subgoal(self, step, s, sg, n_s, goal):
         """
         chooses the next subgoal for the low level controller.
         """
         if step % self.buffer_freq == 0:
-            sg = self.high_con.policy(s, self.fg)
+            sg = self.high_con.policy(s, goal)
         else:
             sg = self.subgoal_transition(s, sg, n_s)
 
