@@ -138,20 +138,11 @@ class HRLControllerBase():
         """
         return self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
 
-    def _train(self, states, goals, rewards, done, state_arr=None, action_arr=None):
+    def _observe(self, states, goals, rewards, done, state_arr=None, action_arr=None):
         """
-        train the model.
+        observe, and train (if we can sample from the replay buffer)
         """
         self.agent.observe_with_goal(torch.FloatTensor(states), torch.FloatTensor(goals), rewards, done, None)
-
-    def _train_with_state_action_arr(self, states, goals, rewards, done, state_arr=None, action_arr=None):
-        """
-        trains with the state and action arr.
-        """
-        self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
-                                                      torch.FloatTensor(action_arr),
-                                                      torch.FloatTensor(states),
-                                                      torch.FloatTensor(goals), rewards, done, None)
 
     def train(self, states, goals, rewards, done, iterations=1):
         """
@@ -203,10 +194,9 @@ class LowerController(HRLControllerBase):
                                             gpu=gpu)
         self.name = name
 
-    def train(self, n_s, g, r, done):
+    def observe(self, n_s, g, r, done):
 
-        # return self._train
-        return self._train(n_s, g, r, done)
+        return self._observe(n_s, g, r, done)
 
 
 # higher controller
@@ -316,13 +306,17 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def train(self, low_con, state_arr, action_arr, r, g, n_s, done):
+    def observe(self, low_con, state_arr, action_arr, r, g, n_s, done):
         """
         train the high level controller with
         the novel off policy correction.
         """
         # step 1 - record experience in replay buffer
-        self._train_with_state_action_arr(n_s, g, r, done, state_arr, action_arr)
+
+        self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
+                                                      torch.FloatTensor(action_arr),
+                                                      torch.FloatTensor(n_s),
+                                                      torch.FloatTensor(g), r, done, None)
 
         # step 2 - if we can update, sample from replay buffer first
         batch = self.agent.sample_if_possible()
@@ -444,13 +438,13 @@ class HIROAgent(HRLAgent):
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
             # the start training steps
-            self.low_con.train(obs, self.n_sg, self.sr, done)
+            self.low_con.observe(obs, self.n_sg, self.sr, done)
 
             # accumulate state and action arr
 
             if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, obs, done)
+                self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, obs, done)
                 self.action_arr = []
                 self.state_arr = []
                 self.cumulative_reward = 0
