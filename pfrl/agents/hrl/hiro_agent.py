@@ -421,9 +421,9 @@ class HIROAgent(HRLAgent):
 
     def act_low_level(self, obs, goal):
         """
-        low level actor
+        low level actor,
+        conditioned on an observation and goal.
         """
-        # use internal subgoal?
         self.last_obs = obs
         # goal = self.sg
         self.last_action = self.low_con.policy(obs, goal)
