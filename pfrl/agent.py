@@ -131,6 +131,9 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
 
     def set_final_goal(self, fg):
+        """
+        sets the final goal for the agent.
+        """
         self.fg = fg
 
     def train(self, global_step: int) -> Any:

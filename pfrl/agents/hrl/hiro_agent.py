@@ -394,7 +394,7 @@ class HIROAgent(HRLAgent):
             replay_buffer=self.low_level_replay_buffer,
             minibatch_size=batch_size,
             gpu=gpu
-            )
+        )
 
         self.buffer_freq = buffer_freq
 
@@ -428,12 +428,12 @@ class HIROAgent(HRLAgent):
         self.last_action = self.low_con.policy(obs, goal)
         return self.last_action
 
-    # observe function
     def observe(self, obs, reward, done, reset, global_step=0):
         """
         after getting feedback from the environment, observe,
         and train both the low and high level controllers.
         """
+        self.sr = self.low_reward(self.last_obs, self.sg, obs)
 
         if global_step >= self.start_training_steps:
             # start training once the global step surpasses
@@ -455,9 +455,6 @@ class HIROAgent(HRLAgent):
 
     def select_subgoal(self, step, s, n_s):
         self.n_sg = self._choose_subgoal(step, s, self.sg, n_s)
-
-    def low_level_reward(self, s, n_s):
-        self.sr = self.low_reward(s, self.sg, n_s)
 
     def step(self, s, env, step, global_step=0, explore=False):
         """
