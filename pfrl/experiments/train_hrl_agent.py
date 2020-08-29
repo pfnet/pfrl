@@ -11,11 +11,6 @@ import argparse
 import numpy as np
 import datetime
 import copy
-from envs import EnvWithGoal
-from envs.create_maze_env import create_maze_env
-from hiro.hiro_utils import Subgoal 
-from hiro.utils import Logger, _is_update, record_experience_to_csv, listdirs
-from hiro.models import HiroAgent, TD3Agent
 
 
 def train_hrl_agent(
@@ -41,7 +36,8 @@ def train_hrl_agent(
     # o_0, r_0
     obs = env.reset()
     fg = obs['desired_goal']
-    s = obs['observation']
+
+    obs = obs['observation']
     agent.set_final_goal(fg)
 
     t = step_offset
@@ -50,56 +46,8 @@ def train_hrl_agent(
 
     episode_len = 0
     try:
-        while t < steps:
-
-            # a_t
-            a, r, n_s, done = agent.step(s, env, t, global_step, explore=True)
-
-            agent.append(t, s, a, n_s, r, done)
-            info = object()
-            # to-do - commenting these out or changing the function definition?
-            # action = agent.act(obs)
-            # # o_{t+1}, r_{t+1}
-            # obs, r, done, info = env.step(action)
-            t += 1
-            s = n_s
-            episode_r += r
-            episode_len += 1
-            reset = episode_len == max_episode_len or info.get("needs_reset", False)
-            agent.train(global_step)
-            # agent.observe(obs, r, done, reset)
-
-            for hook in step_hooks:
-                hook(env, agent, t)
-
-            if done or reset or t == steps:
-                logger.info(
-                    "outdir:%s step:%s episode:%s R:%s",
-                    outdir,
-                    t,
-                    episode_idx,
-                    episode_r,
-                )
-                logger.info("statistics:%s", agent.get_statistics())
-                if evaluator is not None:
-                    evaluator.evaluate_if_necessary(t=t, episodes=episode_idx + 1)
-                    if (
-                        successful_score is not None
-                        and evaluator.max_score >= successful_score
-                    ):
-                        break
-                if t == steps:
-                    break
-                # Start a new episode
-                episode_r = 0
-                episode_idx += 1
-                episode_len = 0
-                obs = env.reset()
-                fg = obs['desired_goal']
-                s = obs['observation']
-                agent.end_step()
-            if checkpoint_freq and t % checkpoint_freq == 0:
-                save_agent(agent, t, outdir, logger, suffix="_checkpoint")
+        while True:
+            pass
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed
