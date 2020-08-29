@@ -113,7 +113,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
-
     # def act(self, obs: Any, goal: Any) -> Any:
     #     """Select an action, based on a goal
     #     and observation.
@@ -136,20 +135,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         sets the final goal for the agent.
         """
         self.fg = fg
-
-    def train(self, global_step: int) -> Any:
-        """Trains the HRL agent.
-
-        Returns:
-            None
-        """
-        raise NotImplementedError()
-
-    def step(self, s, env, step, global_step=0, explore=False) -> Any:
-        """
-        Take an action and step in the environment.
-        """
-        raise NotImplementedError()
 
     def end_episode(self, episode, logger=None):
         raise NotImplementedError()
