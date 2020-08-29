@@ -203,7 +203,7 @@ class LowerController(HRLControllerBase):
                                             gpu=gpu)
         self.name = name
 
-    def train(self, a, r, g, n_s, done, step):
+    def train(self, n_s, g, r, done):
 
         # return self._train
         return self._train(n_s, g, r, done)
@@ -316,7 +316,7 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def train(self, low_con, state_arr, action_arr, a, r, g, n_s, done, step):
+    def train(self, low_con, state_arr, action_arr, r, g, n_s, done):
         """
         train the high level controller with
         the novel off policy correction.
@@ -387,7 +387,7 @@ class HIROAgent(HRLAgent):
             replay_buffer=self.high_level_replay_buffer,
             minibatch_size=batch_size,
             gpu=gpu
-            )
+        )
 
         # lower td3 controller
         self.low_con = LowerController(
@@ -415,6 +415,55 @@ class HIROAgent(HRLAgent):
         self.cumulative_reward = 0
 
         self.start_training_steps = start_training_steps
+
+    def act_high_level(self, obs, goal, step=0):
+        """
+        high level actor
+        """
+        n_sg = self._choose_subgoal(step, self.last_obs, self.sg, obs)
+        self.n_sg = n_sg
+        return n_sg
+
+    def act_low_level(self, obs, goal):
+        """
+        low level actor
+        """
+        # use internal subgoal?
+        self.last_obs = obs
+        # goal = self.sg
+        self.last_action = self.low_con.policy(obs, goal)
+        return self.last_action
+
+    # observe function
+    def observe(self, obs, reward, done, reset, global_step=0):
+        """
+        after getting feedback from the environment, observe,
+        and train both the low and high level controllers.
+        """
+
+        if global_step >= self.start_training_steps:
+            # start training once the global step surpasses
+            # the start training steps
+            self.low_con.train(obs, self.n_sg, self.sr, done)
+
+            # accumulate state and action arr
+
+            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
+                # train high level controller every self.train_freq steps
+                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, obs, done)
+                self.action_arr = []
+                self.state_arr = []
+                self.cumulative_reward = 0
+
+            self.action_arr.append(self.last_action)
+            self.state_arr.append(self.last_ob)
+            self.cumulative_reward += (self.reward_scaling * reward)
+
+    def select_subgoal(self, step, s, n_s):
+        self.n_sg = self._choose_subgoal(step, s, self.sg, n_s)
+
+    def low_level_reward(self, s, n_s):
+        self.sr = self.low_reward(s, self.sg, n_s)
 
     def step(self, s, env, step, global_step=0, explore=False):
         """
@@ -463,7 +512,7 @@ class HIROAgent(HRLAgent):
 
             if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, n_s, done, global_step)
+                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, self.fg, n_s, done, global_step)
                 self.action_arr = []
                 self.state_arr = []
                 self.cumulative_reward = 0

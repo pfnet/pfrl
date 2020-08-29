@@ -83,6 +83,20 @@ class HRLAgent(Agent, metaclass=ABCMeta):
     training = True
 
     @abstractmethod
+    def act_high_level(self, obs: Any, goal: Any):
+        """
+        high level controller act method
+        """
+        pass
+
+    @abstractmethod
+    def act_low_level(self, obs: Any, goal: Any):
+        """
+        low level controller act method
+        """
+        pass
+
+    @abstractmethod
     def act(self, obs: Any, goal: Any):
         """
         Selects an action,
@@ -115,14 +129,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         Returns:
             None
         """
-
-    def observe(self, obs: Any, goal: Any, reward: float, done: bool, reset: bool) -> None:
-        """Observe consequences of the last action.
-
-        Returns:
-            None
-        """
-        raise NotImplementedError()
 
     def set_final_goal(self, fg):
         self.fg = fg
