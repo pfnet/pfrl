@@ -1,5 +1,4 @@
 from typing import Any
-from pfrl.wrappers import render
 import torch
 from torch import nn
 import numpy as np
@@ -16,9 +15,6 @@ from pfrl.replay_buffers import (
 from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import HIROGoalConditionedTD3
-
-from pfrl.agents.hrl.envs import EnvWithGoal
-from pfrl.agents.hrl.envs.create_maze_env import create_maze_env
 
 
 def _is_update(episode, freq, ignore=0, rem=0):
@@ -698,34 +694,34 @@ if __name__ == '__main__':
         )  # NOQA
 
     # other options: AntMaze, AntFall, AntPush
-    env = EnvWithGoal(create_maze_env('AntMaze'), 'AntMaze')
-    # env = pandaPushGymGoalEnv()
-    env_goal_dim = 2
-    env_state_dim = env.state_dim
-    env_action_dim = env.action_dim
+    # env = EnvWithGoal(create_maze_env('AntMaze'), 'AntMaze')
+    # # env = pandaPushGymGoalEnv()
+    # env_goal_dim = 2
+    # env_state_dim = env.state_dim
+    # env_action_dim = env.action_dim
 
-    # for the panda env
-    # env_action_dim = env.action_space.shape[0]
-    # env_state_dim = env.observation_space.spaces['observation'].shape[0]
-    # env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
+    # # for the panda env
+    # # env_action_dim = env.action_space.shape[0]
+    # # env_state_dim = env.observation_space.spaces['observation'].shape[0]
+    # # env_goal_dim = env.observation_space.spaces['desired_goal'].shape[0]
 
-    gpu = 0 if torch.cuda.is_available() else None
-    hiro_agent = HIROAgent(state_dim=env_state_dim,
-                           action_dim=env_action_dim,
-                           goal_dim=env_goal_dim,
-                           subgoal_dim=7,
-                           scale_low=1,
-                           start_training_steps=100,
-                           model_save_freq=10,
-                           model_path='model',
-                           buffer_size=200000,
-                           batch_size=100,
-                           buffer_freq=10,
-                           train_freq=10,
-                           reward_scaling=0.1,
-                           policy_freq_high=2,
-                           policy_freq_low=2,
-                           gpu=gpu)
-    # set agent to be in training mode.
-    hiro_agent.set_to_train_()
-    test_e2e(25000, env, hiro_agent)
+    # gpu = 0 if torch.cuda.is_available() else None
+    # hiro_agent = HIROAgent(state_dim=env_state_dim,
+    #                        action_dim=env_action_dim,
+    #                        goal_dim=env_goal_dim,
+    #                        subgoal_dim=7,
+    #                        scale_low=1,
+    #                        start_training_steps=100,
+    #                        model_save_freq=10,
+    #                        model_path='model',
+    #                        buffer_size=200000,
+    #                        batch_size=100,
+    #                        buffer_freq=10,
+    #                        train_freq=10,
+    #                        reward_scaling=0.1,
+    #                        policy_freq_high=2,
+    #                        policy_freq_low=2,
+    #                        gpu=gpu)
+    # # set agent to be in training mode.
+    # hiro_agent.set_to_train_()
+    # test_e2e(25000, env, hiro_agent)
