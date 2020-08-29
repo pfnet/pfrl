@@ -91,37 +91,6 @@ class RecordMovie(gym.Wrapper):
         return obs
 
 
-class GraspingQFunction(nn.Module):
-    """Q-function model for the grasping env.
-
-    This model takes an 84x84 2D image and an integer that indicates the
-    number of elapsed steps in an episode as input and outputs action values.
-    """
-
-    def __init__(self, n_actions, max_episode_steps):
-        super().__init__()
-        self.embed = nn.Embedding(max_episode_steps + 1, 3136)
-        self.image2hidden = nn.Sequential(
-            nn.Conv2d(3, 32, 8, stride=4),
-            nn.ReLU(),
-            nn.Conv2d(32, 64, 4, stride=2),
-            nn.ReLU(),
-            nn.Conv2d(64, 64, 3, stride=1),
-            nn.Flatten(),
-        )
-        self.hidden2out = nn.Sequential(
-            nn.Linear(3136, 512),
-            nn.ReLU(),
-            nn.Linear(512, n_actions),
-            DiscreteActionValueHead(),
-        )
-
-    def forward(self, x):
-        image, steps = x
-        h = self.image2hidden(image) * torch.sigmoid(self.embed(steps))
-        return self.hidden2out(h)
-
-
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(

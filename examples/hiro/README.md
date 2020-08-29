@@ -1,1 +1,0 @@
-This demo serves as a demo of the HIRO algorithm on the Franka Emika Panda robot in Pybullet.
