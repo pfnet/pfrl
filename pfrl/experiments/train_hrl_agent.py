@@ -91,7 +91,7 @@ def train_hrl_agent(
             sg = n_sg
             for hook in step_hooks:
                 hook(env, agent, t)
-            print(done)
+
             if done or reset or t == steps:
                 logger.info(
                     "outdir:%s step:%s episode:%s R:%s",
