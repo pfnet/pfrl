@@ -238,11 +238,10 @@ def main():
 
     # eval_env = make_batch_panda_env(test=True)
     eval_env = make_panda_env(0, test=True)
-    n_actions = eval_env.action_space.shape[0]
 
-    # Use the hyper parameters of the Nature paper
-    env_state_dim = eval_env.state_dim
-    env_action_dim = eval_env.action_dim
+    env_state_dim = eval_env.observation_space.spaces['observation'].shape[0]
+    env_action_dim = eval_env.action_space.shape[0]
+
     env_goal_dim = 5
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
@@ -279,17 +278,16 @@ def main():
             )
         )
     else:
-        experiments.train_hrl_agent(
+        experiments.train_hrl_agent_with_evaluation(
             agent=agent,
             env=make_panda_env(0, test=False),
-            eval_env=eval_env,
+            eval_env=make_panda_env(0, test=True),
             steps=args.steps,
             eval_n_steps=None,
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
             save_best_so_far_agent=False,
-            log_interval=1000,
         )
 
 
