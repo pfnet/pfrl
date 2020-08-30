@@ -239,13 +239,15 @@ def main():
 
     env_state_dim = eval_env.observation_space.spaces['observation'].shape[0]
     env_action_dim = eval_env.action_space.shape[0]
-    subgoal_space = gym.spaces.Box(-1, 1, (5,))
+    env_subgoal_dim = 5
+    subgoal_space = gym.spaces.Box(-1, 1, (env_subgoal_dim,))
     env_goal_dim = eval_env.observation_space['desired_goal'].shape[0]
+
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
                       action_dim=env_action_dim,
                       goal_dim=env_goal_dim,
-                      subgoal_dim=subgoal_space.shape[0],
+                      subgoal_dim=env_subgoal_dim,
                       scale_low=1,
                       start_training_steps=100,
                       model_save_freq=10,
@@ -276,6 +278,7 @@ def main():
             )
         )
     else:
+        # train the hierarchical agent.
         experiments.train_hrl_agent_with_evaluation(
             agent=agent,
             env=make_panda_env(0, test=False),
