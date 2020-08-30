@@ -209,8 +209,6 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
 
-    max_episode_steps = 8
-
     def make_panda_env(idx, test):
         from pybullet_robot_envs.envs.panda_envs.panda_push_gym_goal_env import (
             pandaPushGymGoalEnv
@@ -220,8 +218,7 @@ def main():
         process_seed = int(process_seeds[idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
-        env = pandaPushGymGoalEnv(renders=args.render and (args.demo or not test),
-                                  max_steps=max_episode_steps)
+        env = pandaPushGymGoalEnv(renders=args.render and (args.demo or not test))
 
         env.seed(int(env_seed))
 
