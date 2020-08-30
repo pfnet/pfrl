@@ -411,12 +411,13 @@ class HIROAgent(HRLAgent):
 
         self.start_training_steps = start_training_steps
 
-    def act_high_level(self, obs, goal, step=0):
+    def act_high_level(self, obs, goal, subgoal, step=0):
         """
         high level actor
         """
-        n_sg = self._choose_subgoal(step, self.last_obs, self.sg, obs, goal)
+        n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.n_sg = n_sg
+        self.sr = self.low_reward(self.last_obs, subgoal, obs)
 
         return n_sg
 
@@ -435,7 +436,6 @@ class HIROAgent(HRLAgent):
         after getting feedback from the environment, observe,
         and train both the low and high level controllers.
         """
-        self.sr = self.low_reward(self.last_obs, self.sg, obs)
 
         if global_step >= start_training_steps:
             # start training once the global step surpasses
@@ -452,7 +452,7 @@ class HIROAgent(HRLAgent):
                 self.cumulative_reward = 0
 
             self.action_arr.append(self.last_action)
-            self.state_arr.append(self.last_ob)
+            self.state_arr.append(self.last_obs)
             self.cumulative_reward += (self.reward_scaling * reward)
 
     def select_subgoal(self, step, s, n_s):

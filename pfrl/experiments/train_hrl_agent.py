@@ -2,10 +2,10 @@ import logging
 import os
 from gym.spaces import space
 from gym.spaces.space import Space
+from pfrl.agents.hrl.hiro_agent import HIROAgent
 
 from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
-from pfrl.utils.ask_yes_no import ask_yes_no
 
 
 import os 
@@ -13,13 +13,14 @@ import argparse
 import numpy as np
 import datetime
 import copy
+from pfrl.utils import subgoal
 
 from torch import sub
 from gym import spaces
 
 
 def train_hrl_agent(
-    agent,
+    agent: HIROAgent,
     env,
     steps,
     outdir,
@@ -31,7 +32,8 @@ def train_hrl_agent(
     step_hooks=(),
     logger=None,
     explore=True,
-    start_training_steps=0
+    start_training_steps=0,
+    subgoal=None
 ):
 
     logger = logger or logging.getLogger(__name__)
@@ -40,10 +42,9 @@ def train_hrl_agent(
     episode_idx = 0
 
     global_step = 0
-    subgoal = None
     # o_0, r_0
     obs_dict = env.reset()
-    subgoal = spaces.Box(-1, 1, (5))
+    subgoal = subgoal or spaces.Box(-1, 1, (5,))
 
     fg = obs_dict['desired_goal']
 
@@ -76,9 +77,9 @@ def train_hrl_agent(
                 if t < start_training_steps:
                     n_sg = subgoal.sample()
                 else:
-                    n_sg = agent.act_high_level(obs, fg, t)
+                    n_sg = agent.act_high_level(obs, fg, sg, t)
             else:
-                n_sg = agent.act_high_level(obs, fg, t)
+                n_sg = agent.act_high_level(obs, fg, sg, t)
 
             t += 1
             episode_r += r
@@ -147,6 +148,7 @@ def train_hrl_agent_with_evaluation(
     save_best_so_far_agent=True,
     use_tensorboard=False,
     logger=None,
+    subgoal=None
 ):
     """Train an agent while periodically evaluating it.
 
@@ -212,6 +214,7 @@ def train_hrl_agent_with_evaluation(
         successful_score=successful_score,
         step_hooks=step_hooks,
         logger=logger,
+        subgoal=subgoal
     )
 
 

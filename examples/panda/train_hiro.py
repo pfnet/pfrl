@@ -5,6 +5,7 @@ import os
 import gym
 import gym.spaces
 import numpy as np
+from pfrl.utils import subgoal
 import torch
 from torch import nn
 from pybullet_robot_envs.envs.panda_envs.panda_env import pandaEnv
@@ -241,13 +242,13 @@ def main():
 
     env_state_dim = eval_env.observation_space.spaces['observation'].shape[0]
     env_action_dim = eval_env.action_space.shape[0]
-
-    env_goal_dim = 5
+    subgoal_space = gym.spaces.Box(-1, 1, (5,))
+    env_goal_dim = eval_env.observation_space['desired_goal'].shape[0]
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
                       action_dim=env_action_dim,
                       goal_dim=env_goal_dim,
-                      subgoal_dim=7,
+                      subgoal_dim=subgoal_space.shape[0],
                       scale_low=1,
                       start_training_steps=100,
                       model_save_freq=10,
@@ -281,6 +282,7 @@ def main():
         experiments.train_hrl_agent_with_evaluation(
             agent=agent,
             env=make_panda_env(0, test=False),
+            subgoal=subgoal_space,
             eval_env=make_panda_env(0, test=True),
             steps=args.steps,
             eval_n_steps=None,

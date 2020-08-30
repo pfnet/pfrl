@@ -8,6 +8,7 @@ from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
+from pfrl.utils import subgoal
 
 import torch
 import numpy as np
@@ -83,7 +84,7 @@ class HRLAgent(Agent, metaclass=ABCMeta):
     training = True
 
     @abstractmethod
-    def act_high_level(self, obs: Any, goal: Any):
+    def act_high_level(self, obs: Any, goal: Any, subgoal: Any):
         """
         high level controller act method
         """
