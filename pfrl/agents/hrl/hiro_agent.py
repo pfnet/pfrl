@@ -403,8 +403,6 @@ class HIROAgent(HRLAgent):
         self.reward_scaling = reward_scaling
         self.episode_subreward = 0
         self.sr = 0
-        self.fg = np.array([0, 0])
-        self.sg = self.subgoal.action_space.sample()
         self.state_arr = []
         self.action_arr = []
         self.cumulative_reward = 0
@@ -444,9 +442,9 @@ class HIROAgent(HRLAgent):
 
             # accumulate state and action arr
 
-            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
+            if global_step % self.train_freq == 1 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
-                self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.n_sg, self.cumulative_reward, self.fg, obs, done)
+                self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, self.fg, obs, done)
                 self.action_arr = []
                 self.state_arr = []
                 self.cumulative_reward = 0
