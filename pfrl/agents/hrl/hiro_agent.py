@@ -22,6 +22,11 @@ def _is_update(episode, freq, ignore=0, rem=0):
         return True
     return False
 
+
+def _mean_or_nan(xs):
+    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
+    return np.mean(xs) if xs else np.nan
+
 # standard controller
 
 
@@ -140,11 +145,11 @@ class HRLControllerBase():
         """
         self.agent.observe_with_goal(torch.FloatTensor(states), torch.FloatTensor(goals), rewards, done, None)
 
-    def train(self, states, goals, rewards, done, iterations=1):
+    def observe(self, states, goals, rewards, done, iterations=1):
         """
         get data from the replay buffer, and train.
         """
-        return self._train(states, goals, rewards, goals, done)
+        return self._observe(states, goals, rewards, goals, done)
 
 
 # lower controller
@@ -602,6 +607,25 @@ class HIROAgent(HRLAgent):
         """
         self.low_con.agent.training = False
         self.high_con.agent.training = False
+
+    def get_statistics(self):
+        return [
+            ("low_con_average_q1", _mean_or_nan(self.low_con.agent.q1_record)),
+            ("low_con_average_q2", _mean_or_nan(self.low_con.agent.q2_record)),
+            ("low_con_average_q_func1_loss", _mean_or_nan(self.low_con.agent.q_func1_loss_record)),
+            ("low_con_average_q_func2_loss", _mean_or_nan(self.low_con.agent.q_func2_loss_record)),
+            ("low_con_average_policy_loss", _mean_or_nan(self.low_con.agent.policy_loss_record)),
+            ("low_con_policy_n_updates", self.low_con.agent.policy_n_updates),
+            ("low_con_q_func_n_updates", self.low_con.agent.q_func_n_updates),
+
+            ("high_con_average_q1", _mean_or_nan(self.high_con.agent.q1_record)),
+            ("high_con_average_q2", _mean_or_nan(self.high_con.agent.q2_record)),
+            ("high_con_average_q_func1_loss", _mean_or_nan(self.high_con.agent.q_func1_loss_record)),
+            ("high_con_average_q_func2_loss", _mean_or_nan(self.high_con.agent.q_func2_loss_record)),
+            ("high_con_average_policy_loss", _mean_or_nan(self.high_con.agent.policy_loss_record)),
+            ("high_con_policy_n_updates", self.high_con.agent.policy_n_updates),
+            ("high_con_q_func_n_updates", self.high_con.agent.q_func_n_updates),
+        ]
 
     def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
         """
