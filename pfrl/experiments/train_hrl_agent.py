@@ -41,8 +41,6 @@ def train_hrl_agent(
     episode_r = 0
     episode_idx = 0
 
-    global_step = 0
-    # o_0, r_0
     obs_dict = env.reset()
     subgoal = subgoal or spaces.Box(-1, 1, (5,))
 
@@ -119,7 +117,6 @@ def train_hrl_agent(
                 obs = obs_dict['observation']
             if checkpoint_freq and t % checkpoint_freq == 0:
                 save_agent(agent, t, outdir, logger, suffix="_checkpoint")
-
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed
