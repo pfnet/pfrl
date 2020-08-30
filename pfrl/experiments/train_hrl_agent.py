@@ -1,5 +1,7 @@
 import logging
 import os
+from gym.spaces import space
+from gym.spaces.space import Space
 
 from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
@@ -13,6 +15,7 @@ import datetime
 import copy
 
 from torch import sub
+from gym import spaces
 
 
 def train_hrl_agent(
@@ -40,13 +43,14 @@ def train_hrl_agent(
     subgoal = None
     # o_0, r_0
     obs_dict = env.reset()
+    subgoal = spaces.Box(-1, 1, (5))
 
     fg = obs_dict['desired_goal']
 
     obs = obs_dict['observation']
     agent.set_final_goal(fg)
 
-    sg = subgoal.action_space.sample()
+    sg = subgoal.sample()
 
     t = step_offset
     if hasattr(agent, "t"):
@@ -70,7 +74,7 @@ def train_hrl_agent(
 
             if explore:
                 if t < start_training_steps:
-                    n_sg = subgoal.action_space.sample()
+                    n_sg = subgoal.sample()
                 else:
                     n_sg = agent.act_high_level(obs, fg, t)
             else:
