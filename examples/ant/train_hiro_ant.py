@@ -1,4 +1,3 @@
-from hiro_robot_envs.envs import AntEnvWithGoal
 
 import argparse
 import functools
@@ -6,11 +5,11 @@ import os
 
 import gym
 import gym.spaces
-from hiro_robot_envs.envs.ant_envs import create_maze_env
 import numpy as np
 import torch
-from torch import nn
-from pybullet_robot_envs.envs.panda_envs.panda_env import pandaEnv
+
+from hiro_robot_envs.envs.ant_envs import create_maze_env
+from hiro_robot_envs.envs import AntEnvWithGoal
 
 import pfrl
 from pfrl import utils
