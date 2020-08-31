@@ -42,13 +42,12 @@ def train_hrl_agent(
     episode_idx = 0
 
     obs_dict = env.reset()
-    subgoal = subgoal or spaces.Box(-1, 1, (5,))
+    subgoal = subgoal
 
     fg = obs_dict['desired_goal']
-
     obs = obs_dict['observation']
-    agent.set_final_goal(fg)
 
+    # sample from subgoal
     sg = subgoal.sample()
 
     t = step_offset
@@ -85,7 +84,7 @@ def train_hrl_agent(
 
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
-            agent.observe(obs, r, done, reset, t, start_training_steps)
+            agent.observe(obs, n_sg, r, done, reset, t, start_training_steps)
             sg = n_sg
             for hook in step_hooks:
                 hook(env, agent, t)

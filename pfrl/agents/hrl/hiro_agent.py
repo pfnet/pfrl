@@ -429,7 +429,7 @@ class HIROAgent(HRLAgent):
         self.last_action = self.low_con.policy(obs, goal)
         return self.last_action
 
-    def observe(self, obs, reward, done, reset, global_step=0, start_training_steps=0):
+    def observe(self, obs, subgoal, reward, done, reset, global_step=0, start_training_steps=0):
         """
         after getting feedback from the environment, observe,
         and train both the low and high level controllers.
@@ -438,7 +438,7 @@ class HIROAgent(HRLAgent):
         if global_step >= start_training_steps:
             # start training once the global step surpasses
             # the start training steps
-            self.low_con.observe(obs, self.n_sg, self.sr, done)
+            self.low_con.observe(obs, subgoal, self.sr, done)
 
             # accumulate state and action arr
 
