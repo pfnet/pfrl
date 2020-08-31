@@ -414,7 +414,6 @@ class HIROAgent(HRLAgent):
         high level actor
         """
         n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
-        self.n_sg = n_sg
         self.sr = self.low_reward(self.last_obs, subgoal, obs)
 
         return n_sg
