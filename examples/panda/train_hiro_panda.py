@@ -279,18 +279,25 @@ def main():
         )
     else:
         # train the hierarchical agent.
-        experiments.train_hrl_agent_with_evaluation(
+        experiments.train_hrl_agent(
             agent=agent,
             env=make_panda_env(0, test=False),
             subgoal=subgoal_space,
-            eval_env=make_panda_env(0, test=True),
             steps=args.steps,
-            eval_n_steps=None,
-            eval_n_episodes=args.eval_n_runs,
-            eval_interval=args.eval_interval,
-            outdir=args.outdir,
-            save_best_so_far_agent=False,
+            outdir=args.outdir
         )
+        # experiments.train_hrl_agent_with_evaluation(
+        #     agent=agent,
+        #     env=make_panda_env(0, test=False),
+        #     subgoal=subgoal_space,
+        #     eval_env=make_panda_env(0, test=True),
+        #     steps=args.steps,
+        #     eval_n_steps=None,
+        #     eval_n_episodes=args.eval_n_runs,
+        #     eval_interval=args.eval_interval,
+        #     outdir=args.outdir,
+        #     save_best_so_far_agent=False,
+        # )
 
 
 if __name__ == "__main__":
