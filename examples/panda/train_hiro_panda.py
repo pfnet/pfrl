@@ -5,69 +5,12 @@ import os
 import gym
 import gym.spaces
 import numpy as np
-from pfrl.utils import subgoal
 import torch
-from torch import nn
-from pybullet_robot_envs.envs.panda_envs.panda_env import pandaEnv
 
 import pfrl
 from pfrl import utils
 from pfrl import experiments
 from pfrl.agents.hrl.hiro_agent import HIROAgent
-
-
-class CastAction(gym.ActionWrapper):
-    """Cast actions to a given type."""
-
-    def __init__(self, env, type_):
-        super().__init__(env)
-        self.type_ = type_
-
-    def action(self, action):
-        return self.type_(action)
-
-
-class TransposeObservation(gym.ObservationWrapper):
-    """Transpose observations."""
-
-    def __init__(self, env, axes):
-        super().__init__(env)
-        self._axes = axes
-        assert isinstance(env.observation_space, gym.spaces.Box)
-        self.observation_space = gym.spaces.Box(
-            low=env.observation_space.low.transpose(*self._axes),
-            high=env.observation_space.high.transpose(*self._axes),
-            dtype=env.observation_space.dtype,
-        )
-
-    def observation(self, observation):
-        return observation.transpose(*self._axes)
-
-
-class ObserveElapsedSteps(gym.Wrapper):
-    """Observe the number of elapsed steps in an episode.
-
-    A new observation will be a tuple of an original observation and an integer
-    that is equal to the elapsed steps in an episode.
-    """
-
-    def __init__(self, env, max_steps):
-        super().__init__(env)
-        self._max_steps = max_steps
-        self._elapsed_steps = 0
-        self.observation_space = gym.spaces.Tuple(
-            (env.observation_space, gym.spaces.Discrete(self._max_steps + 1),)
-        )
-
-    def reset(self):
-        self._elapsed_steps = 0
-        return self.env.reset(), self._elapsed_steps
-
-    def step(self, action):
-        observation, reward, done, info = self.env.step(action)
-        self._elapsed_steps += 1
-        assert self._elapsed_steps <= self._max_steps
-        return (observation, self._elapsed_steps), reward, done, info
 
 
 class RecordMovie(gym.Wrapper):
