@@ -120,6 +120,10 @@ def main():
         help="Logging level. 10:DEBUG, 20:INFO etc.",
     )
     parser.add_argument(
+        "--env",
+        default="AntMaze",
+        type=str)
+    parser.add_argument(
         "--render",
         action="store_true",
         default=False,
@@ -163,7 +167,7 @@ def main():
         process_seed = int(process_seeds[idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
-        env = AntEnvWithGoal(create_maze_env('MazeEnv'), 'MazeEnv')
+        env = AntEnvWithGoal(create_maze_env(args.env), args.env)
 
         env.seed(int(env_seed))
 
