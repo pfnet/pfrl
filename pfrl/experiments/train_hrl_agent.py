@@ -78,7 +78,6 @@ def train_hrl_agent(
             else:
                 n_sg = agent.act_high_level(obs, fg, sg, t)
 
-            t += 1
             episode_r += r
             episode_len += 1
 
@@ -86,6 +85,7 @@ def train_hrl_agent(
 
             agent.observe(obs, fg, n_sg, r, done, reset, t, start_training_steps)
             sg = n_sg
+            t += 1
             for hook in step_hooks:
                 hook(env, agent, t)
 

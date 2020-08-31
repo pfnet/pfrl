@@ -441,7 +441,7 @@ class HIROAgent(HRLAgent):
 
             # accumulate state and action arr
 
-            if global_step % self.train_freq == 1 and len(self.action_arr) == self.train_freq:
+            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
                 self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
                 self.action_arr = []
