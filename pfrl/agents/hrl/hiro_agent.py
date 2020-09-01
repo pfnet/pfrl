@@ -95,7 +95,7 @@ class HRLControllerBase():
 
         # TODO - have proper low and high values from action space.
         explorer = explorers.AdditiveGaussian(
-            scale=0.1, low=-0.1, high=0.1
+            scale=1.0
         )
 
         self.agent = HIROGoalConditionedTD3(

@@ -1,7 +1,5 @@
 import logging
 import os
-from gym.spaces import space
-from gym.spaces.space import Space
 from pfrl.agents.hrl.hiro_agent import HIROAgent
 
 from pfrl.experiments.evaluator import Evaluator
@@ -67,6 +65,8 @@ def train_hrl_agent(
                 action = agent.act_low_level(obs, sg)
 
             # take a step in the environment
+            if t % 1000 == 0:
+                print(action)
             obs_dict, r, done, info = env.step(action)
             obs = obs_dict['observation']
 
