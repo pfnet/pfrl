@@ -191,12 +191,14 @@ def main():
     subgoal_space = gym.spaces.Box(low=limits*-1, high=limits)
     env_goal_dim = 2
 
+    scale = eval_env.action_space.high * np.ones(env_action_dim)
+
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
                       action_dim=env_action_dim,
                       goal_dim=env_goal_dim,
                       subgoal_dim=env_subgoal_dim,
-                      scale_low=1,
+                      scale_low=scale,
                       start_training_steps=100,
                       model_save_freq=10,
                       model_path='model',
