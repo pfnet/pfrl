@@ -8,9 +8,8 @@ import gym.spaces
 import numpy as np
 import torch
 
-from hiro_robot_envs.envs.ant_envs import create_maze_env
+from hiro_robot_envs.envs import create_maze_env
 from hiro_robot_envs.envs import AntEnvWithGoal
-
 import pfrl
 from pfrl import utils
 from pfrl import experiments
@@ -184,11 +183,13 @@ def main():
 
     eval_env = make_ant_env(0, test=True)
 
-    env_state_dim = eval_env.observation_space.spaces['observation'].shape[0]
-    env_action_dim = eval_env.action_space.shape[0]
-    env_subgoal_dim = 5
-    subgoal_space = gym.spaces.Box(-1, 1, (env_subgoal_dim,))
-    env_goal_dim = eval_env.observation_space['desired_goal'].shape[0]
+    env_state_dim = eval_env.state_dim
+    env_action_dim = eval_env.action_dim
+    env_subgoal_dim = 15
+    limits = np.array([10, 10, 0.5, 1, 1, 1, 1,
+                       0.5, 0.3, 0.5, 0.3, 0.5, 0.3, 0.5, 0.3])[:env_subgoal_dim]
+    subgoal_space = gym.spaces.Box(low=limits*-1, high=limits)
+    env_goal_dim = 2
 
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
