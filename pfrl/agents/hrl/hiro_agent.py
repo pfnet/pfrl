@@ -48,7 +48,7 @@ class HRLControllerBase():
             gamma=0.99,
             policy_freq=2,
             tau=0.005,
-            replay_start_size=110,
+            replay_start_size=100,
             is_low_level=True,
             buffer_freq=10,
             minibatch_size=100,
@@ -68,9 +68,9 @@ class HRLControllerBase():
         # create td3 agent
 
         policy = nn.Sequential(
-            nn.Linear(state_dim + goal_dim, 400),
+            nn.Linear(state_dim + goal_dim, 300),
             nn.ReLU(),
-            nn.Linear(400, 300),
+            nn.Linear(300, 300),
             nn.ReLU(),
             nn.Linear(300, action_dim),
             nn.Tanh(),
@@ -669,40 +669,3 @@ class HIROAgent(HRLAgent):
 
         env.evaluate = False
         return np.array(rewards), success/eval_episodes
-
-
-def test_e2e(num_episodes, env, agent: HIROAgent):
-    """
-    tests the e2e flow of hiro and the panda / any other env.
-    """
-    global_step = 0
-
-    for e in np.arange(num_episodes) + 1:
-        print("Episode", e)
-        obs = env.reset()
-        fg = obs['desired_goal']
-        s = obs['observation']
-        done = False
-
-        step = 0
-        episode_reward = 0
-
-        agent.set_final_goal(fg)
-        while not done:
-            # Take action, and step in the environment
-            a, r, n_s, done = agent.step(s, env, step, global_step, explore=True)
-
-            agent.train(global_step, s, a, r, n_s, done)
-
-            s = n_s
-
-            episode_reward += r
-            step += 1
-            global_step += 1
-
-            agent.end_step()
-        print('Episode Reward', episode_reward)
-        # agent.evaluate_policy(env)
-        agent.set_to_train_()
-        agent.end_episode(e)
-    print('Total steps', global_step)
