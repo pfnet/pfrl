@@ -329,6 +329,7 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         average_value_decay=0.999,
         average_kl_decay=0.999,
         logger=None,
+        optimize_hooks=[],
     ):
 
         # Globally shared model
@@ -370,6 +371,7 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         self.t = 0
         self.last_state = None
         self.last_action = None
+        self.optimize_hooks = optimize_hooks
 
         # Recurrent states of the model
         self.train_recurrent_states = None
@@ -589,6 +591,9 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         # Copy the gradients to the globally shared model
         copy_param.copy_grad(target_link=self.shared_model, source_link=self.model)
         self.optimizer.step()
+
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
         self.sync_parameters()
 

@@ -120,6 +120,7 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         entropy_target=None,
         temperature_optimizer_lr=None,
         act_deterministically=True,
+        optimizer_hooks=[],
     ):
 
         self.policy = policy
@@ -191,6 +192,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         self.q_func2_loss_record = collections.deque(maxlen=100)
         self.n_policy_updates = 0
 
+        self.optimie_hooks = optimizer_hooks
+
     @property
     def temperature(self):
         if self.entropy_target is None:
@@ -257,12 +260,16 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func1.parameters(), self.max_grad_norm)
         self.q_func1_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.q_func1_optimizer)
 
         self.q_func2_optimizer.zero_grad()
         loss2.backward()
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func2.parameters(), self.max_grad_norm)
         self.q_func2_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.q_func2_optimizer)
 
     def update_temperature(self, log_prob):
         assert not log_prob.requires_grad
@@ -272,6 +279,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.temperature_holder.parameters(), self.max_grad_norm)
         self.temperature_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.temperature_optimizer)
 
     def update_policy_and_temperature(self, batch):
         """Compute loss for actor."""
@@ -294,6 +303,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.policy_optimizer.step()
+        for hook in self.optimie_hooks:
+            hook(self, self.policy_optimizer)
 
         self.n_policy_updates += 1
 

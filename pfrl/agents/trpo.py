@@ -190,6 +190,7 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         kl_stats_window=100,
         policy_step_size_stats_window=100,
         logger=getLogger(__name__),
+        optimize_hooks=[],
     ):
 
         self.policy = policy
@@ -214,6 +215,7 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         self.act_deterministically = act_deterministically
         self.max_grad_norm = max_grad_norm
         self.logger = logger
+        self.optimize_hooks = optimize_hooks
 
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -379,6 +381,8 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.vf.parameters(), self.max_grad_norm)
         self.vf_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.vf_optimizer)
 
     def _update_obs_normalizer(self, dataset):
         assert self.obs_normalizer
@@ -410,6 +414,8 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
             if self.max_grad_norm is not None:
                 clip_l2_grad_norm_(self.vf.parameters(), self.max_grad_norm)
             self.vf_optimizer.step()
+            for hook in self.optimize_hooks:
+                hook(self, self.vf_optimizer)
 
     def _compute_gain(self, log_prob, log_prob_old, entropy, advs):
         """Compute a gain to maximize."""

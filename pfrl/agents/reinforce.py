@@ -56,6 +56,7 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
         recurrent=False,
         max_grad_norm=None,
         logger=None,
+        optimize_hooks=[],
     ):
 
         self.model = model
@@ -89,6 +90,7 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
         self.log_prob_sequences = [[]]
         self.entropy_sequences = [[]]
         self.n_backward = 0
+        self.optimize_hooks = optimize_hooks
 
     def act(self, obs):
         if self.training:
@@ -207,6 +209,8 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
             clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.n_backward = 0
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
     def update_with_accumulated_grad(self):
         assert self.n_backward == self.batchsize
@@ -214,6 +218,8 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
             clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.n_backward = 0
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
     def get_statistics(self):
         return [

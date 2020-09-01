@@ -102,6 +102,7 @@ class TD3(AttributeSavingMixin, BatchAgent):
         burnin_action_func=None,
         policy_update_delay=2,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
+        optimize_hooks=[],
     ):
 
         self.policy = policy
@@ -159,6 +160,8 @@ class TD3(AttributeSavingMixin, BatchAgent):
         self.q_func1_loss_record = collections.deque(maxlen=100)
         self.q_func2_loss_record = collections.deque(maxlen=100)
         self.policy_loss_record = collections.deque(maxlen=100)
+
+        self.optimize_hooks = optimize_hooks
 
     def sync_target_network(self):
         """Synchronize target network with current network."""
@@ -224,12 +227,16 @@ class TD3(AttributeSavingMixin, BatchAgent):
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func1.parameters(), self.max_grad_norm)
         self.q_func1_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.q_func1_optimizer)
 
         self.q_func2_optimizer.zero_grad()
         loss2.backward()
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func2.parameters(), self.max_grad_norm)
         self.q_func2_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.q_func2_optimizer)
 
         self.q_func_n_updates += 1
 
@@ -251,6 +258,8 @@ class TD3(AttributeSavingMixin, BatchAgent):
             clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.policy_optimizer.step()
         self.policy_n_updates += 1
+        for hook in self.optimize_hooks:
+            hook(self, self.policy_optimizer)
 
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""

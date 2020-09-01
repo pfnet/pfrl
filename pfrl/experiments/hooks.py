@@ -24,6 +24,25 @@ class StepHook(object, metaclass=ABCMeta):
         raise NotImplementedError
 
 
+class OptimizeHook(object, metaclass=ABCMeta):
+    """Update hook function that will be called in training.
+
+    This class is for clarifying the interface required for update hook functions.
+    You don't need to inherit this class to define your own hooks. Any callable
+    that accepts (env, agent, step) as arguments can be used as a hook.
+    """
+
+    @abstractmethod
+    def __call__(self, agent, optim):
+        """Call the hook.
+
+        Args:
+            agent: Agent.
+            step: Current timestep.
+        """
+        raise NotImplementedError
+
+
 class LinearInterpolationHook(StepHook):
     """Hook that will set a linearly interpolated value.
 

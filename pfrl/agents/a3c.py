@@ -65,6 +65,7 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
         average_entropy_decay=0.999,
         average_value_decay=0.999,
         batch_states=batch_states,
+        optimize_hooks=[],
     ):
 
         # Globally shared model
@@ -107,6 +108,8 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
         # Stats
         self.average_value = 0
         self.average_entropy = 0
+
+        self.optimize_hooks = optimize_hooks
 
     def sync_parameters(self):
         copy_param.copy_param(target_link=self.model, source_link=self.shared_model)
@@ -216,6 +219,8 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
         copy_param.copy_grad(target_link=self.shared_model, source_link=self.model)
         # Update the globally shared model
         self.optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
         if self.process_idx == 0:
             logger.debug("update")
 

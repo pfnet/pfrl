@@ -70,6 +70,7 @@ class A2C(agent.AttributeSavingMixin, agent.BatchAgent):
         average_entropy_decay=0.999,
         average_value_decay=0.999,
         batch_states=batch_states,
+        optimize_hooks=[],
     ):
 
         self.model = model
@@ -107,6 +108,8 @@ class A2C(agent.AttributeSavingMixin, agent.BatchAgent):
         self.average_actor_loss = 0
         self.average_value = 0
         self.average_entropy = 0
+
+        self.optimize_hooks = optimize_hooks
 
     def _flush_storage(self, obs_shape, action):
         obs_shape = obs_shape[1:]
@@ -201,6 +204,9 @@ class A2C(agent.AttributeSavingMixin, agent.BatchAgent):
         self.states[0] = self.states[-1]
 
         self.t_start = self.t
+
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
         # Update stats
         self.average_actor_loss += (1 - self.average_actor_loss_decay) * (

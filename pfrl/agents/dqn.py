@@ -163,6 +163,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         batch_states=batch_states,
         recurrent=False,
         max_grad_norm=None,
+        optimize_hooks=[],
     ):
         self.model = q_function
 
@@ -228,6 +229,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.train_recurrent_states = None
         self.train_prev_recurrent_states = None
         self.test_recurrent_states = None
+
+        self.optimize_hooks = optimize_hooks
 
         # Error checking
         if (
@@ -327,6 +330,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
             pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
     def update_from_episodes(self, episodes, errors_out=None):
         assert errors_out is None, "Recurrent DQN does not support PrioritizedBuffer"
@@ -346,6 +351,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
             pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
     def _compute_target_values(self, exp_batch):
         batch_next_state = exp_batch["next_state"]

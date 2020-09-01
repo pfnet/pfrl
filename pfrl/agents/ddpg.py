@@ -82,6 +82,7 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         logger=getLogger(__name__),
         batch_states=batch_states,
         burnin_action_func=None,
+        optimize_hooks=[],
     ):
 
         self.model = nn.ModuleList([policy, q_func])
@@ -131,6 +132,7 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         self.actor_loss_record = collections.deque(maxlen=100)
         self.critic_loss_record = collections.deque(maxlen=100)
         self.n_updates = 0
+        self.optimize_hooks = optimize_hooks
 
         # Aliases for convenience
         self.policy, self.q_function = self.model
@@ -197,10 +199,14 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         self.critic_optimizer.zero_grad()
         self.compute_critic_loss(batch).backward()
         self.critic_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.critic_optimizer)
 
         self.actor_optimizer.zero_grad()
         self.compute_actor_loss(batch).backward()
         self.actor_optimizer.step()
+        for hook in self.optimize_hooks:
+            hook(self, self.actor_optimizer)
 
         self.n_updates += 1
 

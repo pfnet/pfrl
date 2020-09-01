@@ -329,6 +329,7 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
         entropy_stats_window=1000,
         value_loss_stats_window=100,
         policy_loss_stats_window=100,
+        optimize_hooks=[],
     ):
         self.model = model
         self.optimizer = optimizer
@@ -384,6 +385,7 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
         self.policy_loss_record = collections.deque(maxlen=policy_loss_stats_window)
         self.explained_variance = np.nan
         self.n_updates = 0
+        self.optimize_hooks = optimize_hooks
 
     def _initialize_batch_variables(self, num_envs):
         self.batch_last_episode = [[] for _ in range(num_envs)]
@@ -510,6 +512,8 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
                 )
             self.optimizer.step()
             self.n_updates += 1
+            for hook in self.optimize_hooks:
+                hook(self, self.optimizer)
 
     def _update_once_recurrent(self, episodes, mean_advs, std_advs):
 
@@ -582,6 +586,8 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
             torch.nn.utils.clip_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.n_updates += 1
+        for hook in self.optimize_hooks:
+            hook(self, self.optimizer)
 
     def _update_recurrent(self, dataset):
         """Update both the policy and the value function."""
