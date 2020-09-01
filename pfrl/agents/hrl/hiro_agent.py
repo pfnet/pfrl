@@ -30,6 +30,15 @@ def _mean_or_nan(xs):
 # standard controller
 
 
+class ConstantsMult(nn.Module):
+    def __init__(self, constants):
+        super().__init__()
+        self.constants = constants
+
+    def forward(self, x):
+        return self.constants * x
+
+
 class HRLControllerBase():
     def __init__(
             self,
@@ -66,6 +75,7 @@ class HRLControllerBase():
         self.tau = tau
         self.minibatch_size = minibatch_size
         # create td3 agent
+        self.device = torch.device(f"cuda:{gpu}")
 
         policy = nn.Sequential(
             nn.Linear(state_dim + goal_dim, 300),
@@ -74,6 +84,7 @@ class HRLControllerBase():
             nn.ReLU(),
             nn.Linear(300, action_dim),
             nn.Tanh(),
+            ConstantsMult(torch.tensor(self.scale).float().to(self.device)),
             pfrl.policies.DeterministicHead(),
             )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
@@ -346,6 +357,7 @@ class HIROAgent(HRLAgent):
                  action_dim,
                  goal_dim,
                  subgoal_dim,
+                 subgoal_space,
                  scale_low,
                  start_training_steps,
                  model_save_freq,
@@ -362,9 +374,9 @@ class HIROAgent(HRLAgent):
         Constructor for the HIRO agent.
         """
         # create subgoal
-        self.subgoal = Subgoal(subgoal_dim)
-        scale_high = self.subgoal.action_space.high * np.ones(subgoal_dim)
-
+        # get scale for subgoal
+        self.scale_high = subgoal_space.high * np.ones(subgoal_dim)
+        self.scale_low = scale_low
         self.model_save_freq = model_save_freq
 
         # create replay buffers
@@ -376,7 +388,7 @@ class HIROAgent(HRLAgent):
             state_dim=state_dim,
             goal_dim=goal_dim,
             action_dim=subgoal_dim,
-            scale=scale_high,
+            scale=self.scale_high,
             model_path=model_path,
             policy_freq=policy_freq_high,
             replay_buffer=self.high_level_replay_buffer,
@@ -389,7 +401,7 @@ class HIROAgent(HRLAgent):
             state_dim=state_dim,
             goal_dim=subgoal_dim,
             action_dim=action_dim,
-            scale=scale_low,
+            scale=self.scale_low,
             model_path=model_path,
             policy_freq=policy_freq_low,
             replay_buffer=self.low_level_replay_buffer,
@@ -415,7 +427,8 @@ class HIROAgent(HRLAgent):
         """
         n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.sr = self.low_reward(self.last_obs, subgoal, obs)
-
+        # clip values
+        n_sg = np.clip(n_sg, a_min=-self.scale_high, a_max=self.scale_high)
         return n_sg
 
     def act_low_level(self, obs, goal):
@@ -426,6 +439,7 @@ class HIROAgent(HRLAgent):
         self.last_obs = obs
         # goal = self.sg
         self.last_action = self.low_con.policy(obs, goal)
+        self.last_action = np.clip(self.last_action, a_min=-self.scale_low, a_max=self.scale_low)
         return self.last_action
 
     def observe(self, obs, goal, subgoal, reward, done, reset, global_step=0, start_training_steps=0):
@@ -451,9 +465,6 @@ class HIROAgent(HRLAgent):
             self.action_arr.append(self.last_action)
             self.state_arr.append(self.last_obs)
             self.cumulative_reward += (self.reward_scaling * reward)
-
-    def select_subgoal(self, step, s, n_s):
-        self.n_sg = self._choose_subgoal(step, s, self.sg, n_s)
 
     def step(self, s, env, step, global_step=0, explore=False):
         """
