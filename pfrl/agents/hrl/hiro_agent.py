@@ -466,62 +466,6 @@ class HIROAgent(HRLAgent):
             self.state_arr.append(self.last_obs)
             self.cumulative_reward += (self.reward_scaling * reward)
 
-    def step(self, s, env, step, global_step=0, explore=False):
-        """
-        step in the environment.
-        """
-        # Lower Level Controller
-        if explore:
-            # Take random action for start_training_steps
-            if global_step < self.start_training_steps:
-                # returns 7 joint positions
-                a = env.action_space.sample()
-            # take action with noise
-            else:
-                a = self._choose_action(s, self.sg)
-        else:
-            a = self._choose_action(s, self.sg)
-
-        obs, r, done, _ = env.step(a)
-        # get next state
-        n_s = obs['observation']
-
-        # Higher Level Controller
-        # Take random action for start_training steps
-        if explore:
-            # get next subgoal
-            if global_step < self.start_training_steps:
-                n_sg = self.subgoal.action_space.sample()
-            else:
-                n_sg = self._choose_subgoal(step, s, self.sg, n_s)
-        else:
-            n_sg = self._choose_subgoal(step, s, self.sg, n_s)
-        # next subgoal
-        self.n_sg = n_sg
-
-        self.sr = self.low_reward(s, self.sg, n_s)
-        # return action, reward, next state, done
-        return a, r, n_s, done
-
-    def train(self, global_step, s, a, r, n_s, done) -> Any:
-        if global_step >= self.start_training_steps:
-            # start training once the global step surpasses
-            # the start training steps
-            self.low_con.train(a, self.sr, self.n_sg, n_s, done, global_step)
-
-            # accumulate state and action arr
-
-            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
-                # train high level controller every self.train_freq steps
-                self.high_con.train(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, self.fg, n_s, done, global_step)
-                self.action_arr = []
-                self.state_arr = []
-                self.cumulative_reward = 0
-
-            self.action_arr.append(a)
-            self.state_arr.append(s)
-            self.cumulative_reward += (self.reward_scaling * r)
-
     def _choose_action(self, s, sg):
         """
         runs the policy of the low level controller.
