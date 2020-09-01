@@ -198,6 +198,7 @@ def main():
                       action_dim=env_action_dim,
                       goal_dim=env_goal_dim,
                       subgoal_dim=env_subgoal_dim,
+                      subgoal_space=subgoal_space,
                       scale_low=scale,
                       start_training_steps=100,
                       model_save_freq=10,
