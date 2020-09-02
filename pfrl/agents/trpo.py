@@ -145,6 +145,7 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
             of KL divergence between old and new policies.
         policy_step_size_stats_window (int): Window size used to compute
             statistics of step sizes of policy updates.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
 
     Statistics:
         average_value: Average of value predictions on non-terminal states.

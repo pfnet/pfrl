@@ -55,6 +55,7 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         burnin_action_func (callable or None): If not None, this callable
             object is used to select actions before the model is updated
             one or more times during training.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     saved_attributes = ("model", "target_model", "actor_optimizer", "critic_optimizer")

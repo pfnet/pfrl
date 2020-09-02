@@ -37,6 +37,7 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
         max_grad_norm (float or None): Maximum L2 norm of the gradient used for
             gradient clipping. If set to None, the gradient is not clipped.
         logger (logging.Logger): Logger to be used.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     saved_attributes = ("model", "optimizer")

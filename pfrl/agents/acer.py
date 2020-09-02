@@ -297,6 +297,7 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
             to record statistics.
         average_kl_decay (float): Decay rate of kl value. Used only to record
             statistics.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     process_idx = None

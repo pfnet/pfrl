@@ -81,6 +81,7 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
             is used.
         act_deterministically (bool): If set to True, choose most probable
             actions in the act method instead of sampling from distributions.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     saved_attributes = (
@@ -120,7 +121,7 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         entropy_target=None,
         temperature_optimizer_lr=None,
         act_deterministically=True,
-        optimizer_hooks=[],
+        optimize_hooks=[],
     ):
 
         self.policy = policy
@@ -192,7 +193,7 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         self.q_func2_loss_record = collections.deque(maxlen=100)
         self.n_policy_updates = 0
 
-        self.optimie_hooks = optimizer_hooks
+        self.optimize_hooks = optimize_hooks
 
     @property
     def temperature(self):

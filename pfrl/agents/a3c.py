@@ -40,6 +40,8 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
             `pfrl.nn.StatelessRecurrent`.
         batch_states (callable): method which makes a batch of observations.
             default is `pfrl.utils.batch_states.batch_states`
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
+
     """
 
     process_idx = None

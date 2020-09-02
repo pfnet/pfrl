@@ -299,6 +299,7 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
             It's updated after the model is updated.
         n_updates: Number of model updates so far.
         explained_variance: Explained variance computed from the last batch.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     saved_attributes = ("model", "optimizer", "obs_normalizer")

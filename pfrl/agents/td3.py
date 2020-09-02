@@ -64,6 +64,7 @@ class TD3(AttributeSavingMixin, BatchAgent):
         target_policy_smoothing_func (callable): Callable that takes a batch of
             actions as input and outputs a noisy version of it. It is used for
             target policy smoothing when computing target Q-values.
+        optimize_hooks(list of callables): Hooks when optimizer.step() is called
     """
 
     saved_attributes = (
