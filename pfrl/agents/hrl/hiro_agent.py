@@ -1,13 +1,10 @@
-from typing import Any
 import torch
 from torch import nn
 import numpy as np
-import time
 import os
 
 import pfrl
 from pfrl.agent import HRLAgent
-from pfrl.utils import Subgoal
 from pfrl.replay_buffers import (
     LowerControllerReplayBuffer,
     HigherControllerReplayBuffer
