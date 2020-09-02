@@ -253,7 +253,7 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
                     # high level controller, called every 10 times in
                     # the hiro paper.
                     arrs_exist = (state_arr is not None) and (action_arr is not None)
-                    
+
                     if len(state_arr) == self.buffer_freq and arrs_exist:
                         self.cumulative_reward[i] += batch_reward[i]
                         self.replay_buffer.append(

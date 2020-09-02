@@ -373,7 +373,6 @@ class HIROAgent(HRLAgent):
         """
         Constructor for the HIRO agent.
         """
-        # create subgoal
         # get scale for subgoal
         self.scale_high = subgoal_space.high * np.ones(subgoal_dim)
         self.scale_low = scale_low
@@ -465,12 +464,6 @@ class HIROAgent(HRLAgent):
             self.action_arr.append(self.last_action)
             self.state_arr.append(self.last_obs)
             self.cumulative_reward += (self.reward_scaling * reward)
-
-    def _choose_action(self, s, sg):
-        """
-        runs the policy of the low level controller.
-        """
-        return self.low_con.policy(s, sg)
 
     def _choose_subgoal(self, step, s, sg, n_s, goal):
         """
@@ -578,49 +571,3 @@ class HIROAgent(HRLAgent):
             ("high_con_policy_n_updates", self.high_con.agent.policy_n_updates),
             ("high_con_q_func_n_updates", self.high_con.agent.q_func_n_updates),
         ]
-
-    def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
-        """
-        evaluates the policy.
-        """
-        if save_video:
-            from OpenGL import GL
-            import gym
-            env = gym.wrappers.Monitor(env, directory='video',
-                                       write_upon_reset=True, force=True, resume=True, mode='evaluation')
-            render = False
-        self.set_to_eval_()
-        success = 0
-        rewards = []
-        env.evaluate = True
-        for e in range(eval_episodes):
-            obs = env.reset()
-            fg = obs['desired_goal']
-            s = obs['observation']
-            done = False
-            reward_episode_sum = 0
-            step = 0
-
-            self.set_final_goal(fg)
-
-            while not done:
-                if render:
-                    env.render()
-                if sleep > 0:
-                    time.sleep(sleep)
-
-                a, r, n_s, done = self.step(s, env, step)
-                reward_episode_sum += r
-
-                s = n_s
-                step += 1
-                self.end_step()
-            else:
-                error = np.sqrt(np.sum(np.square(fg-s[:2])))
-                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], s[0], s[1], error))
-                rewards.append(reward_episode_sum)
-                # success += 1 if error <=5 else 0
-                self.end_episode(e)
-
-        env.evaluate = False
-        return np.array(rewards), success/eval_episodes
