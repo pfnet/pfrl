@@ -554,6 +554,10 @@ class HIROAgent(HRLAgent):
         self.high_con.agent.training = False
 
     def get_statistics(self):
+        """
+        gets the statistics of all of the actors and critics for the high
+        and low level controllers in the HIRO algorithm.
+        """
         return [
             ("low_con_average_q1", _mean_or_nan(self.low_con.agent.q1_record)),
             ("low_con_average_q2", _mean_or_nan(self.low_con.agent.q2_record)),

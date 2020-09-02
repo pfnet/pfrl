@@ -107,7 +107,7 @@ def train_hrl_agent(
                         break
                 if t == steps:
                     break
-                # Start a new episode
+                # Start a new episode, reset the environment and goal
                 episode_r = 0
                 episode_idx += 1
                 episode_len = 0
