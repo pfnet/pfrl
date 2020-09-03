@@ -122,5 +122,3 @@ class TestAttributeSavingMixin(unittest.TestCase):
         parent.load(dirname)
         self.assertEqual(int(parent.link.module.param.detach().numpy()), 1)
         self.assertEqual(int(parent.child.link.param.detach().numpy()), 2)
-
-
