@@ -256,6 +256,10 @@ def main():
                 eval_stats["stdev"],
             )
         )
+        import os
+        import json
+        with open(os.path.join(args.outdir, "demo_scores.json"), "w") as f:
+            json.dump(eval_stats, f)
     else:
         experiments.train_agent_batch_with_evaluation(
             agent=agent,
