@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 
 
 def bound_by_tanh(x, low, high):
