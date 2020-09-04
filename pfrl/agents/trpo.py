@@ -120,7 +120,7 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         lambd (float): Lambda-return factor [0, 1]
         phi (callable): Feature extractor function
         entropy_coef (float): Weight coefficient for entropy bonus [0, inf)
-        update_interval (int): Interval steps of TRPO iterations. Every after
+        update_interval (int): Interval steps of TRPO iterations. Every time after
             this amount of steps, this agent updates the policy and the value
             function using data from these steps.
         vf_epochs (int): Number of epochs for which the value function is
