@@ -88,7 +88,7 @@ For distributed optimization, just run this script on multiple servers.
 postgres_user="user"
 postgres_password="password"
 postgres_host="host"
-postgres_database"database"
+postgres_database="database"
 
 storage="postgresql://${postgres_user}:${postgres_password}@${postgres_host}/${postgres_database}"
 study="optuna-pfrl-distributed"
