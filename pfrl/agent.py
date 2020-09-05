@@ -8,7 +8,6 @@ from typing import List
 from typing import Optional
 from typing import Sequence
 from typing import Tuple
-from pfrl.utils import subgoal
 
 import torch
 import numpy as np

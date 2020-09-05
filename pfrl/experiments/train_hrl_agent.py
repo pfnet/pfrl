@@ -11,7 +11,6 @@ import argparse
 import numpy as np
 import datetime
 import copy
-from pfrl.utils import subgoal
 
 from torch import sub
 from gym import spaces
