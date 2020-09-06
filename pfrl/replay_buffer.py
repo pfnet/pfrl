@@ -454,7 +454,7 @@ class ReplayUpdater(object):
 
     def can_update_then_sample(self, iteration):
         """If we can update the model if the condition is met,
-            return a sampling from the replay buffer.
+            return a batch of samples from the replay buffer.
 
         Args:
             iteration (int): Timestep.

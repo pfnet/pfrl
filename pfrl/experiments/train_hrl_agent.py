@@ -62,7 +62,7 @@ def train_hrl_agent(
                 print(action)
             obs_dict, r, done, info = env.step(action)
             obs = obs_dict['observation']
-            print(info)
+            # print(info)
             if explore:
                 if t < start_training_steps:
                     n_sg = subgoal.sample()

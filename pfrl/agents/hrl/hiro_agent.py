@@ -450,8 +450,6 @@ class HIROAgent(HRLAgent):
             # the start training steps
             self.low_con.observe(obs, subgoal, self.sr, done)
 
-            # accumulate state and action arr
-
             if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
                 self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
@@ -460,10 +458,15 @@ class HIROAgent(HRLAgent):
                 self.state_arr = []
 
                 # reset last high level obs, goal, action
-                self.last_high_level_obs = obs
-                self.last_high_level_goal = goal
+                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_goal = torch.FloatTensor(goal)
                 self.last_high_level_action = subgoal
                 self.cumulative_reward = 0
+
+            elif global_step % self.train_freq == 0:
+                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_goal = torch.FloatTensor(goal)
+                self.last_high_level_action = subgoal
 
             self.action_arr.append(self.last_action)
             self.state_arr.append(self.last_obs)

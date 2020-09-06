@@ -265,7 +265,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.batch_last_obs = list(batch_obs)
         self.batch_last_goal = list(batch_goal)
         self.batch_last_action = list(batch_action)
-
         return batch_action
 
     def _batch_observe_train_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
