@@ -70,6 +70,7 @@ class HRLControllerBase():
         self.gamma = gamma
         self.policy_freq = policy_freq
         self.tau = tau
+        self.is_low_level = is_low_level
         self.minibatch_size = minibatch_size
         # create td3 agent
         self.device = torch.device(f"cuda:{gpu}")
@@ -119,7 +120,7 @@ class HRLControllerBase():
             explorer=explorer,
             update_interval=policy_freq,
             replay_start_size=replay_start_size,
-            is_low_level=is_low_level,
+            is_low_level=self.is_low_level,
             buffer_freq=buffer_freq,
             minibatch_size=minibatch_size,
             gpu=gpu
@@ -453,9 +454,15 @@ class HIROAgent(HRLAgent):
 
             if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
                 # train high level controller every self.train_freq steps
+                self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
                 self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
                 self.action_arr = []
                 self.state_arr = []
+
+                # reset last high level obs, goal, action
+                self.last_high_level_obs = obs
+                self.last_high_level_goal = goal
+                self.last_high_level_action = subgoal
                 self.cumulative_reward = 0
 
             self.action_arr.append(self.last_action)

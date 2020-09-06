@@ -135,6 +135,11 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
                                                  policy_update_delay,
                                                  target_policy_smoothing_func)
 
+    def update_high_level_last_results(self, states, goals, actions):
+        self.batch_last_obs = [states]
+        self.batch_last_goal = [goals]
+        self.batch_last_action = [actions]
+
     def high_level_update_q_func_with_goal(self, batch):
         """
         Compute loss for a given Q-function, or critics
