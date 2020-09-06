@@ -415,6 +415,9 @@ class HIROAgent(HRLAgent):
         self.state_arr = []
         self.action_arr = []
         self.cumulative_reward = 0
+        self.last_high_level_obs = None
+        self.last_high_level_goal = None
+        self.last_high_level_action = None
 
         self.start_training_steps = start_training_steps
 
@@ -463,7 +466,7 @@ class HIROAgent(HRLAgent):
                 self.last_high_level_action = subgoal
                 self.cumulative_reward = 0
 
-            elif global_step % self.train_freq == 0:
+            elif global_step % self.train_freq == 0 and self.last_high_level_obs is None:
                 self.last_high_level_obs = torch.FloatTensor(obs)
                 self.last_high_level_goal = torch.FloatTensor(goal)
                 self.last_high_level_action = subgoal
