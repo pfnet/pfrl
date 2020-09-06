@@ -7,13 +7,7 @@ from pfrl.experiments.evaluator import save_agent
 
 
 import os 
-import argparse
 import numpy as np
-import datetime
-import copy
-
-from torch import sub
-from gym import spaces
 
 
 def train_hrl_agent(
@@ -68,7 +62,7 @@ def train_hrl_agent(
                 print(action)
             obs_dict, r, done, info = env.step(action)
             obs = obs_dict['observation']
-
+            print(info)
             if explore:
                 if t < start_training_steps:
                     n_sg = subgoal.sample()
