@@ -93,7 +93,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         batch_states=batch_states,
         burnin_action_func=None,
         policy_update_delay=2,
-        is_low_level=True,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
@@ -231,6 +230,10 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def batch_observe_with_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         if self.training:
             self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
+
+
+    def batch_observe_with_goal_state_action_arr(self, state_arr, action_arr, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
+        raise NotImplementedError("This function is not implemented for the GoalConditionedTD3.")
 
     def _batch_act_eval_goal(self, batch_obs, batch_goal):
         assert not self.training

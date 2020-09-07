@@ -6,7 +6,7 @@ import pfrl
 
 from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
-from pfrl.agents import HIROGoalConditionedTD3
+from pfrl.agents import HIROHighLevelGoalConditionedTD3, GoalConditionedTD3
 from pfrl.nn import ConstantsMult
 
 
@@ -82,24 +82,44 @@ class HRLControllerBase():
             scale=1.0
         )
 
-        self.agent = HIROGoalConditionedTD3(
-            policy,
-            q_func1,
-            q_func2,
-            policy_optimizer,
-            q_func1_optimizer,
-            q_func2_optimizer,
-            replay_buffer,
-            gamma=gamma,
-            soft_update_tau=tau,
-            explorer=explorer,
-            update_interval=policy_freq,
-            replay_start_size=replay_start_size,
-            is_low_level=self.is_low_level,
-            buffer_freq=buffer_freq,
-            minibatch_size=minibatch_size,
-            gpu=gpu
-        )
+        if self.is_low_level:
+            # standard goal conditioned td3
+            self.agent = GoalConditionedTD3(
+                policy,
+                q_func1,
+                q_func2,
+                policy_optimizer,
+                q_func1_optimizer,
+                q_func2_optimizer,
+                replay_buffer,
+                gamma=gamma,
+                soft_update_tau=tau,
+                explorer=explorer,
+                update_interval=policy_freq,
+                replay_start_size=replay_start_size,
+                buffer_freq=buffer_freq,
+                minibatch_size=minibatch_size,
+                gpu=gpu
+                )
+        else:
+            self.agent = HIROHighLevelGoalConditionedTD3(
+                policy,
+                q_func1,
+                q_func2,
+                policy_optimizer,
+                q_func1_optimizer,
+                q_func2_optimizer,
+                replay_buffer,
+                gamma=gamma,
+                soft_update_tau=tau,
+                explorer=explorer,
+                update_interval=policy_freq,
+                replay_start_size=replay_start_size,
+                buffer_freq=buffer_freq,
+                minibatch_size=minibatch_size,
+                gpu=gpu
+                )
+
         self.device = self.agent.device
 
         self._initialized = False

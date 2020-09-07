@@ -7,7 +7,6 @@ from torch.nn import functional as F
 import pfrl
 from pfrl.agents import GoalConditionedTD3
 from pfrl.utils.batch_states import batch_states
-from pfrl.replay_buffer import batch_experiences_with_goal
 from pfrl.utils import clip_l2_grad_norm_
 
 
@@ -17,7 +16,7 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-class HIROGoalConditionedTD3(GoalConditionedTD3):
+class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
     """
     HIRO Goal conditioned (including support for high and low level controllers)
     Twin Delayed Deep Deterministic Policy Gradients (TD3).
@@ -93,44 +92,41 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
         batch_states=batch_states,
         burnin_action_func=None,
         policy_update_delay=2,
-        is_low_level=True,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
         # determines if we're dealing with a low level controller.
-        self.is_low_level = is_low_level
         self.cumulative_reward = False
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
-        super(HIROGoalConditionedTD3, self).__init__(policy,
-                                                     q_func1,
-                                                     q_func2,
-                                                     policy_optimizer,
-                                                     q_func1_optimizer,
-                                                     q_func2_optimizer,
-                                                     replay_buffer,
-                                                     gamma,
-                                                     explorer,
-                                                     gpu,
-                                                     replay_start_size,
-                                                     minibatch_size,
-                                                     update_interval,
-                                                     phi,
-                                                     soft_update_tau,
-                                                     n_times_update,
-                                                     max_grad_norm,
-                                                     logger,
-                                                     batch_states,
-                                                     burnin_action_func,
-                                                     policy_update_delay,
-                                                     target_policy_smoothing_func)
+        super(HIROHighLevelGoalConditionedTD3, self).__init__(policy,
+                                                              q_func1,
+                                                              q_func2,
+                                                              policy_optimizer,
+                                                              q_func1_optimizer,
+                                                              q_func2_optimizer,
+                                                              replay_buffer,
+                                                              gamma,
+                                                              explorer,
+                                                              gpu,
+                                                              replay_start_size,
+                                                              minibatch_size,
+                                                              update_interval,
+                                                              phi,
+                                                              soft_update_tau,
+                                                              n_times_update,
+                                                              max_grad_norm,
+                                                              logger,
+                                                              batch_states,
+                                                              burnin_action_func,
+                                                              policy_update_delay,
+                                                              target_policy_smoothing_func)
 
     def update_high_level_last_results(self, states, goals, actions):
         """
         update the last observation, goal and action for the high level
         controller.
         """
-        assert self.is_low_level is False
         self.batch_last_obs = [states]
         self.batch_last_goal = [goals]
         self.batch_last_action = [actions]
@@ -191,19 +187,6 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
 
         self.q_func_n_updates += 1
 
-    def update(self, experiences, errors_out=None):
-        """
-        Update the model from experiences. This applies to
-        the low level controller
-        """
-        assert self.is_low_level is True
-
-        batch = batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
-        self.update_q_func_with_goal(batch)
-        if self.q_func_n_updates % self.policy_update_delay == 0:
-            self.update_policy_with_goal(batch)
-            self.sync_target_network()
-
     def high_level_update_batch(self, batch, errors_out=None):
         """Update the model from *batched*
            experiences for the high level controller
@@ -211,7 +194,6 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
            This behavior is needed due to the extra machinery for the off policy
            correction.
         """
-        assert self.is_low_level is False
         # dealing with high level controller
 
         self.high_level_update_q_func_with_goal(batch)
@@ -234,44 +216,28 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
                 assert self.batch_last_goal[i] is not None
                 assert self.batch_last_action[i] is not None
                 # Add a transition to the replay buffer
-                if self.is_low_level:
-                    # low level controller
+                # high level controller, called every 10 times in
+                # the hiro paper.
+                arrs_exist = (state_arr is not None) and (action_arr is not None)
+
+                if len(state_arr) == self.buffer_freq and arrs_exist:
+                    self.cumulative_reward[i] += batch_reward[i]
                     self.replay_buffer.append(
                         state=self.batch_last_obs[i],
                         goal=self.batch_last_goal[i],
                         action=self.batch_last_action[i],
-                        reward=batch_reward[i],
+                        reward=self.cumulative_reward[i],
                         next_state=batch_obs[i],
-                        next_goal=batch_goal[i],
                         next_action=None,
                         is_state_terminal=batch_done[i],
-                        env_id=i,
+                        state_arr=state_arr,
+                        action_arr=action_arr,
+                        env_id=i
                     )
-                else:
-                    # high level controller, called every 10 times in
-                    # the hiro paper.
-                    arrs_exist = (state_arr is not None) and (action_arr is not None)
-
-                    if len(state_arr) == self.buffer_freq and arrs_exist:
-                        self.cumulative_reward[i] += batch_reward[i]
-                        self.replay_buffer.append(
-                            state=self.batch_last_obs[i],
-                            goal=self.batch_last_goal[i],
-                            action=self.batch_last_action[i],
-                            reward=self.cumulative_reward[i],
-                            next_state=batch_obs[i],
-                            next_action=None,
-                            is_state_terminal=batch_done[i],
-                            state_arr=state_arr,
-                            action_arr=action_arr,
-                            env_id=i
-                        )
-                        self.cumulative_reward = np.zeros(len(batch_obs))
+                    self.cumulative_reward = np.zeros(len(batch_obs))
 
                 if batch_reset[i] or batch_done[i]:
                     self.batch_last_obs[i] = None
                     self.batch_last_goal[i] = None
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
-            if self.is_low_level:
-                self.replay_updater.update_if_necessary(self.t)
