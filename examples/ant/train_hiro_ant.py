@@ -2,6 +2,7 @@
 import argparse
 import functools
 import os
+import logging
 
 import gym
 import gym.spaces
@@ -143,7 +144,6 @@ def main():
     parser.add_argument("--gamma", type=float, default=0.99, help="Discount factor.")
     args = parser.parse_args()
 
-    import logging
 
     logging.basicConfig(level=args.log_level)
 
