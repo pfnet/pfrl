@@ -91,7 +91,7 @@ class HIROAgent(HRLAgent):
         high level actor
         """
         n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
-        self.sr = self.low_reward(self.last_obs, subgoal, obs)
+        self.sr = self._low_reward(self.last_obs, subgoal, obs)
         # clip values
         n_sg = np.clip(n_sg, a_min=-self.scale_high, a_max=self.scale_high)
         return n_sg
@@ -147,45 +147,23 @@ class HIROAgent(HRLAgent):
         if step % self.subgoal_freq == 0:
             sg = self.high_con.policy(s, goal)
         else:
-            sg = self.subgoal_transition(s, sg, n_s)
+            sg = self._subgoal_transition(s, sg, n_s)
 
         return sg
 
-    def subgoal_transition(self, s, sg, n_s):
+    def _subgoal_transition(self, s, sg, n_s):
         """
         subgoal transition function, provided as input to the low
         level controller.
         """
         return s[:sg.shape[0]] + sg - n_s[:sg.shape[0]]
 
-    def low_reward(self, s, sg, n_s):
+    def _low_reward(self, s, sg, n_s):
         """
         reward function for low level controller.
         """
         abs_s = s[:sg.shape[0]] + sg
         return -np.sqrt(np.sum((abs_s - n_s[:sg.shape[0]])**2))
-
-    def end_step(self):
-        """
-        ends a step within an episode.
-        """
-        self.episode_subreward += self.sr
-        self.sg = self.n_sg
-
-    def end_episode(self, episode, logger=None):
-        """
-        ends a full episode.
-        """
-        if logger:
-            # log
-            logger.write('reward/Intrinsic Reward', self.episode_subreward, episode)
-
-            # Save Model
-            if _is_update(episode, self.model_save_freq):
-                self.save(episode=episode)
-
-        self.episode_subreward = 0
-        self.sr = 0
 
     def save(self, episode):
         """

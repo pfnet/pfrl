@@ -251,7 +251,7 @@ class HigherController(HRLControllerBase):
         self.name = 'high'
         self.action_dim = action_dim
 
-    def off_policy_corrections(self, low_con, batch_size, sgoals, states, actions, candidate_goals=8):
+    def _off_policy_corrections(self, low_con, batch_size, sgoals, states, actions, candidate_goals=8):
         """
         implementation of the novel off policy correction in the HIRO paper.
         """
@@ -330,7 +330,7 @@ class HigherController(HRLControllerBase):
             actions = experience['action']
             action_arr = experience['action_arr']
             state_arr = experience['state_arr']
-            actions = self.off_policy_corrections(
+            actions = self._off_policy_corrections(
                 low_con,
                 self.minibatch_size,
                 actions.cpu().data.numpy(),
