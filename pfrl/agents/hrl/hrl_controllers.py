@@ -32,7 +32,8 @@ class HRLControllerBase():
             is_low_level=True,
             buffer_freq=10,
             minibatch_size=100,
-            gpu=None):
+            gpu=None,
+            burnin_action_func=None):
         # example name- 'td3_low' or 'td3_high'
         self.name = name
         self.scale = scale
@@ -99,7 +100,8 @@ class HRLControllerBase():
                 replay_start_size=replay_start_size,
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
-                gpu=gpu
+                gpu=gpu,
+                burnin_action_func=burnin_action_func
                 )
         else:
             self.agent = HIROHighLevelGoalConditionedTD3(
@@ -117,7 +119,8 @@ class HRLControllerBase():
                 replay_start_size=replay_start_size,
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
-                gpu=gpu
+                gpu=gpu,
+                burnin_action_func=burnin_action_func
                 )
 
         self.device = self.agent.device
@@ -179,7 +182,8 @@ class LowerController(HRLControllerBase):
             tau=0.005,
             is_low_level=True,
             minibatch_size=100,
-            gpu=None):
+            gpu=None,
+            burnin_action_func=None):
         super(LowerController, self).__init__(
                                             state_dim=state_dim,
                                             goal_dim=goal_dim,
@@ -198,7 +202,8 @@ class LowerController(HRLControllerBase):
                                             tau=tau,
                                             is_low_level=is_low_level,
                                             minibatch_size=minibatch_size,
-                                            gpu=gpu)
+                                            gpu=gpu,
+                                            burnin_action_func=burnin_action_func)
         self.name = name
 
     def observe(self, n_s, g, r, done):
@@ -229,7 +234,8 @@ class HigherController(HRLControllerBase):
             is_low_level=False,
             buffer_freq=10,
             minibatch_size=100,
-            gpu=None):
+            gpu=None,
+            burnin_action_func):
         super(HigherController, self).__init__(
                                                 state_dim=state_dim,
                                                 goal_dim=goal_dim,
@@ -249,7 +255,8 @@ class HigherController(HRLControllerBase):
                                                 is_low_level=is_low_level,
                                                 buffer_freq=buffer_freq,
                                                 minibatch_size=minibatch_size,
-                                                gpu=gpu)
+                                                gpu=gpu,
+                                                burnin_action_func=burnin_action_func)
         self.name = 'high'
         self.action_dim = action_dim
 

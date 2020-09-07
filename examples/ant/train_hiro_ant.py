@@ -198,8 +198,17 @@ def main():
 
     # determined from the ant env
     env_goal_dim = 2
+    action_space = eval_env.action_space
 
     scale = eval_env.action_space.high * np.ones(env_action_dim)
+
+    def low_level_burnin_action_func():
+        """Select random actions until model is updated one or more times."""
+        return np.random.uniform(action_space.low, action_space.high).astype(np.float32)
+
+    def high_level_burnin_action_func():
+        """Select random actions until model is updated one or more times."""
+        return np.random.uniform(subgoal_space.low, subgoal_space.high).astype(np.float32)
 
     gpu = 0 if torch.cuda.is_available() else None
     agent = HIROAgent(state_dim=env_state_dim,
@@ -207,6 +216,8 @@ def main():
                       goal_dim=env_goal_dim,
                       subgoal_dim=env_subgoal_dim,
                       subgoal_space=subgoal_space,
+                      high_level_burnin_action_func=high_level_burnin_action_func,
+                      low_level_burnin_action_func=low_level_burnin_action_func,
                       scale_low=scale,
                       start_training_steps=100,
                       model_save_freq=10,

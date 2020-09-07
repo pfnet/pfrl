@@ -21,6 +21,8 @@ class HIROAgent(HRLAgent):
                  goal_dim,
                  subgoal_dim,
                  subgoal_space,
+                 high_level_burnin_action_func,
+                 low_level_burnin_action_func,
                  scale_low,
                  start_training_steps,
                  model_save_freq,
@@ -55,7 +57,8 @@ class HIROAgent(HRLAgent):
             policy_freq=policy_freq_high,
             replay_buffer=high_level_replay_buffer,
             minibatch_size=batch_size,
-            gpu=gpu
+            gpu=gpu,
+            burnin_action_func=high_level_burnin_action_func
         )
 
         # lower td3 controller
@@ -68,7 +71,8 @@ class HIROAgent(HRLAgent):
             policy_freq=policy_freq_low,
             replay_buffer=low_level_replay_buffer,
             minibatch_size=batch_size,
-            gpu=gpu
+            gpu=gpu,
+            burnin_action_func=low_level_burnin_action_func
         )
 
         self.subgoal_freq = subgoal_freq

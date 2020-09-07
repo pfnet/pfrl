@@ -119,9 +119,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         self.fg = fg
 
-    def end_episode(self, episode, logger=None):
-        raise NotImplementedError()
-
     def get_statistics(self) -> List[Tuple[str, Any]]:
         """Get statistics of the agent.
 
