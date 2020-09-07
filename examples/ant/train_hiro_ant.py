@@ -216,7 +216,7 @@ def main():
                       gpu=gpu)
 
     if args.load:
-        # load weights from agent if arg supplied
+        # load weights from a file if arg supplied
         agent.load(args.load)
 
     if args.demo:
