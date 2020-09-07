@@ -59,8 +59,7 @@ def train_hrl_agent(
 
             # take a step in the environment
             obs_dict, r, done, info = env.step(action)
-            if t % 1000 == 0:
-                print(r)
+
             obs = obs_dict['observation']
             # print(info)
             if explore:
