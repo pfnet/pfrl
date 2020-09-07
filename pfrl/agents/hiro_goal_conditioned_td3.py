@@ -1,5 +1,3 @@
-import collections
-import copy
 from logging import getLogger
 
 import numpy as np
@@ -7,18 +5,10 @@ import torch
 from torch.nn import functional as F
 
 import pfrl
-from pfrl.agent import GoalConditionedBatchAgent
-from pfrl.agents import TD3, GoalConditionedTD3
+from pfrl.agents import GoalConditionedTD3
 from pfrl.utils.batch_states import batch_states
-from pfrl.utils.copy_param import synchronize_parameters
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal, batch_experiences_with_goal
-from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
-
-
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
 
 
 def default_target_policy_smoothing_func(batch_action):
@@ -113,27 +103,27 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
         super(HIROGoalConditionedTD3, self).__init__(policy,
-                                                 q_func1,
-                                                 q_func2,
-                                                 policy_optimizer,
-                                                 q_func1_optimizer,
-                                                 q_func2_optimizer,
-                                                 replay_buffer,
-                                                 gamma,
-                                                 explorer,
-                                                 gpu,
-                                                 replay_start_size,
-                                                 minibatch_size,
-                                                 update_interval,
-                                                 phi,
-                                                 soft_update_tau,
-                                                 n_times_update,
-                                                 max_grad_norm,
-                                                 logger,
-                                                 batch_states,
-                                                 burnin_action_func,
-                                                 policy_update_delay,
-                                                 target_policy_smoothing_func)
+                                                     q_func1,
+                                                     q_func2,
+                                                     policy_optimizer,
+                                                     q_func1_optimizer,
+                                                     q_func2_optimizer,
+                                                     replay_buffer,
+                                                     gamma,
+                                                     explorer,
+                                                     gpu,
+                                                     replay_start_size,
+                                                     minibatch_size,
+                                                     update_interval,
+                                                     phi,
+                                                     soft_update_tau,
+                                                     n_times_update,
+                                                     max_grad_norm,
+                                                     logger,
+                                                     batch_states,
+                                                     burnin_action_func,
+                                                     policy_update_delay,
+                                                     target_policy_smoothing_func)
 
     def update_high_level_last_results(self, states, goals, actions):
         self.batch_last_obs = [states]
