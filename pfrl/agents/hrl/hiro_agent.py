@@ -73,7 +73,7 @@ class HRLControllerBase():
         self.is_low_level = is_low_level
         self.minibatch_size = minibatch_size
         # create td3 agent
-        self.device = torch.device(f"cuda:{gpu}")
+        self.device = torch.device(f'cuda:{gpu}')
 
         policy = nn.Sequential(
             nn.Linear(state_dim + goal_dim, 300),
@@ -103,6 +103,7 @@ class HRLControllerBase():
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
         # TODO - have proper low and high values from action space.
+        # from the hiro paper, the scale is 1.0
         explorer = explorers.AdditiveGaussian(
             scale=1.0
         )
