@@ -9,8 +9,7 @@ import gym.spaces
 import numpy as np
 import torch
 
-from hiro_robot_envs.envs import create_maze_env
-from hiro_robot_envs.envs import AntEnvWithGoal
+from hiro_robot_envs.envs import create_maze_env, AntEnvWithGoal
 import pfrl
 from pfrl import utils
 from pfrl import experiments
@@ -39,7 +38,9 @@ class RecordMovie(gym.Wrapper):
 
 def parse_rl_args():
     """
-    parse arguments.
+    parse arguments for
+    training or evaluating the hiro
+    agent on the ant environment.
     """
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -130,7 +131,7 @@ def parse_rl_args():
         help="Render env states in a GUI window.",
     )
     parser.add_argument("--lr", type=float, default=6.25e-5, help="Learning rate")
-    parser.add_argument( "--num-envs", type=int, default=1, help="Number of envs run in parallel.")
+    parser.add_argument("--num-envs", type=int, default=1, help="Number of envs run in parallel.")
     parser.add_argument(
         "--batch-size", type=int, default=32, help="Batch size used for training."
     )
@@ -168,6 +169,7 @@ def main():
         process_seed = int(process_seeds[idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
+        # create the anv environment with goal
         env = AntEnvWithGoal(create_maze_env(args.env), args.env)
 
         env.seed(int(env_seed))
@@ -243,18 +245,6 @@ def main():
             steps=args.steps,
             outdir=args.outdir
         )
-        # experiments.train_hrl_agent_with_evaluation(
-        #     agent=agent,
-        #     env=make_panda_env(0, test=False),
-        #     subgoal=subgoal_space,
-        #     eval_env=make_panda_env(0, test=True),
-        #     steps=args.steps,
-        #     eval_n_steps=None,
-        #     eval_n_episodes=args.eval_n_runs,
-        #     eval_interval=args.eval_interval,
-        #     outdir=args.outdir,
-        #     save_best_so_far_agent=False,
-        # )
 
 
 if __name__ == "__main__":
