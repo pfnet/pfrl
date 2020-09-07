@@ -96,14 +96,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         pass
 
-    # @abstractmethod
-    # def act(self, obs: Any, goal: Any):
-    #     """
-    #     Selects an action,
-    #     based on a goal and observation.
-    #     """
-    #     pass
-
     def act(self, obs: Any) -> Any:
         """Select an action, based on an
         observation.
@@ -112,15 +104,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
             ~object: action
         """
         raise NotImplementedError()
-
-    # def act(self, obs: Any, goal: Any) -> Any:
-    #     """Select an action, based on a goal
-    #     and observation.
-
-    #     Returns:
-    #         ~object: action
-    #     """
-    #     raise NotImplementedError()
 
     def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
         """Observe consequences of the last action.
@@ -151,48 +134,20 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         pass
 
-    def evaluate_policy(self, env, eval_episodes=10, render=False, save_video=False, sleep=-1):
-        if save_video:
-            from OpenGL import GL
-            import gym
-            env = gym.wrappers.Monitor(env, directory='video',
-                                       write_upon_reset=True, force=True, resume=True, mode='evaluation')
-            render = False
+    def change_to_eval(self):
+        """
+        change to eval mode
+        """
+        self.training = False
 
-        success = 0
-        rewards = []
-        env.evaluate = True
-        for e in range(eval_episodes):
-            obs = env.reset()
-            fg = obs['desired_goal']
-            s = obs['observation']
-            done = False
-            reward_episode_sum = 0
-            step = 0
-
-            self.set_final_goal(fg)
-
-            while not done:
-                if render:
-                    env.render()
-                if sleep > 0:
-                    time.sleep(sleep)
-
-                a, r, n_s, done = self.step(s, env, step)
-                reward_episode_sum += r
-
-                s = n_s
-                step += 1
-                self.end_step()
-            else:
-                error = np.sqrt(np.sum(np.square(fg-s[:2])))
-                print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f' % (fg[0], fg[1], s[0], s[1], error))
-                rewards.append(reward_episode_sum)
-                success += 1 if error <= 5 else 0
-                self.end_episode(e)
-
-        env.evaluate = False
-        return np.array(rewards), success/eval_episodes
+    @contextlib.contextmanager
+    def eval_mode(self):
+        orig_mode = self.training
+        try:
+            self.change_to_eval()
+            yield
+        finally:
+            self.training = orig_mode
 
 
 class AttributeSavingMixin(object):

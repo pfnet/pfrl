@@ -212,6 +212,15 @@ class HIROAgent(HRLAgent):
         except Exception as e:
             raise NotADirectoryError("Directory for loading internal state not found!")
 
+    def change_to_eval(self):
+        """
+        sets an agent to eval - making
+        for the deterministic policy of td3
+        """
+        self.training = False
+        self.low_con.agent.training = False
+        self.high_con.agent.training = False
+
     def set_to_train_(self):
         """
         sets an agent to train - this
