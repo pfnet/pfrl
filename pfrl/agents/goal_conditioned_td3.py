@@ -97,29 +97,29 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
         self.buffer_freq = buffer_freq
-        self.minibatch_size = minibatch_size
-        super(GoalConditionedTD3, self).__init__(policy,
-                                                 q_func1,
-                                                 q_func2,
-                                                 policy_optimizer,
-                                                 q_func1_optimizer,
-                                                 q_func2_optimizer,
-                                                 replay_buffer,
-                                                 gamma,
-                                                 explorer,
-                                                 gpu,
-                                                 replay_start_size,
-                                                 minibatch_size,
-                                                 update_interval,
-                                                 phi,
-                                                 soft_update_tau,
-                                                 n_times_update,
-                                                 max_grad_norm,
-                                                 logger,
-                                                 batch_states,
-                                                 burnin_action_func,
-                                                 policy_update_delay,
-                                                 target_policy_smoothing_func)
+        self.minibatch_size = minibatch_size        
+        super(GoalConditionedTD3, self).__init__(policy=policy,
+                                                 q_func1=q_func1,
+                                                 q_func2=q_func2,
+                                                 policy_optimizer=policy_optimizer,
+                                                 q_func1_optimizer=q_func1_optimizer,
+                                                 q_func2_optimizer=q_func2_optimizer,
+                                                 replay_buffer=replay_buffer,
+                                                 gamma=gamma,
+                                                 explorer=explorer,
+                                                 gpu=gpu,
+                                                 replay_start_size=replay_start_size,
+                                                 minibatch_size=minibatch_size,
+                                                 update_interval=update_interval,
+                                                 phi=phi,
+                                                 soft_update_tau=soft_update_tau,
+                                                 n_times_update=n_times_update,
+                                                 max_grad_norm=max_grad_norm,
+                                                 logger=logger,
+                                                 batch_states=batch_states,
+                                                 burnin_action_func=burnin_action_func,
+                                                 policy_update_delay=policy_update_delay,
+                                                 target_policy_smoothing_func=target_policy_smoothing_func)
 
     def update_q_func_with_goal(self, batch):
         """

@@ -97,30 +97,29 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
     ):
         # determines if we're dealing with a low level controller.
         self.cumulative_reward = False
-        self.buffer_freq = buffer_freq
-        self.minibatch_size = minibatch_size
-        super(HIROHighLevelGoalConditionedTD3, self).__init__(policy,
-                                                              q_func1,
-                                                              q_func2,
-                                                              policy_optimizer,
-                                                              q_func1_optimizer,
-                                                              q_func2_optimizer,
-                                                              replay_buffer,
-                                                              gamma,
-                                                              explorer,
-                                                              gpu,
-                                                              replay_start_size,
-                                                              minibatch_size,
-                                                              update_interval,
-                                                              phi,
-                                                              soft_update_tau,
-                                                              n_times_update,
-                                                              max_grad_norm,
-                                                              logger,
-                                                              batch_states,
-                                                              burnin_action_func,
-                                                              policy_update_delay,
-                                                              target_policy_smoothing_func)
+        super(HIROHighLevelGoalConditionedTD3, self).__init__(policy=policy,
+                                                              q_func1=q_func1,
+                                                              q_func2=q_func2,
+                                                              policy_optimizer=policy_optimizer,
+                                                              q_func1_optimizer=q_func1_optimizer,
+                                                              q_func2_optimizer=q_func2_optimizer,
+                                                              replay_buffer=replay_buffer,
+                                                              gamma=gamma,
+                                                              explorer=explorer,
+                                                              gpu=gpu,
+                                                              replay_start_size=replay_start_size,
+                                                              minibatch_size=minibatch_size,
+                                                              update_interval=update_interval,
+                                                              phi=phi,
+                                                              soft_update_tau=soft_update_tau,
+                                                              n_times_update=n_times_update,
+                                                              max_grad_norm=max_grad_norm,
+                                                              logger=logger,
+                                                              batch_states=batch_states,
+                                                              buffer_freq=buffer_freq,
+                                                              burnin_action_func=burnin_action_func,
+                                                              policy_update_delay=policy_update_delay,
+                                                              target_policy_smoothing_func=target_policy_smoothing_func)
 
     def update_high_level_last_results(self, states, goals, actions):
         """
@@ -219,7 +218,6 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                 # high level controller, called every 10 times in
                 # the hiro paper.
                 arrs_exist = (state_arr is not None) and (action_arr is not None)
-
                 if len(state_arr) == self.buffer_freq and arrs_exist:
                     self.cumulative_reward[i] += batch_reward[i]
                     self.replay_buffer.append(
