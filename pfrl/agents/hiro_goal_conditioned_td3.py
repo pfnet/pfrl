@@ -196,18 +196,9 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
             if self.q_func_n_updates % self.policy_update_delay == 0:
                 self.update_policy_with_goal(batch)
                 self.sync_target_network()
-        else:
-            # dealing with high level controller
-            # off policy correction is already taken care of
-            batch = high_level_batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
-
-            self.high_level_update_q_func_with_goal(batch)
-            if self.q_func_n_updates % self.policy_update_delay == 0:
-                self.update_policy_with_goal(batch)
-                self.sync_target_network()
 
     def high_level_update_batch(self, batch, errors_out=None):
-        """Update the model from experiences"""
+        """Update the model from experiences for the high level controller"""
         assert self.is_low_level is False
         # dealing with high level controller
 
