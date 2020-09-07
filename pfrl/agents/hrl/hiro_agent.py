@@ -42,8 +42,8 @@ class HIROAgent(HRLAgent):
         self.model_save_freq = model_save_freq
 
         # create replay buffers
-        self.low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size)
-        self.high_level_replay_buffer = HigherControllerReplayBuffer(buffer_size)
+        low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size)
+        high_level_replay_buffer = HigherControllerReplayBuffer(buffer_size)
 
         # higher td3 controller
         self.high_con = HigherController(
@@ -53,7 +53,7 @@ class HIROAgent(HRLAgent):
             scale=self.scale_high,
             model_path=model_path,
             policy_freq=policy_freq_high,
-            replay_buffer=self.high_level_replay_buffer,
+            replay_buffer=high_level_replay_buffer,
             minibatch_size=batch_size,
             gpu=gpu
         )
@@ -66,7 +66,7 @@ class HIROAgent(HRLAgent):
             scale=self.scale_low,
             model_path=model_path,
             policy_freq=policy_freq_low,
-            replay_buffer=self.low_level_replay_buffer,
+            replay_buffer=low_level_replay_buffer,
             minibatch_size=batch_size,
             gpu=gpu
         )
