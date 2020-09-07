@@ -6,6 +6,7 @@ from pfrl.agents.categorical_double_dqn import CategoricalDoubleDQN  # NOQA
 from pfrl.agents.categorical_dqn import CategoricalDQN  # NOQA
 from pfrl.agents.ddpg import DDPG  # NOQA
 from pfrl.agents.double_dqn import DoubleDQN  # NOQA
+from pfrl.agents.double_iqn import DoubleIQN  # NOQA
 from pfrl.agents.double_pal import DoublePAL  # NOQA
 from pfrl.agents.dpp import DPP  # NOQA
 from pfrl.agents.dqn import DQN  # NOQA
