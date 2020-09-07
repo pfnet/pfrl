@@ -37,7 +37,10 @@ class RecordMovie(gym.Wrapper):
         return obs
 
 
-def main():
+def parse_rl_args():
+    """
+    parse arguments.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--outdir",
@@ -49,9 +52,7 @@ def main():
         ),
     )
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 31)")
-    parser.add_argument(
-        "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
-    )
+    parser.add_argument("--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU.")
     parser.add_argument(
         "--demo",
         action="store_true",
@@ -129,9 +130,7 @@ def main():
         help="Render env states in a GUI window.",
     )
     parser.add_argument("--lr", type=float, default=6.25e-5, help="Learning rate")
-    parser.add_argument(
-        "--num-envs", type=int, default=1, help="Number of envs run in parallel."
-    )
+    parser.add_argument( "--num-envs", type=int, default=1, help="Number of envs run in parallel.")
     parser.add_argument(
         "--batch-size", type=int, default=32, help="Batch size used for training."
     )
@@ -143,7 +142,11 @@ def main():
     )
     parser.add_argument("--gamma", type=float, default=0.99, help="Discount factor.")
     args = parser.parse_args()
+    return args
 
+
+def main():
+    args = parse_rl_args()
 
     logging.basicConfig(level=args.log_level)
 
