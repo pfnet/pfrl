@@ -27,7 +27,7 @@ class HIROAgent(HRLAgent):
                  model_path,
                  buffer_size,
                  batch_size,
-                 buffer_freq,
+                 subgoal_freq,
                  train_freq,
                  reward_scaling,
                  policy_freq_high,
@@ -71,7 +71,7 @@ class HIROAgent(HRLAgent):
             gpu=gpu
         )
 
-        self.buffer_freq = buffer_freq
+        self.subgoal_freq = subgoal_freq
 
         self.train_freq = train_freq
         self.reward_scaling = reward_scaling
@@ -144,7 +144,7 @@ class HIROAgent(HRLAgent):
         """
         chooses the next subgoal for the low level controller.
         """
-        if step % self.buffer_freq == 0:
+        if step % self.subgoal_freq == 0:
             sg = self.high_con.policy(s, goal)
         else:
             sg = self.subgoal_transition(s, sg, n_s)

@@ -208,7 +208,7 @@ def main():
                       model_path='model',
                       buffer_size=200000,
                       batch_size=100,
-                      buffer_freq=10,
+                      subgoal_freq=10,
                       train_freq=10,
                       reward_scaling=0.1,
                       policy_freq_high=2,
