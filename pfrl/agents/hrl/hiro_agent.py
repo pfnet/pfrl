@@ -221,22 +221,6 @@ class HIROAgent(HRLAgent):
         self.low_con.agent.training = False
         self.high_con.agent.training = False
 
-    def set_to_train_(self):
-        """
-        sets an agent to train - this
-        will make for a non-deterministic policy.
-        """
-        self.low_con.agent.training = True
-        self.high_con.agent.training = True
-
-    def set_to_eval_(self):
-        """
-        sets an agent to eval - making
-        for the deterministic policy of td3
-        """
-        self.low_con.agent.training = False
-        self.high_con.agent.training = False
-
     def get_statistics(self):
         """
         gets the statistics of all of the actors and critics for the high
