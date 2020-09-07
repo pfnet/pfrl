@@ -141,7 +141,9 @@ class HRLControllerBase():
         """
         run the policy (actor).
         """
-        return self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
+        action = self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
+        return np.clip(action, a_min=-self.scale, a_max=self.scale)
+
 
     def _observe(self, states, goals, rewards, done, state_arr=None, action_arr=None):
         """

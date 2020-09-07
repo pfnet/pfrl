@@ -93,7 +93,6 @@ class HIROAgent(HRLAgent):
         n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.sr = self._low_reward(self.last_obs, subgoal, obs)
         # clip values
-        n_sg = np.clip(n_sg, a_min=-self.scale_high, a_max=self.scale_high)
         return n_sg
 
     def act_low_level(self, obs, goal):
@@ -104,7 +103,6 @@ class HIROAgent(HRLAgent):
         self.last_obs = obs
         # goal = self.sg
         self.last_action = self.low_con.policy(obs, goal)
-        self.last_action = np.clip(self.last_action, a_min=-self.scale_low, a_max=self.scale_low)
         return self.last_action
 
     def observe(self, obs, goal, subgoal, reward, done, reset, global_step=0, start_training_steps=0):
