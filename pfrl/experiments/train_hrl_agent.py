@@ -58,9 +58,9 @@ def train_hrl_agent(
                 action = agent.act_low_level(obs, sg)
 
             # take a step in the environment
-            if t % 1000 == 0:
-                print(action)
             obs_dict, r, done, info = env.step(action)
+            if t % 1000 == 0:
+                print(r)
             obs = obs_dict['observation']
             # print(info)
             if explore:
