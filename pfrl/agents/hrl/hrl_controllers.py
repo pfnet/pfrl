@@ -235,7 +235,7 @@ class HigherController(HRLControllerBase):
             buffer_freq=10,
             minibatch_size=100,
             gpu=None,
-            burnin_action_func):
+            burnin_action_func=None):
         super(HigherController, self).__init__(
                                                 state_dim=state_dim,
                                                 goal_dim=goal_dim,
