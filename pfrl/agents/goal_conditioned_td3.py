@@ -1,8 +1,5 @@
-import collections
-import copy
 from logging import getLogger
 
-import numpy as np
 import torch
 from torch.nn import functional as F
 
@@ -10,14 +7,8 @@ import pfrl
 from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
-from pfrl.utils.copy_param import synchronize_parameters
 from pfrl.replay_buffer import batch_experiences_with_goal
-from pfrl.replay_buffer import ReplayUpdater
 from pfrl.utils import clip_l2_grad_norm_
-
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
 
 
 def default_target_policy_smoothing_func(batch_action):
@@ -294,4 +285,3 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
             self.replay_updater.update_if_necessary(self.t)
-
