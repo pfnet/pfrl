@@ -7,7 +7,7 @@ from torch.nn import functional as F
 import pfrl
 from pfrl.agents import GoalConditionedTD3
 from pfrl.utils.batch_states import batch_states
-from pfrl.replay_buffer import high_level_batch_experiences_with_goal, batch_experiences_with_goal
+from pfrl.replay_buffer import batch_experiences_with_goal
 from pfrl.utils import clip_l2_grad_norm_
 
 
@@ -126,6 +126,11 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
                                                      target_policy_smoothing_func)
 
     def update_high_level_last_results(self, states, goals, actions):
+        """
+        update the last observation, goal and action for the high level
+        controller.
+        """
+        assert self.is_low_level is False
         self.batch_last_obs = [states]
         self.batch_last_goal = [goals]
         self.batch_last_action = [actions]
@@ -188,17 +193,24 @@ class HIROGoalConditionedTD3(GoalConditionedTD3):
 
     def update(self, experiences, errors_out=None):
         """
-        Update the model from experiences
+        Update the model from experiences. This applies to
+        the low level controller
         """
-        if self.is_low_level:
-            batch = batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
-            self.update_q_func_with_goal(batch)
-            if self.q_func_n_updates % self.policy_update_delay == 0:
-                self.update_policy_with_goal(batch)
-                self.sync_target_network()
+        assert self.is_low_level is True
+
+        batch = batch_experiences_with_goal(experiences, self.device, self.phi, self.gamma)
+        self.update_q_func_with_goal(batch)
+        if self.q_func_n_updates % self.policy_update_delay == 0:
+            self.update_policy_with_goal(batch)
+            self.sync_target_network()
 
     def high_level_update_batch(self, batch, errors_out=None):
-        """Update the model from experiences for the high level controller"""
+        """Update the model from *batched*
+           experiences for the high level controller
+
+           This behavior is needed due to the extra machinery for the off policy
+           correction.
+        """
         assert self.is_low_level is False
         # dealing with high level controller
 
