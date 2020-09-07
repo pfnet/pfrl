@@ -7,7 +7,7 @@ import pfrl
 from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import HIROGoalConditionedTD3
-from pfrl.agents.hrl.hiro_agent import ConstantsMult
+from pfrl.nn import ConstantsMult
 
 
 class HRLControllerBase():

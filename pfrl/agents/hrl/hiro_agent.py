@@ -1,5 +1,4 @@
 import torch
-from torch import nn
 import numpy as np
 import os
 
@@ -12,28 +11,8 @@ from pfrl.agents.hrl.hrl_controllers import (
     LowerController,
     HigherController
 )
+from pfrl.utils import _is_update, _mean_or_nan
 
-
-def _is_update(episode, freq, ignore=0, rem=0):
-    if episode != ignore and episode % freq == rem:
-        return True
-    return False
-
-
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
-
-# standard controller
-
-
-class ConstantsMult(nn.Module):
-    def __init__(self, constants):
-        super().__init__()
-        self.constants = constants
-
-    def forward(self, x):
-        return self.constants * x
 
 class HIROAgent(HRLAgent):
     def __init__(self,
