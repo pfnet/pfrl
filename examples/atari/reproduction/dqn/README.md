@@ -5,6 +5,7 @@ This example trains a DQN agent, from the following paper: [Human-level control 
 
 - atari_py>=0.1.1
 - opencv-python
+- filelock
 
 ## Running the Example
 
