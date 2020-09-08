@@ -1,6 +1,7 @@
 import copy
 import collections
 import time
+import ctypes
 import multiprocessing as mp
 import multiprocessing.synchronize
 from typing import Any
@@ -169,6 +170,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         recurrent (bool): If set to True, `model` is assumed to implement
             `pfrl.nn.Recurrent` and is updated in a recurrent
             manner.
+        max_grad_norm (float or None): Maximum L2 norm of the gradient used for
+            gradient clipping. If set to None, the gradient is not clipped.
     """
 
     saved_attributes = ("model", "target_model", "optimizer")
@@ -197,9 +200,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
             [Sequence[Any], torch.device, Callable[[Any], Any]], Any
         ] = batch_states,
         recurrent: bool = False,
+        max_grad_norm: Optional[float] = None,
     ):
         self.model = q_function
-        self.q_function = q_function  # For backward compatibility
 
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -243,6 +246,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.episodic_update_len = episodic_update_len
         self.replay_start_size = replay_start_size
         self.update_interval = update_interval
+        self.max_grad_norm = max_grad_norm
 
         assert (
             target_update_interval % update_interval == 0
@@ -252,8 +256,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.optim_t = 0  # Compensate pytorch optim not having `t`
         self._cumulative_steps = 0
         self.target_model = make_target_model_as_copy(self.model)
-        # For backward compatibility
-        self.target_q_function = self.target_model
 
         # Statistics
         self.q_record: collections.deque = collections.deque(maxlen=1000)
@@ -277,7 +279,10 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         return self._cumulative_steps
 
     def _setup_actor_learner_training(
-        self, n_actors: int, actor_update_interval: int
+        self,
+        n_actors: int,
+        actor_update_interval: int,
+        update_counter: Any,
     ) -> Tuple[
         torch.nn.Module,
         Sequence[mp.connection.Connection],
@@ -286,7 +291,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         assert actor_update_interval > 0
 
         self.actor_update_interval = actor_update_interval
-        self.update_counter = 0
+        self.update_counter = update_counter
 
         # Make a copy on shared memory and share among actors and the poller
         shared_model = copy.deepcopy(self.model).cpu()
@@ -352,6 +357,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
 
         self.optimizer.zero_grad()
         loss.backward()
+        if self.max_grad_norm is not None:
+            pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
 
@@ -371,6 +378,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         self.loss_record.append(float(loss.detach().cpu().numpy()))
         self.optimizer.zero_grad()
         loss.backward()
+        if self.max_grad_norm is not None:
+            pfrl.utils.clip_l2_grad_norm_(self.model.parameters(), self.max_grad_norm)
         self.optimizer.step()
         self.optim_t += 1
 
@@ -666,8 +675,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 # intervals.
                 update_counter += 1
                 if update_counter % self.actor_update_interval == 0:
-                    self.update_counter += 1
-                    shared_model.load_state_dict(self.model.state_dict())
+                    with self.update_counter.get_lock():
+                        self.update_counter.value += 1
+                        shared_model.load_state_dict(self.model.state_dict())
 
                 # To keep the ratio of target updates to model updates,
                 # here we calculate back the effective current timestep
@@ -700,11 +710,15 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
     def setup_actor_learner_training(
         self,
         n_actors: int,
+        update_counter: Optional[Any] = None,
         n_updates: Optional[int] = None,
         actor_update_interval: int = 8,
     ):
+        if update_counter is None:
+            update_counter = mp.Value(ctypes.c_ulong)
+
         (shared_model, learner_pipes, actor_pipes) = self._setup_actor_learner_training(
-            n_actors, actor_update_interval
+            n_actors, actor_update_interval, update_counter
         )
         exception_event = mp.Event()
 
