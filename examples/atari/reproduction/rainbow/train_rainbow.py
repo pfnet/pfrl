@@ -120,7 +120,7 @@ def main():
     # Turn off explorer
     explorer = explorers.Greedy()
 
-    # Use the same hyper parameters as https://arxiv.org/abs/1707.06887
+    # Use the same hyper parameters as https://arxiv.org/abs/1710.02298
     opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10 ** -4)
 
     # Prioritized Replay
