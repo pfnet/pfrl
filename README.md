@@ -14,7 +14,7 @@ PFRL is a deep reinforcement learning library that implements various state-of-t
 
 ## Installation
 
-PFRL is tested with 3.5.1+. For other requirements, see [requirements.txt](requirements.txt).
+PFRL is tested with 3.6. For other requirements, see [requirements.txt](requirements.txt).
 
 PFRL can be installed via PyPI:
 ```
