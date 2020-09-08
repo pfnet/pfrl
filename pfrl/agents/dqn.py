@@ -279,10 +279,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         return self._cumulative_steps
 
     def _setup_actor_learner_training(
-        self,
-        n_actors: int,
-        actor_update_interval: int,
-        update_counter: Any,
+        self, n_actors: int, actor_update_interval: int, update_counter: Any,
     ) -> Tuple[
         torch.nn.Module,
         Sequence[mp.connection.Connection],
