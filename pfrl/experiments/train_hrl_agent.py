@@ -120,11 +120,12 @@ def train_hrl_agent_with_evaluation(
     use_tensorboard=False,
     logger=None
 ):
-    """Train an agent while periodically evaluating it.
+    """Train an HRL (hierarchical reinforcement
+    learning) agent while periodically evaluating it.
 
     Args:
-        agent: A pfrl.agent.Agent
-        env: Environment train the agent against.
+        agent: A pfrl.agent.HRLAgent
+        env: Environment to train the agent against.
         steps (int): Total number of timesteps for training.
         eval_n_steps (int): Number of timesteps at each evaluation phase.
         eval_n_episodes (int): Number of episodes at each evaluation phase.

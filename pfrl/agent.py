@@ -113,12 +113,6 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         pass
 
-    def set_final_goal(self, fg):
-        """
-        sets the final goal for the agent.
-        """
-        self.fg = fg
-
     def get_statistics(self) -> List[Tuple[str, Any]]:
         """Get statistics of the agent.
 
