@@ -520,7 +520,11 @@ class AsyncEvaluator(object):
         return v
 
     def evaluate_and_update_max_score(self, t, episodes, env, agent):
-
+        env_get_stats = env.getattr("get_statistics", lambda : [])
+        env_clear_stats = env.getattr("clear_statistics", lambda : None)
+        assert callable(env_get_stats)
+        assert callable(env_clear_stats)
+        env_clear_stats()
         eval_stats = eval_performance(
             env,
             agent,
@@ -532,6 +536,8 @@ class AsyncEvaluator(object):
         elapsed = time.time() - self.start_time
         agent_stats = agent.get_statistics()
         custom_values = tuple(tup[1] for tup in agent_stats)
+        env_stats = env_get_stats()
+        custom_env_values = tuple(tup[1] for tup in env_stats)
         mean = eval_stats["mean"]
         values = (
             t,
@@ -542,7 +548,7 @@ class AsyncEvaluator(object):
             eval_stats["stdev"],
             eval_stats["max"],
             eval_stats["min"],
-        ) + custom_values
+        ) + custom_values + custom_env_values
         record_stats(self.outdir, values)
 
         if self.use_tensorboard:
