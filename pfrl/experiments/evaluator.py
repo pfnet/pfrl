@@ -9,29 +9,6 @@ import numpy as np
 import pfrl
 
 
-"""Columns that describe information about an experiment.
-
-steps: number of time steps taken (= number of actions taken)
-episodes: number of episodes finished
-elapsed: time elapsed so far (seconds)
-mean: mean of returns of evaluation runs
-median: median of returns of evaluation runs
-stdev: stdev of returns of evaluation runs
-max: maximum value of returns of evaluation runs
-min: minimum value of returns of evaluation runs
-"""
-_basic_columns = (
-    "steps",
-    "episodes",
-    "elapsed",
-    "mean",
-    "median",
-    "stdev",
-    "max",
-    "min",
-)
-
-
 def _run_episodes(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
 ):
@@ -350,9 +327,20 @@ def save_agent(agent, t, outdir, logger, suffix=""):
     logger.info("Saved the agent to %s", dirname)
 
 def write_header(outdir, agent):
+    # Columns that describe information about an experiment.
+    basic_columns = (
+        "steps", # number of time steps taken (= number of actions taken)
+        "episodes", # number of episodes finished
+        "elapsed", # time elapsed so far (seconds)
+        "mean", # mean of returns of evaluation runs
+        "median", # median of returns of evaluation runs
+        "stdev", # stdev of returns of evaluation runs
+        "max", # maximum value of returns of evaluation runs
+        "min", # minimum value of returns of evaluation runs
+    )
     with open(os.path.join(outdir, "scores.txt"), "w") as f:
         custom_columns = tuple(t[0] for t in agent.get_statistics())
-        column_names = _basic_columns + custom_columns
+        column_names = basic_columns + custom_columns
         print("\t".join(column_names), file=f)
 
 
