@@ -404,12 +404,13 @@ class Evaluator(object):
         assert callable(self.env_clear_stats)
 
         # Write a header line first
-        write_header(self.outdir, self.agent)
+        write_header(self.outdir, self.agent, self.env)
 
         if use_tensorboard:
             self.tb_writer = create_tb_writer(outdir)
 
     def evaluate_and_update_max_score(self, t, episodes):
+        self.env_clear_stats()
         eval_stats = eval_performance(
             self.env,
             self.agent,
@@ -422,7 +423,6 @@ class Evaluator(object):
         agent_stats = self.agent.get_statistics()
         custom_values = tuple(tup[1] for tup in agent_stats)
         env_stats = self.env_get_stats()
-        self.env_clear_stats()
         custom_env_values = tuple(tup[1] for tup in env_stats)
         mean = eval_stats["mean"]
         values = (
@@ -520,6 +520,7 @@ class AsyncEvaluator(object):
         return v
 
     def evaluate_and_update_max_score(self, t, episodes, env, agent):
+
         eval_stats = eval_performance(
             env,
             agent,
@@ -566,7 +567,7 @@ class AsyncEvaluator(object):
         if necessary:
             with self.wrote_header.get_lock():
                 if not self.wrote_header.value:
-                    write_header(self.outdir, agent)
+                    write_header(self.outdir, agent, env)
                     self.wrote_header.value = True
             return self.evaluate_and_update_max_score(t, episodes, env, agent)
         return None
