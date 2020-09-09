@@ -252,6 +252,14 @@ def main():
             outdir=args.outdir
         )
 
+        experiments.train_hrl_agent_with_evaluation(
+            agent=agent,
+            env=make_ant_env(0, test=False),
+            steps=args.steps,
+            outdir=args.outdir,
+            use_tensorboard=True
+        )
+
 
 if __name__ == "__main__":
     main()

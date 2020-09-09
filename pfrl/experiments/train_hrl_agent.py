@@ -1,13 +1,11 @@
-import logging
 import os
-from pfrl.agents.hrl.hiro_agent import HIROAgent
+import logging
 
+import numpy as np
+
+from pfrl.agents.hrl.hiro_agent import HIROAgent
 from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
-
-
-import os 
-import numpy as np
 
 
 def train_hrl_agent(
@@ -120,8 +118,7 @@ def train_hrl_agent_with_evaluation(
     step_hooks=(),
     save_best_so_far_agent=True,
     use_tensorboard=False,
-    logger=None,
-    subgoal=None
+    logger=None
 ):
     """Train an agent while periodically evaluating it.
 
@@ -187,7 +184,6 @@ def train_hrl_agent_with_evaluation(
         successful_score=successful_score,
         step_hooks=step_hooks,
         logger=logger,
-        subgoal=subgoal
     )
 
 
@@ -200,7 +196,7 @@ def run_evaluation(args, env, agent):
             std:{std:.2f}, \
             median:{median:.2f}, \
             success:{success:.2f}'.format(
-                mean=np.mean(rewards), 
-                std=np.std(rewards), 
-                median=np.median(rewards), 
+                mean=np.mean(rewards),
+                std=np.std(rewards),
+                median=np.median(rewards),
                 success=success_rate))
