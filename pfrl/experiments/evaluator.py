@@ -326,17 +326,18 @@ def save_agent(agent, t, outdir, logger, suffix=""):
     agent.save(dirname)
     logger.info("Saved the agent to %s", dirname)
 
+
 def write_header(outdir, agent):
     # Columns that describe information about an experiment.
     basic_columns = (
-        "steps", # number of time steps taken (= number of actions taken)
-        "episodes", # number of episodes finished
-        "elapsed", # time elapsed so far (seconds)
-        "mean", # mean of returns of evaluation runs
-        "median", # median of returns of evaluation runs
-        "stdev", # stdev of returns of evaluation runs
-        "max", # maximum value of returns of evaluation runs
-        "min", # minimum value of returns of evaluation runs
+        "steps",  # number of time steps taken (= number of actions taken)
+        "episodes",  # number of episodes finished
+        "elapsed",  # time elapsed so far (seconds)
+        "mean",  # mean of returns of evaluation runs
+        "median",  # median of returns of evaluation runs
+        "stdev",  # stdev of returns of evaluation runs
+        "max",  # maximum value of returns of evaluation runs
+        "min",  # minimum value of returns of evaluation runs
     )
     with open(os.path.join(outdir, "scores.txt"), "w") as f:
         custom_columns = tuple(t[0] for t in agent.get_statistics())
