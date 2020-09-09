@@ -1,6 +1,7 @@
-import torch
-import numpy as np
 import os
+
+import numpy as np
+import torch
 
 from pfrl.agent import HRLAgent
 from pfrl.replay_buffers import (
@@ -11,7 +12,7 @@ from pfrl.agents.hrl.hrl_controllers import (
     LowerController,
     HigherController
 )
-from pfrl.utils import _is_update, _mean_or_nan
+from pfrl.utils import _mean_or_nan
 
 
 class HIROAgent(HRLAgent):
@@ -20,12 +21,10 @@ class HIROAgent(HRLAgent):
                  action_dim,
                  goal_dim,
                  subgoal_dim,
-                 subgoal_space,
                  high_level_burnin_action_func,
                  low_level_burnin_action_func,
                  scale_low,
-                 start_training_steps,
-                 model_save_freq,
+                 scale_high,
                  model_path,
                  buffer_size,
                  batch_size,
@@ -34,14 +33,13 @@ class HIROAgent(HRLAgent):
                  reward_scaling,
                  policy_freq_high,
                  policy_freq_low,
-                 gpu) -> None:
+                 gpu):
         """
         Constructor for the HIRO agent.
         """
         # get scale for subgoal
-        self.scale_high = subgoal_space.high * np.ones(subgoal_dim)
+        self.scale_high = scale_high
         self.scale_low = scale_low
-        self.model_save_freq = model_save_freq
 
         # create replay buffers
         low_level_replay_buffer = LowerControllerReplayBuffer(buffer_size)
@@ -79,7 +77,6 @@ class HIROAgent(HRLAgent):
 
         self.train_freq = train_freq
         self.reward_scaling = reward_scaling
-        self.episode_subreward = 0
         self.sr = 0
         self.state_arr = []
         self.action_arr = []
@@ -87,8 +84,6 @@ class HIROAgent(HRLAgent):
         self.last_high_level_obs = None
         self.last_high_level_goal = None
         self.last_high_level_action = None
-
-        self.start_training_steps = start_training_steps
 
     def act_high_level(self, obs, goal, subgoal, step=0):
         """

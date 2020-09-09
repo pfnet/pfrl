@@ -170,8 +170,7 @@ def main():
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
         # create the anv environment with goal
-        env = AntEnvWithGoal(create_maze_env(args.env), args.env)
-
+        env = AntEnvWithGoal(create_maze_env(args.env), args.env, env_subgoal_dim=15)
         env.seed(int(env_seed))
 
         if test and args.record:
@@ -190,17 +189,16 @@ def main():
 
     env_state_dim = eval_env.state_dim
     env_action_dim = eval_env.action_dim
-    env_subgoal_dim = 15
-    # limits for the subgoal space for the ant env, according to the hiro paper
-    limits = np.array([10, 10, 0.5, 1, 1, 1, 1,
-                       0.5, 0.3, 0.5, 0.3, 0.5, 0.3, 0.5, 0.3])[:env_subgoal_dim]
-    subgoal_space = gym.spaces.Box(low=limits*-1, high=limits)
+
+    env_subgoal_dim = eval_env.subgoal_dim
 
     # determined from the ant env
     env_goal_dim = 2
-    action_space = eval_env.action_space
 
-    scale = eval_env.action_space.high * np.ones(env_action_dim)
+    action_space = eval_env.action_space
+    subgoal_space = eval_env.subgoal_space
+    scale_low = action_space.high * np.ones(env_action_dim)
+    scale_high = subgoal_space.high * np.ones(env_subgoal_dim)
 
     def low_level_burnin_action_func():
         """Select random actions until model is updated one or more times."""
@@ -215,12 +213,10 @@ def main():
                       action_dim=env_action_dim,
                       goal_dim=env_goal_dim,
                       subgoal_dim=env_subgoal_dim,
-                      subgoal_space=subgoal_space,
                       high_level_burnin_action_func=high_level_burnin_action_func,
                       low_level_burnin_action_func=low_level_burnin_action_func,
-                      scale_low=scale,
-                      start_training_steps=100,
-                      model_save_freq=10,
+                      scale_low=scale_low,
+                      scale_high=scale_high,
                       model_path='model',
                       buffer_size=200000,
                       batch_size=100,
@@ -252,7 +248,6 @@ def main():
         experiments.train_hrl_agent(
             agent=agent,
             env=make_ant_env(0, test=False),
-            subgoal=subgoal_space,
             steps=args.steps,
             outdir=args.outdir
         )

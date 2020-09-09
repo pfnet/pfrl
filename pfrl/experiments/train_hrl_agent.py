@@ -23,7 +23,6 @@ def train_hrl_agent(
     step_hooks=(),
     logger=None,
     start_training_steps=100,
-    subgoal=None
 ):
 
     logger = logger or logging.getLogger(__name__)
@@ -37,7 +36,7 @@ def train_hrl_agent(
     obs = obs_dict['observation']
 
     # sample from subgoal
-    sg = subgoal.sample()
+    sg = env.subgoal_space.sample()
 
     t = step_offset
     if hasattr(agent, "t"):
