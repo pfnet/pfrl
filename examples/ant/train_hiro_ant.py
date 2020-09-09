@@ -244,13 +244,7 @@ def main():
             )
         )
     else:
-        # train the hierarchical agent.
-        experiments.train_hrl_agent(
-            agent=agent,
-            env=make_ant_env(0, test=False),
-            steps=args.steps,
-            outdir=args.outdir
-        )
+        # train the hierarchical agent
 
         experiments.train_hrl_agent_with_evaluation(
             agent=agent,
