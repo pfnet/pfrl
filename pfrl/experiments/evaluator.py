@@ -349,6 +349,12 @@ def save_agent(agent, t, outdir, logger, suffix=""):
     agent.save(dirname)
     logger.info("Saved the agent to %s", dirname)
 
+def write_header(outdir, agent):
+    with open(os.path.join(outdir, "scores.txt"), "w") as f:
+        custom_columns = tuple(t[0] for t in agent.get_statistics())
+        column_names = _basic_columns + custom_columns
+        print("\t".join(column_names), file=f)
+
 
 class Evaluator(object):
     """Object that is responsible for evaluating a given agent.
@@ -403,10 +409,7 @@ class Evaluator(object):
         self.logger = logger or logging.getLogger(__name__)
 
         # Write a header line first
-        with open(os.path.join(self.outdir, "scores.txt"), "w") as f:
-            custom_columns = tuple(t[0] for t in self.agent.get_statistics())
-            column_names = _basic_columns + custom_columns
-            print("\t".join(column_names), file=f)
+        write_header(self.outdir, self.agent)
 
         if use_tensorboard:
             self.tb_writer = create_tb_writer(outdir)
@@ -556,12 +559,6 @@ class AsyncEvaluator(object):
                     save_agent(agent, "best", self.outdir, self.logger)
         return mean
 
-    def write_header(self, agent):
-        with open(os.path.join(self.outdir, "scores.txt"), "w") as f:
-            custom_columns = tuple(t[0] for t in agent.get_statistics())
-            column_names = _basic_columns + custom_columns
-            print("\t".join(column_names), file=f)
-
     def evaluate_if_necessary(self, t, episodes, env, agent):
         necessary = False
         with self.prev_eval_t.get_lock():
@@ -571,7 +568,7 @@ class AsyncEvaluator(object):
         if necessary:
             with self.wrote_header.get_lock():
                 if not self.wrote_header.value:
-                    self.write_header(agent)
+                    write_header(self.outdir, agent)
                     self.wrote_header.value = True
             return self.evaluate_and_update_max_score(t, episodes, env, agent)
         return None
