@@ -10,8 +10,6 @@ from typing import Sequence
 from typing import Tuple
 
 import torch
-import numpy as np
-import time
 
 
 class Agent(object, metaclass=ABCMeta):
