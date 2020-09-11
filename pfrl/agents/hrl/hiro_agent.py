@@ -100,7 +100,7 @@ class HIROAgent(HRLAgent):
         conditioned on an observation and goal.
         """
         self.last_obs = obs
-        # goal = self.sg
+
         self.last_action = self.low_con.policy(obs, goal)
         return self.last_action
 
