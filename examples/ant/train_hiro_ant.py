@@ -251,6 +251,9 @@ def main():
             env=make_ant_env(0, test=False),
             steps=args.steps,
             outdir=args.outdir,
+            eval_n_steps=None,
+            eval_interval=5000,
+            eval_n_episodes=10,
             use_tensorboard=True
         )
 

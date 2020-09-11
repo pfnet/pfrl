@@ -129,6 +129,12 @@ class HRLAgent(Agent, metaclass=ABCMeta):
         """
         self.training = False
 
+    def change_to_train(self):
+        """
+        change to eval mode
+        """
+        self.training = True
+
     @contextlib.contextmanager
     def eval_mode(self):
         orig_mode = self.training
@@ -137,6 +143,8 @@ class HRLAgent(Agent, metaclass=ABCMeta):
             yield
         finally:
             self.training = orig_mode
+            if self.training:
+                self.change_to_train()
 
 
 class AttributeSavingMixin(object):

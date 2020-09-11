@@ -102,7 +102,7 @@ def _hrl_run_episodes(
             test_r = 0
             episode_len = 0
             info = {}
-        a = agent.act_low_level(obs, fg)
+        a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
         # select subgoal for the lower level controller.    
         obs = obs_dict['observation']
@@ -113,7 +113,7 @@ def _hrl_run_episodes(
         timestep += 1
         reset = done or episode_len == max_episode_len or info.get("needs_reset", False)
         agent.observe(obs, fg, n_sg, r, done, reset, timestep)
-
+        sg = n_sg
         if reset:
             logger.info(
                 "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
@@ -501,7 +501,7 @@ class Evaluator(object):
             eval_stats["min"],
         ) + custom_values
         record_stats(self.outdir, values)
-
+        print(self.outdir)
         if self.use_tensorboard:
             record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
 

@@ -326,7 +326,6 @@ class HigherController(HRLControllerBase):
         the novel off policy correction.
         """
         # step 1 - record experience in replay buffer
-
         self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
                                                       torch.FloatTensor(action_arr),
                                                       torch.FloatTensor(n_s),
