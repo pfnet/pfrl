@@ -340,7 +340,7 @@ def write_header(outdir, agent, env):
     )
     with open(os.path.join(outdir, "scores.txt"), "w") as f:
         custom_columns = tuple(t[0] for t in agent.get_statistics())
-        env_get_stats = env.getattr("get_statistics", lambda : [])
+        env_get_stats = getattr(env, "get_statistics", lambda : [])
         assert callable(env_get_stats)
         custom_env_columns = tuple(t[0] for t in env_get_stats())
         column_names = basic_columns + custom_columns + custom_env_columns
@@ -398,8 +398,8 @@ class Evaluator(object):
         self.prev_eval_t = self.step_offset - self.step_offset % self.eval_interval
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
-        self.env_get_stats = self.env.getattr("get_statistics", lambda : [])
-        self.env_clear_stats = self.env.getattr("clear_statistics", lambda : None)
+        self.env_get_stats = getattr(self.env, "get_statistics", lambda : [])
+        self.env_clear_stats = getattr(self.env, "clear_statistics", lambda : None)
         assert callable(self.env_get_stats)
         assert callable(self.env_clear_stats)
 
@@ -520,8 +520,8 @@ class AsyncEvaluator(object):
         return v
 
     def evaluate_and_update_max_score(self, t, episodes, env, agent):
-        env_get_stats = env.getattr("get_statistics", lambda : [])
-        env_clear_stats = env.getattr("clear_statistics", lambda : None)
+        env_get_stats = getattr(env, "get_statistics", lambda : [])
+        env_clear_stats = getattr(env, "clear_statistics", lambda : None)
         assert callable(env_get_stats)
         assert callable(env_clear_stats)
         env_clear_stats()
