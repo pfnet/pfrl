@@ -7,6 +7,8 @@ from pfrl.agents.hrl.hiro_agent import HIROAgent
 from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
 
+from torch.utils.tensorboard import SummaryWriter
+
 
 def train_hrl_agent(
     agent: HIROAgent,
@@ -24,10 +26,9 @@ def train_hrl_agent(
 ):
 
     logger = logger or logging.getLogger(__name__)
-
+    writer = SummaryWriter('training')
     episode_r = 0
     episode_idx = 0
-
     obs_dict = env.reset()
 
     fg = obs_dict['desired_goal']
