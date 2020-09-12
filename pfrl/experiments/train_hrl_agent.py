@@ -1,5 +1,6 @@
 import os
 import logging
+import statistics
 
 import numpy as np
 
@@ -60,6 +61,12 @@ def train_hrl_agent(
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
             agent.observe(obs, fg, n_sg, r, done, reset, t, start_training_steps)
+
+            # log losses
+            agent_stats = agent.get_statistics()
+            for stat, value in agent_stats:
+                writer.add_scalar("agent/" + stat, value, t)
+
             sg = n_sg
             t += 1
             for hook in step_hooks:
@@ -88,6 +95,10 @@ def train_hrl_agent(
                 episode_idx += 1
                 episode_len = 0
                 obs_dict = env.reset()
+
+                episode_idx += 1
+                writer.add_scalar('reward/Reward', episode_r, episode_idx)
+
                 fg = obs_dict['desired_goal']
                 obs = obs_dict['observation']
             if checkpoint_freq and t % checkpoint_freq == 0:
