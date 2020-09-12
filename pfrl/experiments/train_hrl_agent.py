@@ -1,6 +1,5 @@
 import os
 import logging
-import statistics
 
 import numpy as np
 
@@ -91,13 +90,13 @@ def train_hrl_agent(
                 if t == steps:
                     break
                 # Start a new episode, reset the environment and goal
+                writer.add_scalar('reward/Reward', episode_r, episode_idx)
                 episode_r = 0
                 episode_idx += 1
                 episode_len = 0
                 obs_dict = env.reset()
 
                 episode_idx += 1
-                writer.add_scalar('reward/Reward', episode_r, episode_idx)
 
                 fg = obs_dict['desired_goal']
                 obs = obs_dict['observation']
