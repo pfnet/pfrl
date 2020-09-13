@@ -90,7 +90,6 @@ def train_hrl_agent(
                 if t == steps:
                     break
                 # Start a new episode, reset the environment and goal
-                print(episode_r)
                 writer.add_scalar('reward/Reward', episode_r, episode_idx)
                 episode_r = 0
                 episode_idx += 1
