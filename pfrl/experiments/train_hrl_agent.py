@@ -49,7 +49,7 @@ def train_hrl_agent(
 
             # take a step in the environment
             obs_dict, r, done, info = env.step(action)
-            env.render()
+            # env.render()
             obs = obs_dict['observation']
 
             n_sg = agent.act_high_level(obs, fg, sg, t)
