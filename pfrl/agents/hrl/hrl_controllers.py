@@ -85,6 +85,14 @@ class HRLControllerBase():
             high=self.scale
         )
 
+        def default_target_policy_smoothing_func(batch_action):
+            """Add noises to actions for target policy smoothing."""
+            noise = torch.clamp(0.2 * torch.randn_like(batch_action), -0.5, 0.5)
+            smoothed_action = batch_action + noise
+            smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
+            smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
+            return batch_action
+
         if self.is_low_level:
             # standard goal conditioned td3
             self.agent = GoalConditionedTD3(
@@ -103,7 +111,8 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
-                burnin_action_func=burnin_action_func
+                burnin_action_func=burnin_action_func,
+                target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
         else:
             self.agent = HIROHighLevelGoalConditionedTD3(
@@ -122,7 +131,8 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
-                burnin_action_func=burnin_action_func
+                burnin_action_func=burnin_action_func,
+                target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
 
         self.device = self.agent.device
