@@ -88,6 +88,7 @@ def _hrl_run_episodes(
 
     logger = logger or logging.getLogger(__name__)
     scores = []
+    successes = 0
     terminate = False
     timestep = 0
 
@@ -118,6 +119,10 @@ def _hrl_run_episodes(
             logger.info(
                 "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
             )
+            error = np.sqrt(np.sum(np.square(fg-obs[:2])))
+            print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], obs[0], obs[1], error))
+            successes += 1 if error <=5 else 0
+            logger.info(f"{successes} successes so far.")
             # As mixing float and numpy float causes errors in statistics
             # functions, here every score is cast to float.
             scores.append(float(test_r))

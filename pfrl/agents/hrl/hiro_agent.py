@@ -104,38 +104,37 @@ class HIROAgent(HRLAgent):
         self.last_action = self.low_con.policy(obs, goal)
         return self.last_action
 
-    def observe(self, obs, goal, subgoal, reward, done, reset, global_step=0, start_training_steps=0):
+    def observe(self, obs, goal, subgoal, reward, done, reset, global_step=0):
         """
         after getting feedback from the environment, observe,
         and train both the low and high level controllers.
         """
         if self.training:
-            if global_step >= start_training_steps:
-                # start training once the global step surpasses
-                # the start training steps
-                self.low_con.observe(obs, subgoal, self.sr, done)
-                if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
-                    # train high level controller every self.train_freq steps
+            # start training once the global step surpasses
+            # the start training steps
+            self.low_con.observe(obs, subgoal, self.sr, done)
+            if global_step % self.train_freq == 0 and len(self.action_arr) == self.train_freq:
+                # train high level controller every self.train_freq steps
 
-                    self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
-                    self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
-                    self.action_arr = []
-                    self.state_arr = []
+                self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
+                self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
+                self.action_arr = []
+                self.state_arr = []
 
-                    # reset last high level obs, goal, action
-                    self.last_high_level_obs = torch.FloatTensor(obs)
-                    self.last_high_level_goal = torch.FloatTensor(goal)
-                    self.last_high_level_action = subgoal
-                    self.cumulative_reward = 0
+                # reset last high level obs, goal, action
+                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_goal = torch.FloatTensor(goal)
+                self.last_high_level_action = subgoal
+                self.cumulative_reward = 0
 
-                elif global_step % self.train_freq == 0 and self.last_high_level_obs is None:
-                    self.last_high_level_obs = torch.FloatTensor(obs)
-                    self.last_high_level_goal = torch.FloatTensor(goal)
-                    self.last_high_level_action = subgoal
+            elif global_step % self.train_freq == 0 and self.last_high_level_obs is None:
+                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_goal = torch.FloatTensor(goal)
+                self.last_high_level_action = subgoal
 
-                self.action_arr.append(self.last_action)
-                self.state_arr.append(self.last_obs)
-                self.cumulative_reward += (self.reward_scaling * reward)
+            self.action_arr.append(self.last_action)
+            self.state_arr.append(self.last_obs)
+            self.cumulative_reward += (self.reward_scaling * reward)
 
     def _choose_subgoal(self, step, s, sg, n_s, goal):
         """
