@@ -22,7 +22,7 @@ def train_hrl_agent(
     successful_score=None,
     step_hooks=(),
     logger=None,
-    start_training_steps=100,
+    start_training_steps=2500,
 ):
 
     logger = logger or logging.getLogger(__name__)

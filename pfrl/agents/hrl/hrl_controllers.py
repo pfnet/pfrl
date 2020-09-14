@@ -28,7 +28,7 @@ class HRLControllerBase():
             gamma=0.99,
             policy_freq=2,
             tau=0.005,
-            replay_start_size=100,
+            replay_start_size=2500,
             is_low_level=True,
             buffer_freq=10,
             minibatch_size=100,
