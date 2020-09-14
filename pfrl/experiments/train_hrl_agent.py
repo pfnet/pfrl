@@ -96,8 +96,6 @@ def train_hrl_agent(
                 episode_len = 0
                 obs_dict = env.reset()
 
-                episode_idx += 1
-
                 fg = obs_dict['desired_goal']
                 obs = obs_dict['observation']
             if checkpoint_freq and t % checkpoint_freq == 0:
