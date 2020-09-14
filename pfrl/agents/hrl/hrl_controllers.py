@@ -137,9 +137,6 @@ class HRLControllerBase():
 
         self.device = self.agent.device
 
-        self._initialized = False
-        self.total_it = 0
-
     def save(self, directory):
         """
         save the internal state of the TD3 agent.

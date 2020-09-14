@@ -91,6 +91,7 @@ def train_hrl_agent(
                     break
                 # Start a new episode, reset the environment and goal
                 writer.add_scalar('reward/Reward', episode_r, episode_idx)
+                env.evaluate = False
                 episode_r = 0
                 episode_idx += 1
                 episode_len = 0

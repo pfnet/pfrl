@@ -91,7 +91,7 @@ def _hrl_run_episodes(
     successes = 0
     terminate = False
     timestep = 0
-
+    env.evaluate = True
     reset = True
     while not terminate:
         if reset:
