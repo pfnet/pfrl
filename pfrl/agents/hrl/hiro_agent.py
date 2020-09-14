@@ -191,6 +191,7 @@ class HIROAgent(HRLAgent):
         sets an agent to eval - making
         for the deterministic policy of td3
         """
+        print("evaluation mode turned on")
         self.training = False
         self.low_con.agent.training = False
         self.high_con.agent.training = False
@@ -200,6 +201,7 @@ class HIROAgent(HRLAgent):
         sets an agent to train - including
         some exploration
         """
+        print("training mode turned on")
         self.training = True
         self.low_con.agent.training = True
         self.high_con.agent.training = True
