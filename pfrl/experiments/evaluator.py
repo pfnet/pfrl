@@ -56,7 +56,7 @@ def _run_episodes(
             action = agent.act(concat_obs_and_goal(obs))
         else:
             action = agent.act(obs)
-        obs, r, done, info = env.step(a)
+        obs, r, done, info = env.step(action)
         test_r += r
         episode_len += 1
         timestep += 1

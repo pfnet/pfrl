@@ -133,18 +133,19 @@ def main():
     print("Action space:", action_space)
 
     obs_size = obs_space_dict.spaces['observation'].low.size
+    goal_size = obs_space_dict.spaces['desired_goal'].low.size
     action_size = action_space.low.size
 
     q_func = nn.Sequential(
         ConcatObsAndAction(),
-        nn.Linear(obs_size + action_size, 400),
+        nn.Linear(obs_size + goal_size + action_size, 400),
         nn.ReLU(),
         nn.Linear(400, 300),
         nn.ReLU(),
         nn.Linear(300, 1),
     )
     policy = nn.Sequential(
-        nn.Linear(obs_size, 400),
+        nn.Linear(obs_size + goal_size, 400),
         nn.ReLU(),
         nn.Linear(400, 300),
         nn.ReLU(),
