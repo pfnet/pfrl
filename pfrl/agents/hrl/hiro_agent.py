@@ -84,11 +84,13 @@ class HIROAgent(HRLAgent):
         self.last_high_level_obs = None
         self.last_high_level_goal = None
         self.last_high_level_action = None
+        self.last_subgoal = None
 
     def act_high_level(self, obs, goal, subgoal, step=0):
         """
         high level actor
         """
+        self.last_subgoal = subgoal
         n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.sr = self._low_reward(self.last_obs, subgoal, obs)
         # clip values
@@ -122,15 +124,15 @@ class HIROAgent(HRLAgent):
                 self.state_arr = []
 
                 # reset last high level obs, goal, action
-                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_obs = torch.FloatTensor(self.last_obs)
                 self.last_high_level_goal = torch.FloatTensor(goal)
-                self.last_high_level_action = subgoal
+                self.last_high_level_action = self.last_subgoal
                 self.cumulative_reward = 0
 
             elif global_step % self.train_freq == 0 and self.last_high_level_obs is None:
-                self.last_high_level_obs = torch.FloatTensor(obs)
+                self.last_high_level_obs = torch.FloatTensor(self.last_obs)
                 self.last_high_level_goal = torch.FloatTensor(goal)
-                self.last_high_level_action = subgoal
+                self.last_high_level_action = self.last_subgoal
 
             self.action_arr.append(self.last_action)
             self.state_arr.append(self.last_obs)
