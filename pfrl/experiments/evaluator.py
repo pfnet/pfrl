@@ -7,6 +7,7 @@ import time
 import numpy as np
 
 import pfrl
+from pfrl.utils import concat_obs_and_goal
 
 
 """Columns that describe information about an experiment.
@@ -51,13 +52,20 @@ def _run_episodes(
             test_r = 0
             episode_len = 0
             info = {}
-        a = agent.act(obs)
+        if isinstance(obs, dict):
+            action = agent.act(concat_obs_and_goal(obs))
+        else:
+            action = agent.act(obs)
         obs, r, done, info = env.step(a)
         test_r += r
         episode_len += 1
         timestep += 1
         reset = done or episode_len == max_episode_len or info.get("needs_reset", False)
-        agent.observe(obs, r, done, reset)
+        if isinstance(obs, dict):
+            agent.observe(concat_obs_and_goal(obs), r, done, reset)
+        else:
+            agent.observe(obs, r, done, reset)
+
         if reset:
             logger.info(
                 "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r

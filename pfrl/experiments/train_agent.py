@@ -1,9 +1,13 @@
 import logging
 import os
 
+import numpy as np
+from torch import is_storage
+
 from pfrl.experiments.evaluator import Evaluator
 from pfrl.experiments.evaluator import save_agent
 from pfrl.utils.ask_yes_no import ask_yes_no
+from pfrl.utils import concat_obs_and_goal
 
 
 def save_agent_replay_buffer(agent, t, outdir, suffix="", logger=None):
@@ -53,14 +57,20 @@ def train_agent(
         while t < steps:
 
             # a_t
-            action = agent.act(obs)
+            if isinstance(obs, dict):
+                action = agent.act(concat_obs_and_goal(obs))
+            else:
+                action = agent.act(obs)
             # o_{t+1}, r_{t+1}
             obs, r, done, info = env.step(action)
             t += 1
             episode_r += r
             episode_len += 1
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
-            agent.observe(obs, r, done, reset)
+            if isinstance(obs, dict):
+                agent.observe(concat_obs_and_goal(obs), r, done, reset)
+            else:
+                agent.observe(obs, r, done, reset)
 
             for hook in step_hooks:
                 hook(env, agent, t)
