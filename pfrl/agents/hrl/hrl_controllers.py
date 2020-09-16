@@ -80,7 +80,7 @@ class HRLControllerBase():
         # TODO - have proper low and high values from action space.
         # from the hiro paper, the scale is 1.0
         explorer = explorers.AdditiveGaussian(
-            scale=1.0,
+            scale=self.expl_noise*1.0,
             low=-self.scale,
             high=self.scale
         )
@@ -91,7 +91,7 @@ class HRLControllerBase():
             smoothed_action = batch_action + noise
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
-            return batch_action
+            return smoothed_action
 
         if self.is_low_level:
             # standard goal conditioned td3
@@ -156,7 +156,6 @@ class HRLControllerBase():
         action = self.agent.act_with_goal(torch.FloatTensor(state), torch.FloatTensor(goal))
         return np.clip(action, a_min=-self.scale, a_max=self.scale)
 
-
     def _observe(self, states, goals, rewards, done, state_arr=None, action_arr=None):
         """
         observe, and train (if we can sample from the replay buffer)
@@ -183,7 +182,7 @@ class LowerController(HRLControllerBase):
             name='lower_controller',
             actor_lr=0.0001,
             critic_lr=0.001,
-            expl_noise=1.0,
+            expl_noise=0.1,
             policy_noise=0.2,
             noise_clip=0.5,
             gamma=0.99,
@@ -313,12 +312,13 @@ class HigherController(HRLControllerBase):
         # batched_candidates = batched_candidates.transpose(1, 0, 2)
 
         policy_actions = np.zeros((ncands, new_batch_sz) + action_dim)
-
+        low_con.agent.training = False
         for c in range(ncands):
             subgoal = candidates[:,c]
             candidate = (subgoal + states[:, 0, :self.action_dim])[:, None] - states[:, :, :self.action_dim]
             candidate = candidate.reshape(*goal_shape)
             policy_actions[c] = low_con.policy(torch.tensor(observations).float(), torch.tensor(candidate).float())
+        low_con.agent.training = True
 
         difference = (policy_actions - true_actions)
         difference = np.where(difference != -np.inf, difference, 0)
