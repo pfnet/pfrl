@@ -138,6 +138,14 @@ class HIROAgent(HRLAgent):
             self.state_arr.append(self.last_obs)
             self.cumulative_reward += (self.reward_scaling * reward)
 
+    def end_episode(self):
+        self.action_arr = []
+        self.state_arr = []
+        self.last_high_level_obs = None
+        self.last_high_level_goal = None
+        self.last_high_level_action = None
+        self.cumulative_reward = 0
+
     def _choose_subgoal(self, step, s, sg, n_s, goal):
         """
         chooses the next subgoal for the low level controller.

@@ -88,6 +88,7 @@ def train_hrl_agent(
                 episode_idx += 1
                 episode_len = 0
                 step = 0
+                agent.end_episode()
                 obs_dict = env.reset()
 
                 fg = obs_dict['desired_goal']
