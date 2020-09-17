@@ -121,6 +121,15 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               policy_update_delay=policy_update_delay,
                                                               target_policy_smoothing_func=target_policy_smoothing_func)
 
+    def explore_with_goal(self, batch_obs, batch_goal):
+        assert self.training
+        batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
+
+        self.batch_last_obs = list(batch_obs)
+        self.batch_last_goal = list(batch_goal)
+        self.batch_last_action = list(batch_action)
+        return batch_action
+
     def update_high_level_last_results(self, states, goals, actions):
         """
         update the last observation, goal and action for the high level

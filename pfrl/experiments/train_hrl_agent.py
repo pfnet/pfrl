@@ -49,7 +49,7 @@ def train_hrl_agent(
             # env.render()
             obs = obs_dict['observation']
 
-            n_sg = agent.act_high_level(obs, fg, sg, step)
+            n_sg = agent.act_high_level(obs, fg, sg, step, t)
 
             episode_r += r
             episode_len += 1
