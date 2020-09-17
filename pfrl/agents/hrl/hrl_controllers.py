@@ -127,7 +127,7 @@ class HRLControllerBase():
                 soft_update_tau=tau,
                 explorer=explorer,
                 update_interval=policy_freq,
-                replay_start_size=250,
+                replay_start_size=replay_start_size/10,
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
