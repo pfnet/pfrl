@@ -94,7 +94,7 @@ class HIROAgent(HRLAgent):
         """
         self.last_subgoal = subgoal
         if global_step < self.start_training_steps and self.training == True:
-            n_sg = self.high_con.agent.explore_with_goal([obs], [goal])[0]
+            n_sg = self.high_con.policy(self.last_obs, goal)
         else:
             n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.sr = self._low_reward(self.last_obs, subgoal, obs)
