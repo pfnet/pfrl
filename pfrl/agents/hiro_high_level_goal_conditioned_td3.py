@@ -172,8 +172,8 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         predict_q1 = torch.flatten(self.q_func1((torch.cat([batch_state, batch_goal], -1), batch_actions)))
         predict_q2 = torch.flatten(self.q_func2((torch.cat([batch_state, batch_goal], -1), batch_actions)))
 
-        loss1 = F.mse_loss(target_q, predict_q1)
-        loss2 = F.mse_loss(target_q, predict_q2)
+        loss1 = F.smooth_l1_loss(target_q, predict_q1)
+        loss2 = F.smooth_l1_loss(target_q, predict_q2)
 
         # Update stats
         self.q1_record.extend(predict_q1.detach().cpu().numpy())

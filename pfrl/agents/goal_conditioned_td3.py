@@ -97,7 +97,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
         self.buffer_freq = buffer_freq
-        self.minibatch_size = minibatch_size        
+        self.minibatch_size = minibatch_size
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
                                                  q_func2=q_func2,
@@ -154,8 +154,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         predict_q1 = torch.flatten(self.q_func1((torch.cat([batch_state, batch_goal], -1), batch_actions)))
         predict_q2 = torch.flatten(self.q_func2((torch.cat([batch_state, batch_goal], -1), batch_actions)))
 
-        loss1 = F.mse_loss(target_q, predict_q1)
-        loss2 = F.mse_loss(target_q, predict_q2)
+        loss1 = F.smooth_l1_loss(target_q, predict_q1)
+        loss2 = F.smooth_l1_loss(target_q, predict_q2)
 
         # Update stats
         self.q1_record.extend(predict_q1.detach().cpu().numpy())
