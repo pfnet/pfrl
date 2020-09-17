@@ -1,4 +1,11 @@
-
+"""
+Training:
+    python examples/ant/train_hiro_ant.py
+Render Trained:
+    python examples/ant/train_hiro_ant.py --render --demo --load <dir>
+Example:
+    python examples/ant/train_hiro_ant.py --render --demo --load results/6900d36edd696e65e1d2ae72dd58796a2d7c19ef-34c626fd-4418a6b0/best
+"""
 import argparse
 import functools
 import os
