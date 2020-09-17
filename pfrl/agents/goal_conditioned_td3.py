@@ -97,7 +97,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
         self.buffer_freq = buffer_freq
-        self.minibatch_size = minibatch_size        
+        self.minibatch_size = minibatch_size
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
                                                  q_func2=q_func2,
