@@ -159,12 +159,12 @@ class HIROAgent(HRLAgent):
         abs_s = s[:sg.shape[0]] + sg
         return -np.sqrt(np.sum((abs_s - n_s[:sg.shape[0]])**2))
 
-    def save(self, episode):
+    def save(self, outdir):
         """
         saves the model, aka the lower and higher controllers' parameters.
         """
-        low_controller_dir = f'models/low_controller/episode_{episode}'
-        high_controller_dir = f'models/high_controller/episode_{episode}'
+        low_controller_dir = os.path.join(outdir, 'low_controller')
+        high_controller_dir = os.path.join(outdir, 'high_controller')
 
         os.makedirs(low_controller_dir, exist_ok=True)
         os.makedirs(high_controller_dir, exist_ok=True)
@@ -172,12 +172,12 @@ class HIROAgent(HRLAgent):
         self.low_con.save(low_controller_dir)
         self.high_con.save(high_controller_dir)
 
-    def load(self, episode):
+    def load(self, outdir):
         """
         loads from an episode.
         """
-        low_controller_dir = f'models/low_controller/episode_{episode}'
-        high_controller_dir = f'models/high_controller/episode_{episode}'
+        low_controller_dir = os.path.join(outdir, 'low_controller')
+        high_controller_dir = os.path.join(outdir, 'high_controller')
         try:
             self.low_con.load(low_controller_dir)
             self.high_con.load(high_controller_dir)
