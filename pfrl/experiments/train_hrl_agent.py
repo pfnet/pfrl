@@ -37,6 +37,7 @@ def train_hrl_agent(
     sg = env.subgoal_space.sample()
 
     t = step_offset
+    step = 0
     if hasattr(agent, "t"):
         agent.t = step_offset
 
@@ -51,14 +52,14 @@ def train_hrl_agent(
             # env.render()
             obs = obs_dict['observation']
 
-            n_sg = agent.act_high_level(obs, fg, sg, t)
+            n_sg = agent.act_high_level(obs, fg, sg, step)
 
             episode_r += r
             episode_len += 1
 
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
-            agent.observe(obs, fg, n_sg, r, done, reset, t)
+            agent.observe(obs, fg, n_sg, r, done, reset, step)
 
             # log losses
             agent_stats = agent.get_statistics()
@@ -67,6 +68,7 @@ def train_hrl_agent(
 
             sg = n_sg
             t += 1
+            step += 1
             for hook in step_hooks:
                 hook(env, agent, t)
 
@@ -94,6 +96,7 @@ def train_hrl_agent(
                 episode_r = 0
                 episode_idx += 1
                 episode_len = 0
+                step = 0
                 obs_dict = env.reset()
 
                 fg = obs_dict['desired_goal']
