@@ -93,7 +93,7 @@ class HIROAgent(HRLAgent):
         high level actor
         """
         self.last_subgoal = subgoal
-        if global_step < self.start_training_steps:
+        if global_step < self.start_training_steps and self.training == True:
             n_sg = self.high_con.agent.explore_with_goal([obs], [goal])[0]
         else:
             n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
