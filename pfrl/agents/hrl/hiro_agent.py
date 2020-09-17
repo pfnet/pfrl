@@ -33,7 +33,8 @@ class HIROAgent(HRLAgent):
                  reward_scaling,
                  policy_freq_high,
                  policy_freq_low,
-                 gpu):
+                 gpu,
+                 start_training_steps=2500):
         """
         Constructor for the HIRO agent.
         """
@@ -77,6 +78,7 @@ class HIROAgent(HRLAgent):
 
         self.train_freq = train_freq
         self.reward_scaling = reward_scaling
+        self.start_training_steps = start_training_steps
         self.sr = 0
         self.state_arr = []
         self.action_arr = []
@@ -86,12 +88,15 @@ class HIROAgent(HRLAgent):
         self.last_high_level_action = None
         self.last_subgoal = None
 
-    def act_high_level(self, obs, goal, subgoal, step=0):
+    def act_high_level(self, obs, goal, subgoal, step=0, global_step=0):
         """
         high level actor
         """
         self.last_subgoal = subgoal
-        n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
+        if global_step < self.start_training_steps:
+            n_sg = self.high_con.agent.explore_with_goal(obs, goal)
+        else:
+            n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
         self.sr = self._low_reward(self.last_obs, subgoal, obs)
         # clip values
         return n_sg

@@ -121,19 +121,9 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               policy_update_delay=policy_update_delay,
                                                               target_policy_smoothing_func=target_policy_smoothing_func)
 
-    def _batch_act_train_goal(self, batch_obs, batch_goal):
+    def explore_with_goal(self, batch_obs, batch_goal):
         assert self.training
-        if self.burnin_action_func is not None and self.policy_n_updates == 0:
-            batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
-        else:
-            concat_states = []
-            for idx, ob in enumerate(batch_obs):
-                concat_states.append(torch.cat([ob, batch_goal[idx]], dim=-1))
-            batch_onpolicy_action = self.batch_select_onpolicy_action(concat_states)
-            batch_action = [
-                self.explorer.select_action(self.t, lambda: batch_onpolicy_action[i])
-                for i in range(len(batch_onpolicy_action))
-            ]
+        batch_action = [self.burnin_action_func() for _ in range(len(batch_obs))]
 
         self.batch_last_obs = list(batch_obs)
         self.batch_last_goal = list(batch_goal)
