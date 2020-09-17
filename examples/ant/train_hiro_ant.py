@@ -173,6 +173,9 @@ def main():
         env = AntEnvWithGoal(create_maze_env(args.env), args.env, env_subgoal_dim=15)
         env.seed(int(env_seed))
 
+        if args.render:
+            env = pfrl.wrappers.GymLikeEnvRender(env)
+
         if test and args.record:
             assert args.render, "To use --record, --render needs be specified."
             video_dir = os.path.join(args.outdir, "video_{}".format(idx))
