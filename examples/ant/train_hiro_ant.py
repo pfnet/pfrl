@@ -227,7 +227,6 @@ def main():
                       low_level_burnin_action_func=low_level_burnin_action_func,
                       scale_low=scale_low,
                       scale_high=scale_high,
-                      model_path='model',
                       buffer_size=200000,
                       batch_size=100,
                       subgoal_freq=10,
