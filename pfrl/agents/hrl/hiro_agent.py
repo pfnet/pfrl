@@ -110,11 +110,13 @@ class HIROAgent(HRLAgent):
             # start training once the global step surpasses
             # the start training steps
             self.low_con.observe(obs, subgoal, self.sr, done)
+            if step % self.train_freq == 0:
+                self.high_con.update(self.low_con)
             if step != 0 and step % self.train_freq == 1:
                 if len(self.action_arr) == self.train_freq:
                     # train high level controller every self.train_freq steps
                     self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
-                    self.high_con.observe(self.low_con, self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
+                    self.high_con.observe(self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
 
                 # reset last high level obs, goal, action
                 self.action_arr = []

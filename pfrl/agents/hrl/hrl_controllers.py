@@ -82,7 +82,7 @@ class HRLControllerBase():
 
         def default_target_policy_smoothing_func(batch_action):
             """Add noises to actions for target policy smoothing."""
-            noise = torch.clamp(0.2 * torch.randn_like(batch_action), -0.5, 0.5)
+            noise = torch.clamp(0.2 * torch.randn_like(batch_action), -self.noise_clip, self.noise_clip)
             smoothed_action = batch_action + noise
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
@@ -316,18 +316,7 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def observe(self, low_con, state_arr, action_arr, r, g, n_s, done):
-        """
-        train the high level controller with
-        the novel off policy correction.
-        """
-        # step 1 - record experience in replay buffer
-        self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
-                                                      torch.FloatTensor(action_arr),
-                                                      torch.FloatTensor(n_s),
-                                                      torch.FloatTensor(g), r, done, None)
-
-        # step 2 - if we can update, sample from replay buffer first
+    def update(self, low_con):
         batch = self.agent.sample_if_possible()
         if batch:
             experience = high_level_batch_experiences_with_goal(batch, self.device, lambda x: x, self.gamma)
@@ -346,3 +335,14 @@ class HigherController(HRLControllerBase):
             experience['action'] = tensor_actions
 
             self.agent.high_level_update_batch(experience)
+
+    def observe(self, state_arr, action_arr, r, g, n_s, done):
+        """
+        train the high level controller with
+        the novel off policy correction.
+        """
+        # step 1 - record experience in replay buffer
+        self.agent.observe_with_goal_state_action_arr(torch.FloatTensor(state_arr),
+                                                      torch.FloatTensor(action_arr),
+                                                      torch.FloatTensor(n_s),
+                                                      torch.FloatTensor(g), r, done, None)
