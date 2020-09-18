@@ -222,7 +222,7 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                     equal_vals = self.batch_last_goal[i] == batch_goal[i]
                     if equal_vals.sum() != len(batch_goal[i]):
                         raise ValueError("Different values for final goal!")
-                    self.cumulative_reward[i] += batch_reward[i]
+                    self.cumulative_reward[i] = batch_reward[i]
                     self.replay_buffer.append(
                         state=self.batch_last_obs[i],
                         goal=self.batch_last_goal[i],
