@@ -108,6 +108,9 @@ class HIROAgent(HRLAgent):
         self.last_action = self.low_con.policy(obs, goal)
         return self.last_action
 
+    def sample_subgoal(self, obs, goal):
+        return self.high_con.policy(obs, goal)
+
     def observe(self, obs, goal, subgoal, reward, done, reset, step=0):
         """
         after getting feedback from the environment, observe,

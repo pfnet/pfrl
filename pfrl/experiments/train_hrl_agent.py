@@ -93,6 +93,8 @@ def train_hrl_agent(
 
                 fg = obs_dict['desired_goal']
                 obs = obs_dict['observation']
+                agent.sample_subgoal(obs, fg)
+
             if checkpoint_freq and t % checkpoint_freq == 0:
                 save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
