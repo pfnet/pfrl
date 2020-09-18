@@ -104,7 +104,7 @@ class HIROAgent(HRLAgent):
     def sample_subgoal(self, obs, goal):
         return self.high_con.policy(obs, goal)
 
-    def observe(self, obs, goal, subgoal, reward, done, reset, step=0):
+    def observe(self, obs, goal, subgoal, reward, done, reset, step=0, global_step=0):
         """
         after getting feedback from the environment, observe,
         and train both the low and high level controllers.
@@ -113,7 +113,7 @@ class HIROAgent(HRLAgent):
             # start training once the global step surpasses
             # the start training steps
             self.low_con.observe(obs, subgoal, self.sr, done)
-            if step % self.train_freq == 0:
+            if global_step % self.train_freq == 0:
                 self.high_con.update(self.low_con)
             if step != 0 and step % self.train_freq == 1:
                 if len(self.action_arr) == self.train_freq:

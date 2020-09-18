@@ -56,7 +56,7 @@ def train_hrl_agent(
 
             reset = episode_len == max_episode_len or info.get("needs_reset", False)
 
-            agent.observe(obs, fg, n_sg, r, done, reset, step)
+            agent.observe(obs, fg, n_sg, r, done, reset, step, t)
 
             sg = n_sg
             t += 1
