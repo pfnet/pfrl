@@ -18,20 +18,20 @@ class HRLControllerBase():
             action_dim,
             scale,
             replay_buffer,
-            actor_lr=0.0001,
-            critic_lr=0.001,
-            expl_noise=0.1,
-            policy_noise=0.2,
-            noise_clip=0.5,
-            gamma=0.99,
-            policy_freq=2,
-            tau=0.005,
-            replay_start_size=2500,
-            is_low_level=True,
-            buffer_freq=10,
-            minibatch_size=100,
-            gpu=None,
-            burnin_action_func=None):
+            actor_lr,
+            critic_lr,
+            expl_noise,
+            policy_noise,
+            noise_clip,
+            gamma,
+            policy_freq,
+            tau,
+            is_low_level,
+            buffer_freq,
+            minibatch_size,
+            gpu,
+            burnin_action_func=None,
+            replay_start_size=2500):
         self.scale = scale
         # parameters
         self.expl_noise = expl_noise
@@ -182,6 +182,7 @@ class LowerController(HRLControllerBase):
             policy_freq=2,
             tau=0.005,
             is_low_level=True,
+            buffer_freq=10,
             minibatch_size=100,
             gpu=None,
             burnin_action_func=None):
@@ -200,6 +201,7 @@ class LowerController(HRLControllerBase):
                                             policy_freq=policy_freq,
                                             tau=tau,
                                             is_low_level=is_low_level,
+                                            buffer_freq=buffer_freq,
                                             minibatch_size=minibatch_size,
                                             gpu=gpu,
                                             burnin_action_func=burnin_action_func)

@@ -209,12 +209,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             self.update_policy_with_goal(batch)
             self.sync_target_network()
 
-    def replay_buffer_sample(self):
-        """
-        get some samples from the replay buffer.
-        """
-        return self.replay_buffer.sample(self.minibatch_size)
-
     def batch_select_onpolicy_action(self, batch_obs):
         with torch.no_grad(), pfrl.utils.evaluating(self.policy):
             batch_xs = self.batch_states(batch_obs, self.device, self.phi)

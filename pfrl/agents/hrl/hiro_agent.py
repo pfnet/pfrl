@@ -26,12 +26,9 @@ class HIROAgent(HRLAgent):
                  scale_low,
                  scale_high,
                  buffer_size,
-                 batch_size,
                  subgoal_freq,
                  train_freq,
                  reward_scaling,
-                 policy_freq_high,
-                 policy_freq_low,
                  gpu,
                  start_training_steps=2500):
         """
@@ -51,9 +48,7 @@ class HIROAgent(HRLAgent):
             goal_dim=goal_dim,
             action_dim=subgoal_dim,
             scale=self.scale_high,
-            policy_freq=policy_freq_high,
             replay_buffer=high_level_replay_buffer,
-            minibatch_size=batch_size,
             gpu=gpu,
             burnin_action_func=high_level_burnin_action_func
         )
@@ -64,9 +59,7 @@ class HIROAgent(HRLAgent):
             goal_dim=subgoal_dim,
             action_dim=action_dim,
             scale=self.scale_low,
-            policy_freq=policy_freq_low,
             replay_buffer=low_level_replay_buffer,
-            minibatch_size=batch_size,
             gpu=gpu,
             burnin_action_func=low_level_burnin_action_func
         )
@@ -85,27 +78,27 @@ class HIROAgent(HRLAgent):
         self.last_high_level_action = None
         self.last_subgoal = None
 
-    def act_high_level(self, obs, goal, subgoal, step=0, global_step=0):
+    def act_high_level(self, obs, goal, last_subgoal, step=0, global_step=0):
         """
         high level actor
         """
-        self.last_subgoal = subgoal
+        self.last_subgoal = last_subgoal
         if global_step < self.start_training_steps and self.training == True:
-            n_sg = self.high_con.policy(self.last_obs, goal)
+            subgoal = self.high_con.policy(self.last_obs, goal)
         else:
-            n_sg = self._choose_subgoal(step, self.last_obs, subgoal, obs, goal)
-        self.sr = self._low_reward(self.last_obs, subgoal, obs)
+            subgoal = self._choose_subgoal(step, self.last_obs, last_subgoal, obs, goal)
+        self.sr = self._low_reward(self.last_obs, last_subgoal, obs)
         # clip values
-        return n_sg
+        return subgoal
 
-    def act_low_level(self, obs, goal):
+    def act_low_level(self, obs, subgoal):
         """
         low level actor,
         conditioned on an observation and goal.
         """
         self.last_obs = obs
 
-        self.last_action = self.low_con.policy(obs, goal)
+        self.last_action = self.low_con.policy(obs, subgoal)
         return self.last_action
 
     def sample_subgoal(self, obs, goal):

@@ -228,12 +228,9 @@ def main():
                       scale_low=scale_low,
                       scale_high=scale_high,
                       buffer_size=200000,
-                      batch_size=100,
                       subgoal_freq=10,
                       train_freq=10,
                       reward_scaling=0.1,
-                      policy_freq_high=2,
-                      policy_freq_low=2,
                       gpu=gpu)
 
     if args.load:
@@ -262,7 +259,7 @@ def main():
             outdir=args.outdir,
             eval_n_steps=None,
             eval_interval=5000,
-            eval_n_episodes=10,
+            eval_n_episodes=5,
             use_tensorboard=True
         )
 
