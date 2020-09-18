@@ -171,7 +171,7 @@ def main():
             "Monitor env. Videos and additional information are saved as output files."
         ),
     )
-    parser.add_argument("--lr", type=float, default=5e-4, help="Learning rate.")
+    parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate.")
     parser.add_argument(
         "--prioritized",
         action="store_true",
@@ -239,7 +239,7 @@ def main():
         )
 
     # Use the Nature paper's hyperparameters
-    opt = optim.Adam(q_func.parameters(), lr=args.lr)
+    opt = optim.Adam(q_func.parameters(), lr=args.lr, eps=1e-2 / args.batch_size)
 
     # Select a replay buffer to use
     if args.prioritized:
