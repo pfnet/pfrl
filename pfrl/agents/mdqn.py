@@ -2,6 +2,7 @@ import collections
 from logging import getLogger
 
 import torch
+import torch.nn.functional as F
 import numpy as np
 
 from pfrl.agents import dqn
@@ -110,6 +111,7 @@ class MDQN(dqn.DQN):
         self.clip_l0 = clip_l0
 
         self.pi_sum_record = collections.deque(maxlen=1000)
+        self.chosen_pi_record = collections.deque(maxlen=1000)
         self.bonus_reward_record = collections.deque(maxlen=1000)
         self.augmented_reward_record = collections.deque(maxlen=1000)
         self.next_pi_sum_record = collections.deque(maxlen=1000)
@@ -131,16 +133,16 @@ class MDQN(dqn.DQN):
         advantages = qout.q_values - qout.max.unsqueeze(1)
         t_ln_pi = advantages - self.temperature * (
             advantages / self.temperature
-        ).exp().sum(dim=1).log().unsqueeze(1)
+        ).logsumexp(dim=1, keepdim=True)
         pi = (t_ln_pi / self.temperature).exp()
         self.pi_sum_record.extend(pi.sum(dim=1).detach().cpu().numpy())
 
         # add scaled log policy
         batch_actions = exp_batch["action"].long().unsqueeze(1)
         chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
-        bonus = self.scaling_term * torch.max(
-            chosen_t_ln_pi, torch.tensor(self.clip_l0, device=self.device)
-        )
+        chosen_pi = (chosen_t_ln_pi / self.temperature).exp()
+        self.chosen_pi_record.extend(chosen_pi.detach().cpu().numpy())
+        bonus = self.scaling_term * torch.clamp(chosen_t_ln_pi, min=self.clip_l0, max=0)
         self.bonus_reward_record.extend(bonus.detach().cpu().numpy())
         augmented_rewards = exp_batch["reward"] + bonus
         self.augmented_reward_record.extend(augmented_rewards.detach().cpu().numpy())
@@ -160,8 +162,10 @@ class MDQN(dqn.DQN):
         next_advantages = target_next_qout.q_values - next_q_max.unsqueeze(1)
         next_t_ln_pi = next_advantages - self.temperature * (
             next_advantages / self.temperature
-        ).exp().sum(dim=1).log().unsqueeze(1)
-        next_pi = (next_t_ln_pi / self.temperature).exp()
+        ).logsumexp(dim=1, keepdim=True)
+        #next_pi = (next_t_ln_pi / self.temperature).exp()
+        next_pi = F.softmax(target_next_qout.q_values / self.temperature, dim=1)
+        #next_pi = F.softmax(target_next_qout.q_values, dim=1)
         self.next_pi_sum_record.extend(next_pi.sum(dim=1).detach().cpu().numpy())
         next_value = (next_pi * (target_next_qout.q_values - next_t_ln_pi)).sum(dim=1)
         self.next_value_record.extend(next_value.detach().cpu().numpy())
@@ -176,6 +180,7 @@ class MDQN(dqn.DQN):
 
     def get_statistics(self):
         return super(MDQN, self).get_statistics() + [
+            ("chosen_pi", _mean_or_nan(self.chosen_pi_record)),
             ("pi_sum", _mean_or_nan(self.pi_sum_record)),
             ("bonus", _mean_or_nan(self.bonus_reward_record)),
             ("augmented_reward", _mean_or_nan(self.augmented_reward_record)),
