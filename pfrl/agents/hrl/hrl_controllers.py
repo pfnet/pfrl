@@ -17,9 +17,7 @@ class HRLControllerBase():
             goal_dim,
             action_dim,
             scale,
-            model_path,
             replay_buffer,
-            name='controller_base',
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -34,10 +32,7 @@ class HRLControllerBase():
             minibatch_size=100,
             gpu=None,
             burnin_action_func=None):
-        # example name- 'td3_low' or 'td3_high'
-        self.name = name
         self.scale = scale
-        self.model_path = model_path
         # parameters
         self.expl_noise = expl_noise
         self.policy_noise = policy_noise
@@ -127,7 +122,7 @@ class HRLControllerBase():
                 soft_update_tau=tau,
                 explorer=explorer,
                 update_interval=policy_freq,
-                replay_start_size=replay_start_size/10,
+                replay_start_size=replay_start_size/buffer_freq,
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
@@ -177,9 +172,7 @@ class LowerController(HRLControllerBase):
             goal_dim,
             action_dim,
             scale,
-            model_path,
             replay_buffer,
-            name='lower_controller',
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -197,9 +190,7 @@ class LowerController(HRLControllerBase):
                                             goal_dim=goal_dim,
                                             action_dim=action_dim,
                                             scale=scale,
-                                            model_path=model_path,
                                             replay_buffer=replay_buffer,
-                                            name=name,
                                             actor_lr=actor_lr,
                                             critic_lr=critic_lr,
                                             expl_noise=expl_noise,
@@ -212,7 +203,6 @@ class LowerController(HRLControllerBase):
                                             minibatch_size=minibatch_size,
                                             gpu=gpu,
                                             burnin_action_func=burnin_action_func)
-        self.name = name
 
     def observe(self, n_s, g, r, done):
 
@@ -228,9 +218,7 @@ class HigherController(HRLControllerBase):
             goal_dim,
             action_dim,
             scale,
-            model_path,
             replay_buffer,
-            name='higher_controller',
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -249,8 +237,6 @@ class HigherController(HRLControllerBase):
                                                 goal_dim=goal_dim,
                                                 action_dim=action_dim,
                                                 scale=scale,
-                                                model_path=model_path,
-                                                name=name,
                                                 replay_buffer=replay_buffer,
                                                 actor_lr=actor_lr,
                                                 critic_lr=critic_lr,
@@ -265,7 +251,6 @@ class HigherController(HRLControllerBase):
                                                 minibatch_size=minibatch_size,
                                                 gpu=gpu,
                                                 burnin_action_func=burnin_action_func)
-        self.name = 'high'
         self.action_dim = action_dim
 
     def _off_policy_corrections(self, low_con, batch_size, sgoals, states, actions, candidate_goals=8):

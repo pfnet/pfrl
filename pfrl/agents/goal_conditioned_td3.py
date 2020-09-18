@@ -81,8 +81,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         replay_buffer,
         gamma,
         explorer,
+        replay_start_size,
         gpu=None,
-        replay_start_size=10000,
         minibatch_size=100,
         update_interval=1,
         phi=lambda x: x,
@@ -230,7 +230,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def batch_observe_with_goal(self, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         if self.training:
             self._batch_observe_train_goal(batch_obs, batch_goal, batch_reward, batch_done, batch_reset)
-
 
     def batch_observe_with_goal_state_action_arr(self, state_arr, action_arr, batch_obs, batch_goal, batch_reward, batch_done, batch_reset):
         raise NotImplementedError("This function is not implemented for the GoalConditionedTD3.")
