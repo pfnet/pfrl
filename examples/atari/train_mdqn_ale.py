@@ -147,6 +147,7 @@ def main():
         default=4,
         help="Frequency (in timesteps) of network updates.",
     )
+    parser.add_argument("--batch-size", type=int, default=32)
     parser.add_argument("--eval-n-runs", type=int, default=10)
     parser.add_argument("--no-clip-delta", dest="clip_delta", action="store_false")
     parser.add_argument("--num-step-return", type=int, default=1)
@@ -267,9 +268,10 @@ def main():
         gamma=0.99,
         explorer=explorer,
         replay_start_size=args.replay_start_size,
+        minibatch_size=args.batch_size,
+        update_interval=args.update_interval,
         target_update_interval=args.target_update_interval,
         clip_delta=args.clip_delta,
-        update_interval=args.update_interval,
         batch_accumulator="sum",
         phi=phi,
     )
