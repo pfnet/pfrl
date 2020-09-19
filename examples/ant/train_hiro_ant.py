@@ -74,46 +74,10 @@ def parse_rl_args():
         help="Load a saved agent from a given directory.",
     )
     parser.add_argument(
-        "--final-exploration-steps",
-        type=int,
-        default=5 * 10 ** 5,
-        help="Timesteps after which we stop annealing exploration rate",
-    )
-    parser.add_argument(
-        "--final-epsilon",
-        type=float,
-        default=0.2,
-        help="Final value of epsilon during training.",
-    )
-    parser.add_argument(
         "--steps",
         type=int,
         default=16 * 10 ** 6,
         help="Total number of timesteps to train the agent.",
-    )
-    parser.add_argument(
-        "--replay-start-size",
-        type=int,
-        default=5 * 10 ** 4,
-        help="Minimum replay buffer size before performing gradient updates.",
-    )
-    parser.add_argument(
-        "--target-update-interval",
-        type=int,
-        default=1 * 10 ** 4,
-        help="Frequency (in timesteps) at which the target network is updated.",
-    )
-    parser.add_argument(
-        "--eval-interval",
-        type=int,
-        default=10 ** 5,
-        help="Frequency (in timesteps) of evaluation phase.",
-    )
-    parser.add_argument(
-        "--update-interval",
-        type=int,
-        default=1,
-        help="Frequency (in timesteps) of network updates.",
     )
     parser.add_argument(
         "--eval-n-runs",
@@ -137,18 +101,13 @@ def parse_rl_args():
         default=False,
         help="Render env states in a GUI window.",
     )
-    parser.add_argument("--lr", type=float, default=6.25e-5, help="Learning rate")
     parser.add_argument("--num-envs", type=int, default=1, help="Number of envs run in parallel.")
-    parser.add_argument(
-        "--batch-size", type=int, default=32, help="Batch size used for training."
-    )
     parser.add_argument(
         "--record",
         action="store_true",
         default=False,
         help="Record videos of evaluation envs. --render should also be specified.",
     )
-    parser.add_argument("--gamma", type=float, default=0.99, help="Discount factor.")
     args = parser.parse_args()
     return args
 
