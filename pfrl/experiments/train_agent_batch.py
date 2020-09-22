@@ -165,6 +165,7 @@ def train_agent_batch_with_evaluation(
     successful_score=None,
     step_hooks=(),
     save_best_so_far_agent=True,
+    use_tensorboard=False,
     logger=None,
 ):
     """Train an agent while regularly evaluating it.
@@ -194,6 +195,7 @@ def train_agent_batch_with_evaluation(
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
+        use_tensorboard (bool): Additionally log eval stats to tensorboard
         logger (logging.Logger): Logger used in this function.
     """
 
@@ -217,6 +219,7 @@ def train_agent_batch_with_evaluation(
         env=eval_env,
         step_offset=step_offset,
         save_best_so_far_agent=save_best_so_far_agent,
+        use_tensorboard=use_tensorboard,
         logger=logger,
     )
 
