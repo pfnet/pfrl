@@ -95,12 +95,12 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
-        use_entropy=True
+        add_entropy=True
     ):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
-        self.use_entropy = use_entropy
-        if use_entropy:
+        self.add_entropy = add_entropy
+        if add_entropy:
             self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
@@ -150,7 +150,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             )
 
             entropy_term = 0
-            if self.use_entropy:
+            if self.add_entropy:
                 next_log_prob = next_action_distrib.log_prob(next_actions)
                 entropy_term = self.temperature * next_log_prob[..., None]
 
@@ -196,7 +196,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         action_distrib = self.policy(torch.cat([batch_state, batch_goal], -1))
         onpolicy_actions = action_distrib.rsample()
         entropy_term = 0
-        if self.use_entropy:
+        if self.add_entropy:
             log_prob = action_distrib.log_prob(onpolicy_actions)
             entropy_term = self.temperature * log_prob[..., None]
         q = self.q_func1((torch.cat([batch_state, batch_goal], -1), onpolicy_actions))

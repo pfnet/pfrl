@@ -32,6 +32,7 @@ class HRLControllerBase():
             buffer_freq,
             minibatch_size,
             gpu,
+            add_entropy,
             burnin_action_func=None,
             replay_start_size=2500):
         self.scale = scale
@@ -44,29 +45,42 @@ class HRLControllerBase():
         self.tau = tau
         self.is_low_level = is_low_level
         self.minibatch_size = minibatch_size
+        self.add_entropy = add_entropy
         # create td3 agent
         self.device = torch.device(f'cuda:{gpu}')
+        if self.add_entropy:
+            def squashed_diagonal_gaussian_head(x):
+                mean, log_scale = torch.chunk(x, 2, dim=-1)
+                log_scale = torch.clamp(log_scale, -20.0, 2.0)
+                var = torch.exp(log_scale * 2)
+                base_distribution = distributions.Independent(
+                    distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
+                )
+                return base_distribution
 
-        def squashed_diagonal_gaussian_head(x):
-            mean, log_scale = torch.chunk(x, 2, dim=-1)
-            log_scale = torch.clamp(log_scale, -20.0, 2.0)
-            var = torch.exp(log_scale * 2)
-            base_distribution = distributions.Independent(
-                distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
-            )
-            return base_distribution
+            policy = nn.Sequential(
+                nn.Linear(state_dim + goal_dim, 300),
+                nn.ReLU(),
+                nn.Linear(300, 300),
+                nn.ReLU(),
+                nn.Linear(300, action_dim * 2),
+                nn.Tanh(),
+                ConstantsMult(torch.cat((torch.tensor(self.scale), torch.ones(self.scale.size))).float().to(self.device)),
+                # pfrl.policies.DeterministicHead(),
+                Lambda(squashed_diagonal_gaussian_head),
+                )
+        else:
+            policy = nn.Sequential(
+                nn.Linear(state_dim + goal_dim, 300),
+                nn.ReLU(),
+                nn.Linear(300, 300),
+                nn.ReLU(),
+                nn.Linear(300, action_dim),
+                nn.Tanh(),
+                ConstantsMult(torch.tensor(self.scale).float().to(self.device)),
+                pfrl.policies.DeterministicHead(),
+                )
 
-        policy = nn.Sequential(
-            nn.Linear(state_dim + goal_dim, 300),
-            nn.ReLU(),
-            nn.Linear(300, 300),
-            nn.ReLU(),
-            nn.Linear(300, action_dim * 2),
-            nn.Tanh(),
-            ConstantsMult(torch.cat((torch.tensor(self.scale), torch.ones(self.scale.size))).float().to(self.device)),
-            # pfrl.policies.DeterministicHead(),
-            Lambda(squashed_diagonal_gaussian_head),
-            )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
 
         def make_q_func_with_optimizer():
@@ -119,6 +133,7 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
+                add_entropy=self.add_entropy,
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
@@ -140,6 +155,7 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
+                add_entropy=self.add_entropy,
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
@@ -187,6 +203,7 @@ class LowerController(HRLControllerBase):
             action_dim,
             scale,
             replay_buffer,
+            add_entropy,
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -218,6 +235,7 @@ class LowerController(HRLControllerBase):
                                             buffer_freq=buffer_freq,
                                             minibatch_size=minibatch_size,
                                             gpu=gpu,
+                                            add_entropy=add_entropy,
                                             burnin_action_func=burnin_action_func)
 
     def observe(self, n_s, g, r, done):
@@ -235,6 +253,7 @@ class HigherController(HRLControllerBase):
             action_dim,
             scale,
             replay_buffer,
+            add_entropy,
             actor_lr=0.0001,
             critic_lr=0.001,
             expl_noise=0.1,
@@ -266,6 +285,7 @@ class HigherController(HRLControllerBase):
                                                 buffer_freq=buffer_freq,
                                                 minibatch_size=minibatch_size,
                                                 gpu=gpu,
+                                                add_entropy=add_entropy,
                                                 burnin_action_func=burnin_action_func)
         self.action_dim = action_dim
 

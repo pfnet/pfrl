@@ -30,6 +30,7 @@ class HIROAgent(HRLAgent):
                  train_freq,
                  reward_scaling,
                  gpu,
+                 add_entropy,
                  start_training_steps=2500):
         """
         Constructor for the HIRO agent.
@@ -50,7 +51,8 @@ class HIROAgent(HRLAgent):
             scale=self.scale_high,
             replay_buffer=high_level_replay_buffer,
             gpu=gpu,
-            burnin_action_func=high_level_burnin_action_func
+            burnin_action_func=high_level_burnin_action_func,
+            add_entropy=add_entropy
         )
 
         # lower td3 controller
@@ -61,7 +63,8 @@ class HIROAgent(HRLAgent):
             scale=self.scale_low,
             replay_buffer=low_level_replay_buffer,
             gpu=gpu,
-            burnin_action_func=low_level_burnin_action_func
+            burnin_action_func=low_level_burnin_action_func,
+            add_entropy=add_entropy
         )
 
         self.subgoal_freq = subgoal_freq
@@ -162,6 +165,8 @@ class HIROAgent(HRLAgent):
     def _low_reward(self, s, sg, n_s):
         """
         reward function for low level controller.
+        rewards the low level controller for getting close to the
+        subgoals assigned to it.
         """
         abs_s = s[:sg.shape[0]] + sg
         return -np.sqrt(np.sum((abs_s - n_s[:sg.shape[0]])**2))

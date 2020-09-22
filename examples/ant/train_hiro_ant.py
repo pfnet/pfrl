@@ -85,6 +85,13 @@ def parse_rl_args():
         default=0.2,
         help="Final value of epsilon during training.",
     )
+
+    parser.add_argument(
+        "--add-entropy",
+        type=bool,
+        default=False,
+        help="Whether or not to add entropy.",
+    )
     parser.add_argument(
         "--steps",
         type=int,
@@ -231,7 +238,8 @@ def main():
                       subgoal_freq=10,
                       train_freq=10,
                       reward_scaling=0.1,
-                      gpu=gpu)
+                      gpu=gpu,
+                      add_entropy=args.add_entropy)
 
     if args.load:
         # load weights from a file if arg supplied
