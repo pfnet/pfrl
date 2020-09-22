@@ -1,5 +1,6 @@
 import torch
 from torch import nn
+from torch import distributions
 import numpy as np
 
 import pfrl
@@ -8,6 +9,7 @@ from pfrl import explorers
 from pfrl.replay_buffer import high_level_batch_experiences_with_goal
 from pfrl.agents import HIROHighLevelGoalConditionedTD3, GoalConditionedTD3
 from pfrl.nn import ConstantsMult
+from pfrl.nn.lmbda import Lambda
 
 
 class HRLControllerBase():
@@ -45,15 +47,24 @@ class HRLControllerBase():
         # create td3 agent
         self.device = torch.device(f'cuda:{gpu}')
 
+        def squashed_diagonal_gaussian_head(x):
+            mean, log_scale = torch.chunk(x, 2, dim=1)
+            log_scale = torch.clamp(log_scale, -20.0, 2.0)
+            var = torch.exp(log_scale * 2)
+            base_distribution = distributions.Independent(
+                distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
+            )
+            return base_distribution
+
         policy = nn.Sequential(
             nn.Linear(state_dim + goal_dim, 300),
             nn.ReLU(),
             nn.Linear(300, 300),
             nn.ReLU(),
-            nn.Linear(300, action_dim),
+            nn.Linear(300, action_dim * 2),
             nn.Tanh(),
-            ConstantsMult(torch.tensor(self.scale).float().to(self.device)),
-            pfrl.policies.DeterministicHead(),
+            ConstantsMult(torch.cat((torch.tensor(self.scale), torch.ones(self.scale.size))).float().to(self.device)),
+            Lambda(squashed_diagonal_gaussian_head),
             )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)
 
@@ -82,7 +93,7 @@ class HRLControllerBase():
 
         def default_target_policy_smoothing_func(batch_action):
             """Add noises to actions for target policy smoothing."""
-            noise = torch.clamp(0.2 * torch.randn_like(batch_action), -self.noise_clip, self.noise_clip)
+            noise = torch.clamp(policy_noise * torch.randn_like(batch_action), -self.noise_clip, self.noise_clip)
             smoothed_action = batch_action + noise
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
