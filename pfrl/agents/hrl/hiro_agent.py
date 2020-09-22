@@ -119,7 +119,7 @@ class HIROAgent(HRLAgent):
                 if len(self.action_arr) == self.train_freq:
                     # train high level controller every self.train_freq steps
                     self.high_con.agent.update_high_level_last_results(self.last_high_level_obs, self.last_high_level_goal, self.last_high_level_action)
-                    self.high_con.observe(self.state_arr, self.action_arr, self.cumulative_reward, goal, obs, done)
+                    self.high_con.observe(self.state_arr, self.action_arr, self.cumulative_reward, goal, self.last_obs, done)
 
                 # reset last high level obs, goal, action
                 self.action_arr = []
