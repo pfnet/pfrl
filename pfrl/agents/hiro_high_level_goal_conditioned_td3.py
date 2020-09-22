@@ -94,6 +94,7 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
+        use_entropy=True
     ):
         # determines if we're dealing with a low level controller.
         self.cumulative_reward = False
@@ -119,7 +120,11 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               buffer_freq=buffer_freq,
                                                               burnin_action_func=burnin_action_func,
                                                               policy_update_delay=policy_update_delay,
-                                                              target_policy_smoothing_func=target_policy_smoothing_func)
+                                                              target_policy_smoothing_func=target_policy_smoothing_func,
+                                                              use_entropy=use_entropy)
+
+    def change_temporal_delay(self, new_temporal_delay):
+        self.buffer_freq = new_temporal_delay
 
     def update_high_level_last_results(self, states, goals, actions):
         """
@@ -149,16 +154,23 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         ), pfrl.utils.evaluating(self.target_q_func1), pfrl.utils.evaluating(
             self.target_q_func2
         ):
+            next_action_distrib = self.target_policy(torch.cat([batch_next_state, batch_goal], -1))
             next_actions = self.target_policy_smoothing_func(
-                self.target_policy(torch.cat([batch_next_state, batch_goal], -1)).sample()
+                next_action_distrib.sample()
             )
+
+            entropy_term = 0
+            if self.use_entropy:
+                next_log_prob = next_action_distrib.log_prob(next_actions)
+                entropy_term = self.temperature * next_log_prob[..., None]
+
             next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_goal], -1), next_actions))
             next_q2 = self.target_q_func2((torch.cat([batch_next_state, batch_goal], -1), next_actions))
             next_q = torch.min(next_q1, next_q2)
 
             target_q = batch_rewards + batch_discount * (
                 1.0 - batch_terminal
-            ) * torch.flatten(next_q)
+            ) * torch.flatten(next_q - entropy_term)
 
         predict_q1 = torch.flatten(self.q_func1((torch.cat([batch_state, batch_goal], -1), batch_actions)))
         predict_q2 = torch.flatten(self.q_func2((torch.cat([batch_state, batch_goal], -1), batch_actions)))

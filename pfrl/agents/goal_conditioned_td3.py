@@ -95,9 +95,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
+        use_entropy=True
     ):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
+        self.use_entropy = use_entropy
+        if use_entropy:
+            self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
                                                  q_func2=q_func2,
@@ -140,16 +144,23 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         ), pfrl.utils.evaluating(self.target_q_func1), pfrl.utils.evaluating(
             self.target_q_func2
         ):
+            next_action_distrib = self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1))
             next_actions = self.target_policy_smoothing_func(
-                self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1)).sample()
+                next_action_distrib.sample()
             )
+
+            entropy_term = 0
+            if self.use_entropy:
+                next_log_prob = next_action_distrib.log_prob(next_actions)
+                entropy_term = self.temperature * next_log_prob[..., None]
+
             next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
             next_q2 = self.target_q_func2((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
             next_q = torch.min(next_q1, next_q2)
 
             target_q = batch_rewards + batch_discount * (
                 1.0 - batch_terminal
-            ) * torch.flatten(next_q)
+            ) * torch.flatten(next_q - entropy_term)
 
         predict_q1 = torch.flatten(self.q_func1((torch.cat([batch_state, batch_goal], -1), batch_actions)))
         predict_q2 = torch.flatten(self.q_func2((torch.cat([batch_state, batch_goal], -1), batch_actions)))
@@ -182,12 +193,16 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
         batch_state = batch["state"]
         batch_goal = batch["goal"]
-
-        onpolicy_actions = self.policy(torch.cat([batch_state, batch_goal], -1)).rsample()
+        action_distrib = self.policy(torch.cat([batch_state, batch_goal], -1))
+        onpolicy_actions = action_distrib.rsample()
+        entropy_term = 0
+        if self.use_entropy:
+            log_prob = action_distrib.log_prob(onpolicy_actions)
+            entropy_term = self.temperature * log_prob[..., None]
         q = self.q_func1((torch.cat([batch_state, batch_goal], -1), onpolicy_actions))
 
         # Since we want to maximize Q, loss is negation of Q
-        loss = -torch.mean(q)
+        loss = -torch.mean(-entropy_term + q)
 
         self.policy_loss_record.append(float(loss))
         self.policy_optimizer.zero_grad()
