@@ -15,5 +15,8 @@ from pfrl.agents.ppo import PPO  # NOQA
 from pfrl.agents.reinforce import REINFORCE  # NOQA
 from pfrl.agents.soft_actor_critic import SoftActorCritic  # NOQA
 from pfrl.agents.td3 import TD3  # NOQA
+from pfrl.agents.goal_conditioned_td3 import GoalConditionedTD3 # NOQA
+from pfrl.agents.hiro_high_level_goal_conditioned_td3 import HIROHighLevelGoalConditionedTD3 # NOQA
 from pfrl.agents.trpo import TRPO  # NOQA
+from pfrl.agents.hrl.hiro_agent import HIROAgent # NOQA
 from pfrl.agents.state_q_function_actor import StateQFunctionActor  # NOQA

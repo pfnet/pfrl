@@ -202,6 +202,135 @@ def batch_experiences(experiences, device, phi, gamma, batch_states=batch_states
     return batch_exp
 
 
+def batch_experiences_with_goal(experiences, device, phi, gamma, batch_states=batch_states):
+    """Takes a batch of k experiences each of which contains j
+
+    consecutive transitions and vectorizes them, where j is between 1 and n.
+
+    Args:
+        experiences: list of experiences. Each experience is a list
+            containing between 1 and n dicts containing
+              - state (object): State
+              - goal (object): Goal
+              - action (object): Action
+              - reward (float): Reward
+              - is_state_terminal (bool): True iff next state is terminal
+              - next_state (object): Next state
+              - next_goal (object): Next goal
+        device : GPU or CPU the tensor should be placed on
+        phi : Preprocessing function
+        gamma: discount factor
+        batch_states: function that converts a list to a batch
+    Returns:
+        dict of batched transitions
+    """
+
+    batch_exp = {
+        "state": batch_states([elem[0]["state"] for elem in experiences], device, phi),
+        "goal": batch_states([elem[0]["goal"] for elem in experiences], device, phi),
+        "action": torch.as_tensor(
+            [elem[0]["action"] for elem in experiences], device=device
+        ),
+        "reward": torch.as_tensor(
+            [
+                sum((gamma ** i) * exp[i]["reward"] for i in range(len(exp)))
+                for exp in experiences
+            ],
+            dtype=torch.float32,
+            device=device,
+        ),
+        "next_state": batch_states(
+            [elem[-1]["next_state"] for elem in experiences], device, phi
+        ),
+        "next_goal": batch_states(
+            [elem[-1]["next_goal"] for elem in experiences], device, phi
+        ),
+        "is_state_terminal": torch.as_tensor(
+            [
+                any(transition["is_state_terminal"] for transition in exp)
+                for exp in experiences
+            ],
+            dtype=torch.float32,
+            device=device,
+        ),
+        "discount": torch.as_tensor(
+            [(gamma ** len(elem)) for elem in experiences],
+            dtype=torch.float32,
+            device=device,
+        ),
+    }
+    if all(elem[-1]["next_action"] is not None for elem in experiences):
+        batch_exp["next_action"] = torch.as_tensor(
+            [elem[-1]["next_action"] for elem in experiences], device=device
+        )
+    return batch_exp
+
+def high_level_batch_experiences_with_goal(experiences, device, phi, gamma, batch_states=batch_states):
+    """Takes a batch of k experiences each of which contains j
+
+    consecutive transitions and vectorizes them, where j is between 1 and n.
+
+    Args:
+        experiences: list of experiences. Each experience is a list
+            containing between 1 and n dicts containing
+              - state (object): State
+              - goal (object): Goal
+              - action (object): Action
+              - reward (float): Reward
+              - is_state_terminal (bool): True iff next state is terminal
+              - next_state (object): Next state
+              - action_arr (object): list of recent actions
+              - state_arr (object): list of recent states
+        device : GPU or CPU the tensor should be placed on
+        phi : Preprocessing function
+        gamma: discount factor
+        batch_states: function that converts a list to a batch
+    Returns:
+        dict of batched transitions
+    """
+
+    batch_exp = {
+        "state": batch_states([elem[0]["state"] for elem in experiences], device, phi),
+        "goal": batch_states([elem[0]["goal"] for elem in experiences], device, phi),
+        "action": torch.as_tensor(
+            [elem[0]["action"] for elem in experiences], device=device
+        ),
+        "reward": torch.as_tensor(
+            [
+                sum((gamma ** i) * exp[i]["reward"] for i in range(len(exp)))
+                for exp in experiences
+            ],
+            dtype=torch.float32,
+            device=device,
+        ),
+        "next_state": batch_states(
+            [elem[-1]["next_state"] for elem in experiences], device, phi
+        ),
+        "is_state_terminal": torch.as_tensor(
+            [
+                any(transition["is_state_terminal"] for transition in exp)
+                for exp in experiences
+            ],
+            dtype=torch.float32,
+            device=device,
+        ),
+        "action_arr": batch_states([elem[0]["action_arr"] for elem in experiences], device, phi),
+        "state_arr": batch_states([elem[0]["state_arr"] for elem in experiences], device, phi),
+        "discount": torch.as_tensor(
+            [(gamma ** len(elem)) for elem in experiences],
+            dtype=torch.float32,
+            device=device,
+        ),
+    }
+    if all(elem[-1]["next_action"] is not None for elem in experiences):
+        batch_exp["next_action"] = torch.as_tensor(
+            [elem[-1]["next_action"] for elem in experiences], device=device
+        )
+    return batch_exp
+
+
+
+
 def _is_sorted_desc_by_lengths(lst):
     return all(len(a) >= len(b) for a, b in zip(lst, lst[1:]))
 
@@ -316,6 +445,39 @@ class ReplayUpdater(object):
         self.n_times_update = n_times_update
         self.replay_start_size = replay_start_size
         self.update_interval = update_interval
+
+    def can_update_then_sample(self, iteration):
+        """If we can update the model if the condition is met,
+            return a batch of samples from the replay buffer.
+
+        Args:
+            iteration (int): Timestep.
+
+        Returns:
+            bool: True iff the condition was updated this time.
+        """
+        if len(self.replay_buffer) < self.replay_start_size:
+            return False
+
+        if self.episodic_update and self.replay_buffer.n_episodes < self.batchsize:
+            return False
+
+        if iteration % self.update_interval != 0:
+            return False
+
+        all_experiences = []
+
+        for _ in range(self.n_times_update):
+            if self.episodic_update:
+                episodes = self.replay_buffer.sample_episodes(
+                    self.batchsize, self.episodic_update_len
+                )
+                all_experiences.append(episodes)
+            else:
+                transitions = self.replay_buffer.sample(self.batchsize)
+                all_experiences.append(transitions)
+
+        return all_experiences
 
     def update_if_necessary(self, iteration):
         """Update the model if the condition is met.

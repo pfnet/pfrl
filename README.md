@@ -91,6 +91,8 @@ Following useful techniques have been also implemented in PFRL:
   - examples: [[DQN]](examples/atari/train_drqn_ale.py)
 
 
+TBD: Hierarchical Reinforcement Algorithms - including HIRO
+
 ## Environments
 
 Environments that support the subset of OpenAI Gym's interface (`reset` and `step` methods) can be used.

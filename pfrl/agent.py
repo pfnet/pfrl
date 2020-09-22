@@ -76,6 +76,77 @@ class Agent(object, metaclass=ABCMeta):
             self.training = orig_mode
 
 
+class HRLAgent(Agent, metaclass=ABCMeta):
+    """Abstract HRL agent class."""
+    training = True
+
+    @abstractmethod
+    def act_high_level(self, obs: Any, goal: Any, subgoal: Any):
+        """
+        high level controller act method
+        """
+        pass
+
+    @abstractmethod
+    def act_low_level(self, obs: Any, goal: Any):
+        """
+        low level controller act method
+        """
+        pass
+
+    def act(self, obs: Any) -> Any:
+        """Select an action, based on an
+        observation.
+
+        Returns:
+            ~object: action
+        """
+        raise NotImplementedError()
+
+    def observe(self, obs: Any, reward: float, done: bool, reset: bool) -> None:
+        """Observe consequences of the last action.
+
+        Returns:
+            None
+        """
+        pass
+
+    def get_statistics(self) -> List[Tuple[str, Any]]:
+        """Get statistics of the agent.
+
+        Returns:
+            List of two-item tuples. The first item in a tuple is a str that
+            represents the name of item, while the second item is a value to be
+            recorded.
+
+            Example: [('average_loss': 0), ('average_value': 1), ...]
+        """
+        pass
+
+    def change_to_eval(self):
+        """
+        change to eval mode
+        """
+        self.training = False
+
+    def change_to_train(self):
+        """
+        change to eval mode
+        """
+        self.training = True
+
+    @contextlib.contextmanager
+    def eval_mode(self):
+        orig_mode = self.training
+        try:
+            self.change_to_eval()
+            yield
+        finally:
+            self.training = orig_mode
+            if self.training:
+                self.change_to_train()
+
+
 class AttributeSavingMixin(object):
     """Mixin that provides save and load functionalities."""
 
@@ -194,3 +265,86 @@ class BatchAgent(Agent, metaclass=ABCMeta):
             None
         """
         raise NotImplementedError()
+
+
+class GoalConditionedBatchAgent(BatchAgent, metaclass=ABCMeta):
+    """Abstract GOAL conditioned agent class that can interact with a batch of envs."""
+
+    def act_with_goal(self, obs: Any, goal: Any) -> Any:
+        return self.batch_act_with_goal([obs], [goal])[0]
+
+    def observe_with_goal(self, obs: Any, goals: Any, reward: float, done: bool, reset: bool) -> None:
+        self.batch_observe_with_goal([obs], [goals], [reward], [done], [reset])
+
+    def observe_with_goal_state_action_arr(self, state_arr: Any, action_arr: Any, obs: Any, goals: Any, reward: float, done: bool, reset: bool) -> None:
+        self.batch_observe_with_goal_state_action_arr(state_arr, action_arr, [obs], [goals], [reward], [done], [reset])
+
+
+    @abstractmethod
+    def batch_act_with_goal(self, batch_obs: Sequence[Any], batch_goal: Sequence[Any]) -> Sequence[Any]:
+        """Select a batch of actions.
+
+        Args:
+            batch_obs (Sequence of ~object): Observations.
+            batch_goal (Sequence of ~object): Goals.
+
+        Returns:
+            Sequence of ~object: Actions.
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def batch_observe_with_goal(
+        self,
+        batch_obs: Sequence[Any],
+        batch_goal: Sequence[Any],
+        batch_reward: Sequence[float],
+        batch_done: Sequence[bool],
+        batch_reset: Sequence[bool],
+    ) -> None:
+        """Observe a batch of action consequences.
+
+        Args:
+            batch_obs (Sequence of ~object): Observations.
+            batch_goal (Sequence of ~object): Goals.
+            batch_reward (Sequence of float): Rewards.
+            batch_done (Sequence of boolean): Boolean values where True
+                indicates the current state is terminal.
+            batch_reset (Sequence of boolean): Boolean values where True
+                indicates the current episode will be reset, even if the
+                current state is not terminal.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def batch_observe_with_goal_state_action_arr(
+        self,
+        state_arr: Sequence[Any],
+        action_arr: Sequence[Any],
+        batch_obs: Sequence[Any],
+        batch_goal: Sequence[Any],
+        batch_reward: Sequence[float],
+        batch_done: Sequence[bool],
+        batch_reset: Sequence[bool],
+    ) -> None:
+        """Observe a batch of action consequences.
+
+        Args:
+            state_arr (Sequence of a object): Recent states.
+            action_arr (Sequence of a object): Recent actions.
+            batch_obs (Sequence of object): Observations.
+            batch_goal (Sequence of object): Goals.
+            batch_reward (Sequence of float): Rewards.
+            batch_done (Sequence of boolean): Boolean values where True
+                indicates the current state is terminal.
+            batch_reset (Sequence of boolean): Boolean values where True
+                indicates the current episode will be reset, even if the
+                current state is not terminal.
+
+        Returns:
+            None
+        """
+        raise NotImplementedError() 

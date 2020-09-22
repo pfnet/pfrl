@@ -27,7 +27,7 @@ class AdditiveGaussian(explorer.Explorer):
         a = greedy_action_func()
         noise = np.random.normal(scale=self.scale, size=a.shape).astype(np.float32)
         if self.low is not None or self.high is not None:
-            return np.clip(a + noise, self.low, self.high)
+            return np.clip(a + noise, self.low, self.high).astype(np.float32)
         else:
             return a + noise
 

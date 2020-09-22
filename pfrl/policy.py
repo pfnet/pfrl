@@ -18,3 +18,15 @@ class Policy(object, metaclass=ABCMeta):
             Distribution of actions
         """
         raise NotImplementedError()
+
+class GoalConditionedPolicy(object, metaclass=ABCMeta):
+    """Abstract policy."""
+
+    @abstractmethod
+    def __call__(self, state, goal):
+        """Evaluate a policy.
+
+        Returns:
+            Distribution of actions
+        """
+        raise NotImplementedError()

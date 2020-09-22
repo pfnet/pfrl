@@ -12,3 +12,4 @@ from pfrl.nn.recurrent_sequential import RecurrentSequential  # NOQA
 from pfrl.nn.lmbda import Lambda  # NOQA
 from pfrl.nn.concat_obs_and_action import ConcatObsAndAction  # NOQA
 from pfrl.nn.bound_by_tanh import BoundByTanh  # NOQA
+from pfrl.nn.constants_mult import ConstantsMult # NOQA

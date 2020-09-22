@@ -6,4 +6,5 @@ from pfrl.replay_buffers.prioritized import PriorityWeightError  # NOQA
 from pfrl.replay_buffers.prioritized_episodic import (  # NOQA
     PrioritizedEpisodicReplayBuffer,
 )
+from pfrl.replay_buffers.hrl_replay_buffer import HigherControllerReplayBuffer, LowerControllerReplayBuffer # NOQA
 from pfrl.replay_buffers.replay_buffer import ReplayBuffer  # NOQA
