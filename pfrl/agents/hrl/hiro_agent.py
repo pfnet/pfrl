@@ -211,6 +211,14 @@ class HIROAgent(HRLAgent):
         self.low_con.agent.training = True
         self.high_con.agent.training = True
 
+    def change_temporal_delay_(self, temporal_delay):
+        """
+        changes the temporal delay of the high level controller, in place.
+        """
+        self.train_freq = temporal_delay
+        self.subgoal_freq = temporal_delay
+        self.high_con.agent.change_temporal_delay(temporal_delay)
+
     def get_statistics(self):
         """
         gets the statistics of all of the actors and critics for the high
