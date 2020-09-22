@@ -94,7 +94,7 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
-        add_entropy=True
+        add_entropy=False
     ):
         # determines if we're dealing with a low level controller.
         self.cumulative_reward = False
