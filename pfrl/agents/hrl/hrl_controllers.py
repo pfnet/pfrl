@@ -108,7 +108,7 @@ class HRLControllerBase():
 
         def default_target_policy_smoothing_func(batch_action):
             """Add noises to actions for target policy smoothing."""
-            noise = torch.clamp(policy_noise * torch.randn_like(batch_action), -self.noise_clip, self.noise_clip)
+            noise = torch.clamp(self.policy_noise * torch.randn_like(batch_action), -self.noise_clip, self.noise_clip)
             smoothed_action = batch_action + noise
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
