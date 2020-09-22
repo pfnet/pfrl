@@ -64,6 +64,7 @@ class HRLControllerBase():
             nn.Linear(300, action_dim * 2),
             nn.Tanh(),
             ConstantsMult(torch.cat((torch.tensor(self.scale), torch.ones(self.scale.size))).float().to(self.device)),
+            # pfrl.policies.DeterministicHead(),
             Lambda(squashed_diagonal_gaussian_head),
             )
         policy_optimizer = torch.optim.Adam(policy.parameters(), lr=actor_lr)

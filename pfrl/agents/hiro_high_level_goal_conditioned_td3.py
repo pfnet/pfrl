@@ -123,6 +123,9 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               target_policy_smoothing_func=target_policy_smoothing_func,
                                                               use_entropy=use_entropy)
 
+    def change_temporal_delay(self, new_temporal_delay):
+        self.buffer_freq = new_temporal_delay
+
     def update_high_level_last_results(self, states, goals, actions):
         """
         update the last observation, goal and action for the high level
