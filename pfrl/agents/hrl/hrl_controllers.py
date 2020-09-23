@@ -75,11 +75,11 @@ class HRLControllerBase():
             # )
 
             policy = nn.Sequential(
-                nn.Linear(state_dim + goal_dim, 300),
+                nn.Linear(state_dim + goal_dim, 256),
                 nn.ReLU(),
-                nn.Linear(300, 300),
+                nn.Linear(256, 256),
                 nn.ReLU(),
-                nn.Linear(300, action_dim * 2),
+                nn.Linear(256, action_dim * 2),
                 Lambda(squashed_diagonal_gaussian_head),
                 )
 
