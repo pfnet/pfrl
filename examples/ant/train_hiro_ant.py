@@ -89,7 +89,7 @@ def parse_rl_args():
     parser.add_argument(
         "--add-entropy",
         type=bool,
-        default=False,
+        default=True,
         help="Whether or not to add entropy.",
     )
     parser.add_argument(
