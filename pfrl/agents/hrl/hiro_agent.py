@@ -64,7 +64,7 @@ class HIROAgent(HRLAgent):
             replay_buffer=low_level_replay_buffer,
             gpu=gpu,
             burnin_action_func=low_level_burnin_action_func,
-            add_entropy=add_entropy
+            add_entropy=False
         )
 
         self.subgoal_freq = subgoal_freq
