@@ -55,10 +55,12 @@ class HRLControllerBase():
                 taken from the SAC code.
                 """
                 mean, log_scale = torch.chunk(x, 2, dim=-1)
+                squashed_mean = nn.Tanh()(mean)
+                rescaled_mean = squashed_mean * torch.tensor(self.scale).float().to(self.device)
                 log_scale = torch.clamp(log_scale, -20.0, 2.0)
                 var = torch.exp(log_scale * 2)
                 base_distribution = distributions.Independent(
-                    distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
+                    distributions.Normal(loc=rescaled_mean, scale=torch.sqrt(var)), 1
                 )
                 return base_distribution
 
@@ -78,9 +80,6 @@ class HRLControllerBase():
                 nn.Linear(300, 300),
                 nn.ReLU(),
                 nn.Linear(300, action_dim * 2),
-                nn.Tanh(),
-                ConstantsMult(torch.cat((torch.tensor(self.scale), torch.ones(self.scale.size))).float().to(self.device)),
-                # pfrl.policies.DeterministicHead(),
                 Lambda(squashed_diagonal_gaussian_head),
                 )
 
