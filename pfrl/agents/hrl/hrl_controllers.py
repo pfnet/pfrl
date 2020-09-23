@@ -48,8 +48,12 @@ class HRLControllerBase():
         self.add_entropy = add_entropy
         # create td3 agent
         self.device = torch.device(f'cuda:{gpu}')
+
         if self.add_entropy:
             def squashed_diagonal_gaussian_head(x):
+                """
+                taken from the SAC code.
+                """
                 mean, log_scale = torch.chunk(x, 2, dim=-1)
                 log_scale = torch.clamp(log_scale, -20.0, 2.0)
                 var = torch.exp(log_scale * 2)
@@ -57,6 +61,16 @@ class HRLControllerBase():
                     distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
                 )
                 return base_distribution
+
+            # SAC policy definition:
+            # policy = nn.Sequential(
+            #     nn.Linear(state_dim + goal_dim, 256),
+            #     nn.ReLU(),
+            #     nn.Linear(256, 256),
+            #     nn.ReLU(),
+            #     nn.Linear(256, action_dim * 2),
+            #     Lambda(squashed_diagonal_gaussian_head),
+            # )
 
             policy = nn.Sequential(
                 nn.Linear(state_dim + goal_dim, 300),
@@ -69,6 +83,11 @@ class HRLControllerBase():
                 # pfrl.policies.DeterministicHead(),
                 Lambda(squashed_diagonal_gaussian_head),
                 )
+
+            torch.nn.init.xavier_uniform_(policy[0].weight)
+            torch.nn.init.xavier_uniform_(policy[2].weight)
+            torch.nn.init.xavier_uniform_(policy[4].weight)
+
         else:
             policy = nn.Sequential(
                 nn.Linear(state_dim + goal_dim, 300),
