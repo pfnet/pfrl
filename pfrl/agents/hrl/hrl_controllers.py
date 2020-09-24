@@ -36,10 +36,11 @@ class HRLControllerBase():
             burnin_action_func=None,
             replay_start_size=2500):
         self.scale = scale
+        self.device = torch.device(f'cuda:{gpu}')
         self.scale_tensor = torch.tensor(self.scale).float().to(self.device)
         # parameters
         self.expl_noise = expl_noise
-        self.policy_noise = poelf.scale_tensorlicy_noise
+        self.policy_noise = policy_noise
         self.noise_clip = noise_clip
         self.gamma = gamma
         self.policy_freq = policy_freq
@@ -47,9 +48,8 @@ class HRLControllerBase():
         self.is_low_level = is_low_level
         self.minibatch_size = minibatch_size
         self.add_entropy = add_entropy
-        # create td3 agent
-        self.device = torch.device(f'cuda:{gpu}')
 
+        # create agent
         if self.add_entropy:
             def squashed_diagonal_gaussian_head(x):
                 """
