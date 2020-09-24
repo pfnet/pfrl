@@ -39,7 +39,7 @@ class HRLControllerBase():
         self.scale_tensor = torch.tensor(self.scale).float().to(self.device)
         # parameters
         self.expl_noise = expl_noise
-        self.policy_noise = policy_noise
+        self.policy_noise = poelf.scale_tensorlicy_noise
         self.noise_clip = noise_clip
         self.gamma = gamma
         self.policy_freq = policy_freq
@@ -146,7 +146,7 @@ class HRLControllerBase():
                 minibatch_size=minibatch_size,
                 gpu=gpu,
                 add_entropy=self.add_entropy,
-                scale=input_scale
+                scale=input_scale,
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
