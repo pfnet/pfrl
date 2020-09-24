@@ -366,17 +366,28 @@ def eval_performance(
             max_episode_len=max_episode_len,
             logger=logger,
         )
-        if isinstance(scores, tuple):
-            pass
+    if isinstance(scores, tuple):
+        reward_scores = scores[0]
+        success_rate = scores[1]
+        stats = dict(
+            episodes=len(reward_scores),
+            mean=statistics.mean(reward_scores),
+            median=statistics.median(reward_scores),
+            stdev=statistics.stdev(reward_scores) if len(reward_scores) >= 2 else 0.0,
+            max=np.max(reward_scores),
+            min=np.min(reward_scores),
+            success_rate=success_rate,
+        )
 
-    stats = dict(
-        episodes=len(scores),
-        mean=statistics.mean(scores),
-        median=statistics.median(scores),
-        stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
-        max=np.max(scores),
-        min=np.min(scores),
-    )
+    else:
+        stats = dict(
+            episodes=len(scores),
+            mean=statistics.mean(scores),
+            median=statistics.median(scores),
+            stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
+            max=np.max(scores),
+            min=np.min(scores),
+        )
     return stats
 
 
@@ -413,6 +424,10 @@ def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
     for stat in ("mean", "median", "max", "min", "stdev"):
         value = eval_stats[stat]
         summary_writer.add_scalar("eval/" + stat, value, t, cur_time)
+
+    if "success_rate" in eval_stats:
+        value = eval_stats["success_rate"]
+        summary_writer.add_scalar("eval/success_rate", value, t, cur_time)
 
     summary_writer.add_scalar(
         "extras/meanplusstdev", eval_stats["mean"] + eval_stats["stdev"], t, cur_time
