@@ -1,5 +1,6 @@
 import collections
 import pickle
+from typing import Optional
 
 from pfrl.collections.random_access_queue import RandomAccessQueue
 from pfrl import replay_buffer
@@ -17,12 +18,15 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
             (for N-step updates)
     """
 
-    def __init__(self, capacity=None, num_steps=1):
+    # Implements AbstractReplayBuffer.capacity
+    capacity: Optional[int] = None
+
+    def __init__(self, capacity: Optional[int] = None, num_steps: int = 1):
         self.capacity = capacity
         assert num_steps > 0
         self.num_steps = num_steps
         self.memory = RandomAccessQueue(maxlen=capacity)
-        self.last_n_transitions = collections.defaultdict(
+        self.last_n_transitions: collections.defaultdict = collections.defaultdict(
             lambda: collections.deque([], maxlen=num_steps)
         )
 

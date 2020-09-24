@@ -1,6 +1,7 @@
 from abc import ABCMeta
 from abc import abstractmethod
 from abc import abstractproperty
+from typing import Optional
 
 import numpy as np
 import torch
@@ -83,6 +84,35 @@ class AbstractReplayBuffer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def capacity(self) -> Optional[int]:
+        """Returns the capacity of the buffer in number of transitions.
+
+        If unbounded, returns None instead.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def stop_current_episode(self, env_id=0):
+        """Notify the buffer that the current episode is interrupted.
+
+        You may want to interrupt the current episode and start a new one
+        before observing a terminal state. This is typical in continuing envs.
+        In such cases, you need to call this method before appending a new
+        transition so that the buffer will treat it as an initial transition of
+        a new episode.
+
+        This method should not be called after an episode whose termination is
+        already notified by appending a transition with is_state_terminal=True.
+
+        Args:
+            env_id (object): Object that is unique to each env. It indicates
+                which env's current episode is interrupted in multi-env
+                training.
+        """
+        raise NotImplementedError
+
 
 class AbstractEpisodicReplayBuffer(AbstractReplayBuffer):
     """Defines a common interface of episodic replay buffer.
@@ -112,26 +142,6 @@ class AbstractEpisodicReplayBuffer(AbstractReplayBuffer):
 
         Returns:
             Number of episodes in the buffer.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def stop_current_episode(self, env_id=0):
-        """Notify the buffer that the current episode is interrupted.
-
-        You may want to interrupt the current episode and start a new one
-        before observing a terminal state. This is typical in continuing envs.
-        In such cases, you need to call this method before appending a new
-        transition so that the buffer will treat it as an initial transition of
-        a new episode.
-
-        This method should not be called after an episode whose termination is
-        already notified by appending a transition with is_state_terminal=True.
-
-        Args:
-            env_id (object): Object that is unique to each env. It indicates
-                which env's current episode is interrupted in multi-env
-                training.
         """
         raise NotImplementedError
 

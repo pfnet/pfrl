@@ -38,6 +38,10 @@ class ActionValue(object, metaclass=ABCMeta):
         """
         raise NotImplementedError()
 
+    def __getitem__(self, i) -> "ActionValue":
+        """ActionValue is expected to be indexable."""
+        raise NotImplementedError()
+
 
 class DiscreteActionValue(ActionValue):
     """Q-function output for discrete action space.
