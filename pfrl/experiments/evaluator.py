@@ -89,6 +89,7 @@ def _hrl_run_episodes(
     logger = logger or logging.getLogger(__name__)
     scores = []
     successes = 0
+    trials = 0
     terminate = False
     timestep = 0
     env.evaluate = True
@@ -122,7 +123,10 @@ def _hrl_run_episodes(
             error = np.sqrt(np.sum(np.square(fg-obs[:2])))
             print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], obs[0], obs[1], error))
             successes += 1 if error <=5 else 0
-            logger.info(f"{successes} successes so far.")
+            trials += 1
+            # success rate
+            success_rate = successes / trials
+            logger.info(f"Success Rate: {success_rate}")
             # As mixing float and numpy float causes errors in statistics
             # functions, here every score is cast to float.
             scores.append(float(test_r))
@@ -506,7 +510,6 @@ class Evaluator(object):
             eval_stats["min"],
         ) + custom_values
         record_stats(self.outdir, values)
-        print(self.outdir)
         if self.use_tensorboard:
             record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
 

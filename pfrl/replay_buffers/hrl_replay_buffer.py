@@ -1,5 +1,5 @@
-from pfrl.utils import env_modifiers
 from .replay_buffer import ReplayBuffer
+
 
 class LowerControllerReplayBuffer(ReplayBuffer):
     """Experience Replay Buffer for lower level controller in HRL.
