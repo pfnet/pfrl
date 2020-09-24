@@ -163,7 +163,7 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
 
             entropy_term = 0
             if self.add_entropy:
-                next_log_prob = next_action_distrib.log_prob(next_actions)
+                next_log_prob = next_action_distrib.log_prob(next_actions / self.scale)
                 entropy_term = self.temperature * next_log_prob[..., None]
 
             next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_goal], -1), next_actions))
