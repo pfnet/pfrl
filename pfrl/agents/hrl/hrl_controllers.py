@@ -54,26 +54,19 @@ class HRLControllerBase():
                 """
                 taken from the SAC code.
                 """
-                mean, log_scale = torch.chunk(x, 2, dim=-1)
-                squashed_mean = nn.Tanh()(mean)
-                rescaled_mean = squashed_mean * torch.tensor(self.scale).float().to(self.device)
+                assert x.shape[-1] == action_dim * 2
+                mean, log_scale = torch.chunk(x, 2, dim=1)
                 log_scale = torch.clamp(log_scale, -20.0, 2.0)
                 var = torch.exp(log_scale * 2)
                 base_distribution = distributions.Independent(
-                    distributions.Normal(loc=rescaled_mean, scale=torch.sqrt(var)), 1
+                    distributions.Normal(loc=mean, scale=torch.sqrt(var)), 1
                 )
-                return base_distribution
+                # cache_size=1 is required for numerical stability
+                return distributions.transformed_distribution.TransformedDistribution(
+                    base_distribution, [distributions.transforms.TanhTransform(cache_size=1)]
+                )
 
             # SAC policy definition:
-            # policy = nn.Sequential(
-            #     nn.Linear(state_dim + goal_dim, 256),
-            #     nn.ReLU(),
-            #     nn.Linear(256, 256),
-            #     nn.ReLU(),
-            #     nn.Linear(256, action_dim * 2),
-            #     Lambda(squashed_diagonal_gaussian_head),
-            # )
-
             policy = nn.Sequential(
                 nn.Linear(state_dim + goal_dim, 256),
                 nn.ReLU(),
