@@ -147,13 +147,14 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
             self.target_q_func2
         ):
             next_action_distrib = self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1))
+            next_actions_normalized = next_action_distrib.sample()
             next_actions = self.target_policy_smoothing_func(
-                self.scale * next_action_distrib.sample()
+                self.scale * next_actions_normalized
             )
 
             entropy_term = 0
             if self.add_entropy:
-                next_log_prob = next_action_distrib.log_prob(next_actions / self.scale)
+                next_log_prob = next_action_distrib.log_prob(next_actions_normalized)
                 entropy_term = self.temperature * next_log_prob[..., None]
 
             next_q1 = self.target_q_func1((torch.cat([batch_next_state, batch_next_goal], -1), next_actions))
@@ -196,10 +197,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         batch_state = batch["state"]
         batch_goal = batch["goal"]
         action_distrib = self.policy(torch.cat([batch_state, batch_goal], -1))
-        onpolicy_actions = self.scale * action_distrib.rsample()
+        onpolicy_actions_normalized = action_distrib.rsample()
+        onpolicy_actions = self.scale * onpolicy_actions_normalized
         entropy_term = 0
         if self.add_entropy:
-            log_prob = action_distrib.log_prob(onpolicy_actions / self.scale)
+            log_prob = action_distrib.log_prob(onpolicy_actions_normalized)
             entropy_term = self.temperature * log_prob[..., None]
         q = self.q_func1((torch.cat([batch_state, batch_goal], -1), onpolicy_actions))
 
