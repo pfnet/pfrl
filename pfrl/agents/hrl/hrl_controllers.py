@@ -125,7 +125,9 @@ class HRLControllerBase():
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
             return smoothed_action
+
         input_scale = self.scale_tensor if self.add_entropy else 1
+
         if self.is_low_level:
             # standard goal conditioned td3
             self.agent = GoalConditionedTD3(
@@ -168,8 +170,8 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
-                scale=input_scale,
                 add_entropy=self.add_entropy,
+                scale=input_scale,
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
