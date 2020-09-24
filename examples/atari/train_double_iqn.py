@@ -137,15 +137,8 @@ def main():
             nn.ReLU(),
             nn.Flatten(),
         ),
-        phi=nn.Sequential(
-            pfrl.agents.iqn.CosineBasisLinear(64, 3136),
-            nn.ReLU(),
-        ),
-        f=nn.Sequential(
-            nn.Linear(3136, 512),
-            nn.ReLU(),
-            nn.Linear(512, n_actions),
-        ),
+        phi=nn.Sequential(pfrl.agents.iqn.CosineBasisLinear(64, 3136), nn.ReLU(),),
+        f=nn.Sequential(nn.Linear(3136, 512), nn.ReLU(), nn.Linear(512, n_actions),),
     )
 
     # Use the same hyper parameters as https://arxiv.org/abs/1710.10044
@@ -161,10 +154,7 @@ def main():
             num_steps=args.num_step_return,
         )
     else:
-        rbuf = replay_buffers.ReplayBuffer(
-            10 ** 6,
-            num_steps=args.num_step_return,
-        )
+        rbuf = replay_buffers.ReplayBuffer(10 ** 6, num_steps=args.num_step_return,)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         1.0,
@@ -200,10 +190,7 @@ def main():
 
     if args.demo:
         eval_stats = experiments.eval_performance(
-            env=eval_env,
-            agent=agent,
-            n_steps=args.eval_n_steps,
-            n_episodes=None,
+            env=eval_env, agent=agent, n_steps=args.eval_n_steps, n_episodes=None,
         )
         print(
             "n_steps: {} mean: {} median: {} stdev {}".format(

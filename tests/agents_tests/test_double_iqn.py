@@ -11,8 +11,7 @@ from pfrl.agents import double_iqn, iqn
 @pytest.mark.parametrize("quantile_thresholds_N", [1, 5])
 @pytest.mark.parametrize("quantile_thresholds_N_prime", [1, 7])
 class TestDoubleIQNOnDiscreteABC(
-    _TestBatchTrainingMixin,
-    base._TestDQNOnDiscreteABC,
+    _TestBatchTrainingMixin, base._TestDQNOnDiscreteABC,
 ):
     @pytest.fixture(autouse=True)
     def set_iqn_params(self, quantile_thresholds_N, quantile_thresholds_N_prime):
@@ -23,13 +22,9 @@ class TestDoubleIQNOnDiscreteABC(
         obs_size = env.observation_space.low.size
         hidden_size = 64
         return iqn.ImplicitQuantileQFunction(
-            psi=nn.Sequential(
-                nn.Linear(obs_size, hidden_size),
-                nn.ReLU(),
-            ),
+            psi=nn.Sequential(nn.Linear(obs_size, hidden_size), nn.ReLU(),),
             phi=nn.Sequential(
-                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size),
-                nn.ReLU(),
+                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size), nn.ReLU(),
             ),
             f=nn.Linear(hidden_size, env.action_space.n),
         )
@@ -51,8 +46,7 @@ class TestDoubleIQNOnDiscreteABC(
 
 
 class TestDoubleIQNOnDiscretePOABC(
-    _TestBatchTrainingMixin,
-    base._TestDQNOnDiscretePOABC,
+    _TestBatchTrainingMixin, base._TestDQNOnDiscretePOABC,
 ):
     def make_q_func(self, env):
         obs_size = env.observation_space.low.size
@@ -61,15 +55,10 @@ class TestDoubleIQNOnDiscretePOABC(
             psi=pfrl.nn.RecurrentSequential(
                 nn.Linear(obs_size, hidden_size),
                 nn.ReLU(),
-                nn.RNN(
-                    num_layers=1,
-                    input_size=hidden_size,
-                    hidden_size=hidden_size,
-                ),
+                nn.RNN(num_layers=1, input_size=hidden_size, hidden_size=hidden_size,),
             ),
             phi=nn.Sequential(
-                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size),
-                nn.ReLU(),
+                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size), nn.ReLU(),
             ),
             f=nn.Linear(hidden_size, env.action_space.n),
         )

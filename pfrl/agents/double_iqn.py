@@ -33,9 +33,7 @@ class DoubleIQN(iqn.IQN):
         with evaluating(self.model):
             if self.recurrent:
                 next_tau2av, _ = pack_and_forward(
-                    self.model,
-                    batch_next_state,
-                    exp_batch["next_recurrent_state"],
+                    self.model, batch_next_state, exp_batch["next_recurrent_state"],
                 )
             else:
                 next_tau2av = self.model(batch_next_state)
@@ -49,9 +47,7 @@ class DoubleIQN(iqn.IQN):
         )
         if self.recurrent:
             target_next_tau2av, _ = pack_and_forward(
-                self.target_model,
-                batch_next_state,
-                exp_batch["next_recurrent_state"],
+                self.target_model, batch_next_state, exp_batch["next_recurrent_state"],
             )
         else:
             target_next_tau2av = self.target_model(batch_next_state)
