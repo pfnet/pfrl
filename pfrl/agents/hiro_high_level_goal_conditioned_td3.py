@@ -94,7 +94,8 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
-        add_entropy=False
+        add_entropy=False,
+        scale=1
     ):
         # determines if we're dealing with a low level controller.
         self.cumulative_reward = False
@@ -121,7 +122,8 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               burnin_action_func=burnin_action_func,
                                                               policy_update_delay=policy_update_delay,
                                                               target_policy_smoothing_func=target_policy_smoothing_func,
-                                                              add_entropy=add_entropy)
+                                                              add_entropy=add_entropy,
+                                                              scale=scale)
 
     def change_temporal_delay(self, new_temporal_delay):
         self.buffer_freq = new_temporal_delay
@@ -156,7 +158,7 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         ):
             next_action_distrib = self.target_policy(torch.cat([batch_next_state, batch_goal], -1))
             next_actions = self.target_policy_smoothing_func(
-                next_action_distrib.sample()
+                self.scale * next_action_distrib.sample()
             )
 
             entropy_term = 0

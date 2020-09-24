@@ -36,6 +36,7 @@ class HRLControllerBase():
             burnin_action_func=None,
             replay_start_size=2500):
         self.scale = scale
+        self.scale_tensor = torch.tensor(self.scale).float().to(self.device)
         # parameters
         self.expl_noise = expl_noise
         self.policy_noise = policy_noise
@@ -88,7 +89,7 @@ class HRLControllerBase():
                 nn.ReLU(),
                 nn.Linear(300, action_dim),
                 nn.Tanh(),
-                ConstantsMult(torch.tensor(self.scale).float().to(self.device)),
+                ConstantsMult(self.scale_tensor),
                 pfrl.policies.DeterministicHead(),
                 )
 
@@ -124,7 +125,7 @@ class HRLControllerBase():
             smoothed_action = torch.min(smoothed_action, torch.tensor(self.scale).to(self.device).float())
             smoothed_action = torch.max(smoothed_action, torch.tensor(-self.scale).to(self.device).float())
             return smoothed_action
-
+        input_scale = self.scale_tensor if self.add_entropy else 1
         if self.is_low_level:
             # standard goal conditioned td3
             self.agent = GoalConditionedTD3(
@@ -145,6 +146,7 @@ class HRLControllerBase():
                 minibatch_size=minibatch_size,
                 gpu=gpu,
                 add_entropy=self.add_entropy,
+                scale=input_scale
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func
                 )
@@ -166,6 +168,7 @@ class HRLControllerBase():
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,
+                scale=input_scale,
                 add_entropy=self.add_entropy,
                 burnin_action_func=burnin_action_func,
                 target_policy_smoothing_func=default_target_policy_smoothing_func

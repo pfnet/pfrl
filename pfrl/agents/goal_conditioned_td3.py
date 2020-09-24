@@ -95,11 +95,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         policy_update_delay=2,
         buffer_freq=10,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
-        add_entropy=False
+        add_entropy=False,
+        scale=1
     ):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
         self.add_entropy = add_entropy
+        self.scale = scale
         if add_entropy:
             self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
@@ -146,7 +148,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         ):
             next_action_distrib = self.target_policy(torch.cat([batch_next_state, batch_next_goal], -1))
             next_actions = self.target_policy_smoothing_func(
-                next_action_distrib.sample()
+                self.scale * next_action_distrib.sample()
             )
 
             entropy_term = 0
@@ -194,7 +196,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         batch_state = batch["state"]
         batch_goal = batch["goal"]
         action_distrib = self.policy(torch.cat([batch_state, batch_goal], -1))
-        onpolicy_actions = action_distrib.rsample()
+        onpolicy_actions = self.scale * action_distrib.rsample()
         entropy_term = 0
         if self.add_entropy:
             log_prob = action_distrib.log_prob(onpolicy_actions)
@@ -227,7 +229,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def batch_select_onpolicy_action(self, batch_obs):
         with torch.no_grad(), pfrl.utils.evaluating(self.policy):
             batch_xs = self.batch_states(batch_obs, self.device, self.phi)
-            batch_action = self.policy(batch_xs).sample().cpu().numpy()
+            batch_action = self.scale.cpu().numpy() * self.policy(batch_xs).sample().cpu().numpy()
         return list(batch_action)
 
     def batch_act_with_goal(self, batch_obs, batch_goal):
