@@ -113,7 +113,7 @@ class HRLControllerBase():
         # TODO - have proper low and high values from action space.
         # from the hiro paper, the scale is 1.0
         explorer = explorers.AdditiveGaussian(
-            scale=self.expl_noise*1.0,
+            scale=self.expl_noise,
             low=-self.scale,
             high=self.scale
         )
