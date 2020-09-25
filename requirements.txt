@@ -3,3 +3,4 @@ gym>=0.9.7
 numpy>=1.10.4
 pillow
 git+git://github.com/HIRO-group/hiro-robot-envs@master#egg=hiro-robot-envs
+mujoco-py<2.1,>=2.0
