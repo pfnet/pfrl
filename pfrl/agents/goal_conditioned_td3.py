@@ -131,6 +131,9 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q_func1_variance_record = collections.deque(maxlen=10)
         self.q_func2_variance_record = collections.deque(maxlen=10)
 
+        self.policy_gradients_variance_record = collections.deque(maxlen=100)
+        self.policy_gradients_mean_record = collections.deque(maxlen=100)
+
         if add_entropy:
             self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
@@ -246,14 +249,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.policy_optimizer.zero_grad()
         loss.backward()
         # get policy gradients
-
-        parameters = list(self.policy.parameters())
-        gradients = None
-        for param in parameters:
-            if gradients is None:
-                gradients = torch.flatten(param.grad)
-            else:
-                gradients = torch.cat((gradients, torch.flatten(param.grad)))
+        gradients = self.get_and_flatten_policy_gradients()
+        gradient_variance = torch.var(gradients)
+        gradient_mean = torch.mean(gradients)
+        self.policy_gradients_variance_record.append(float(gradient_variance))
+        self.policy_gradients_mean_record.append(float(gradient_mean))
 
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
@@ -263,6 +263,16 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def sample_if_possible(self):
         sample = self.replay_updater.can_update_then_sample(self.t)
         return sample if not sample else sample[0]
+
+    def get_and_flatten_policy_gradients(self):
+        parameters = list(self.policy.parameters())
+        gradients = None
+        for param in parameters:
+            if gradients is None:
+                gradients = torch.flatten(param.grad)
+            else:
+                gradients = torch.cat((gradients, torch.flatten(param.grad)))
+        return gradients
 
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""
@@ -353,5 +363,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         new_stats = [
             ("q1_recent_variance", _mean_or_nan(self.q_func1_variance_record)),
             ("q2_recent_variance", _mean_or_nan(self.q_func2_variance_record)),
+            ("policy_gradients_variance", _mean_or_nan(self.policy_gradients_variance_record)),
+            ("policy_gradients_mean", _mean_or_nan(self.policy_gradients_mean_record))
         ]
         return td3_statistics.extend(new_stats)
