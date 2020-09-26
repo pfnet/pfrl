@@ -1,5 +1,7 @@
 from logging import getLogger
+import collections
 
+import numpy as np
 import torch
 from torch.nn import functional as F
 from torch import nn
@@ -16,6 +18,11 @@ def default_target_policy_smoothing_func(batch_action):
     """Add noises to actions for target policy smoothing."""
     noise = torch.clamp(0.2 * torch.randn_like(batch_action), -0.5, 0.5)
     return torch.clamp(batch_action + noise, -1, 1)
+
+
+def _mean_or_nan(xs):
+    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
+    return np.mean(xs) if xs else np.nan
 
 
 class TemperatureHolder(nn.Module):
@@ -121,6 +128,9 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.minibatch_size = minibatch_size
         self.add_entropy = add_entropy
         self.scale = scale
+        self.q_func1_variance_record = collections.deque(maxlen=10)
+        self.q_func2_variance_record = collections.deque(maxlen=10)
+
         if add_entropy:
             self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
@@ -195,6 +205,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q2_record.extend(predict_q2.detach().cpu().numpy())
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
+
+        q1_recent_variance = np.var(list(self.q1_record)[-100:])
+        q2_recent_variance = np.var(list(self.q2_record)[-100:])
+        self.q_func1_variance_record.append(q1_recent_variance)
+        self.q_func2_variance_record.append(q2_recent_variance)
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
@@ -322,3 +337,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
             self.replay_updater.update_if_necessary(self.t)
+
+    def get_statistics(self):
+        td3_statistics = super(GoalConditionedTD3, self).get_statistics()
+        new_stats = [
+            ("q1_recent_variance", _mean_or_nan(self.q_func1_variance_record)),
+            ("q2_recent_variance", _mean_or_nan(self.q_func2_variance_record)),
+        ]
+        return td3_statistics.extend(new_stats)

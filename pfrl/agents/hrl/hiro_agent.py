@@ -235,6 +235,8 @@ class HIROAgent(HRLAgent):
             ("low_con_average_q_func1_loss", _mean_or_nan(self.low_con.agent.q_func1_loss_record)),
             ("low_con_average_q_func2_loss", _mean_or_nan(self.low_con.agent.q_func2_loss_record)),
             ("low_con_average_policy_loss", _mean_or_nan(self.low_con.agent.policy_loss_record)),
+            ("low_con_q1_recent_variance", _mean_or_nan(self.low_con.agent.q_func1_variance_record)),
+            ("low_con_q2_recent_variance", _mean_or_nan(self.low_con.agent.q_func2_variance_record)),
             ("low_con_policy_n_updates", self.low_con.agent.policy_n_updates),
             ("low_con_q_func_n_updates", self.low_con.agent.q_func_n_updates),
 
@@ -243,6 +245,8 @@ class HIROAgent(HRLAgent):
             ("high_con_average_q_func1_loss", _mean_or_nan(self.high_con.agent.q_func1_loss_record)),
             ("high_con_average_q_func2_loss", _mean_or_nan(self.high_con.agent.q_func2_loss_record)),
             ("high_con_average_policy_loss", _mean_or_nan(self.high_con.agent.policy_loss_record)),
+            ("high_con_q1_recent_variance", _mean_or_nan(self.high_con.agent.q_func1_variance_record)),
+            ("high_con_q2_recent_variance", _mean_or_nan(self.high_con.agent.q_func2_variance_record)),
             ("high_con_policy_n_updates", self.high_con.agent.policy_n_updates),
             ("high_con_q_func_n_updates", self.high_con.agent.q_func_n_updates),
         ]
