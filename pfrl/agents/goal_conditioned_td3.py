@@ -245,6 +245,16 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.policy_loss_record.append(float(loss))
         self.policy_optimizer.zero_grad()
         loss.backward()
+        # get policy gradients
+
+        parameters = list(self.policy.parameters())
+        gradients = None
+        for param in parameters:
+            if gradients is None:
+                gradients = torch.flatten(param.grad)
+            else:
+                gradients = torch.cat((gradients, torch.flatten(param.grad)))
+
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.policy_optimizer.step()
