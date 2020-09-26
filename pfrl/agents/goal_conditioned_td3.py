@@ -2,6 +2,7 @@ from logging import getLogger
 
 import torch
 from torch.nn import functional as F
+from torch import nn
 
 import pfrl
 from pfrl.agent import GoalConditionedBatchAgent
@@ -15,6 +16,24 @@ def default_target_policy_smoothing_func(batch_action):
     """Add noises to actions for target policy smoothing."""
     noise = torch.clamp(0.2 * torch.randn_like(batch_action), -0.5, 0.5)
     return torch.clamp(batch_action + noise, -1, 1)
+
+
+class TemperatureHolder(nn.Module):
+    """Module that holds a temperature as a learnable value.
+
+    Args:
+        initial_log_temperature (float): Initial value of log(temperature).
+    """
+
+    def __init__(self, initial_log_temperature=0):
+        super().__init__()
+        self.log_temperature = nn.Parameter(
+            torch.tensor(initial_log_temperature, dtype=torch.float32)
+        )
+
+    def forward(self):
+        """Return a temperature as a torch.Tensor."""
+        return torch.exp(self.log_temperature)
 
 
 class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
