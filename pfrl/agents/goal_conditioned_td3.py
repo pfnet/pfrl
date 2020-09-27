@@ -1,6 +1,5 @@
 from logging import getLogger
 
-import numpy as np
 import torch
 from torch.nn import functional as F
 
@@ -101,9 +100,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
         self.add_entropy = add_entropy
-        self.q1_recent_variance_record = []
-        self.q2_recent_variance_record = []
-
         if add_entropy:
             self.temperature = 1.0
         super(GoalConditionedTD3, self).__init__(policy=policy,
@@ -177,11 +173,6 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q2_record.extend(predict_q2.detach().cpu().numpy())
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
-
-        q1_recent_variance = np.var(self.q1_record[-100:])
-        q2_recent_variance = np.var(self.q2_record[-100:])
-        self.q1_recent_variance_record.append(q1_recent_variance)
-        self.q2_recent_variance_record.append(q2_recent_variance)
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
@@ -305,11 +296,3 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
             self.replay_updater.update_if_necessary(self.t)
-
-    def get_statistics(self):
-        td3_statistics = super(GoalConditionedTD3, self).get_statistics()
-        new_stats = [
-            ("q1_recent_variance", self.q1_recent_variance_record),
-            ("q2_recent_variance", self.q2_recent_variance_record),
-        ]
-        return td3_statistics.extend(new_stats)

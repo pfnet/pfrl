@@ -184,11 +184,6 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
 
-        q1_recent_variance = np.var(self.q1_record[-100:])
-        q2_recent_variance = np.var(self.q2_record[-100:])
-        self.q1_recent_variance_record.append(q1_recent_variance)
-        self.q2_recent_variance_record.append(q2_recent_variance)
-
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
         if self.max_grad_norm is not None:
