@@ -177,7 +177,7 @@ def train_hrl_agent_with_evaluation(
         save_best_so_far_agent=save_best_so_far_agent,
         use_tensorboard=use_tensorboard,
         logger=logger,
-        record_counter=0 if record else None
+        record=record
     )
 
     train_hrl_agent(

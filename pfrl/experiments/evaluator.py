@@ -82,14 +82,14 @@ def _run_episodes(
 
 def _hrl_run_episodes(
     env, agent: HIROAgent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None, video_outdir=None
+    step_number=None, video_outdir=None
 ):
     """Run multiple episodes and return returns."""
     assert (n_steps is None) != (n_episodes is None)
-    if record_counter is not None:
+    if step_number is not None:
         evaluation_videos_dir = f'{video_outdir}/evaluation_videos'
         os.makedirs(evaluation_videos_dir, exist_ok=True)
-        video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{record_counter}.mp4')
+        video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{step_number}.mp4')
     logger = logger or logging.getLogger(__name__)
     scores = []
     successes = 0
@@ -109,7 +109,7 @@ def _hrl_run_episodes(
             info = {}
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
-        if record_counter is not None:
+        if step_number is not None:
             video_recorder.capture_frame()
         # select subgoal for the lower level controller.    
         obs = obs_dict['observation']
@@ -141,7 +141,7 @@ def _hrl_run_episodes(
         logger.info(
             "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
         )
-    if record_counter is not None:
+    if step_number is not None:
         print("Saved video.")
         video_recorder.close()
     return scores
@@ -149,7 +149,7 @@ def _hrl_run_episodes(
 
 def run_evaluation_episodes(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None, video_outdir=None
+    step_number=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return returns.
 
@@ -175,7 +175,7 @@ def run_evaluation_episodes(
                 n_episodes=n_episodes,
                 max_episode_len=max_episode_len,
                 logger=logger,
-                record_counter=record_counter,
+                step_number=step_number,
                 video_outdir=video_outdir
             )
         else:
@@ -333,7 +333,7 @@ def batch_run_evaluation_episodes(
 
 def eval_performance(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None, video_outdir=None
+    step_number=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return statistics.
 
@@ -370,7 +370,7 @@ def eval_performance(
             n_episodes,
             max_episode_len=max_episode_len,
             logger=logger,
-            record_counter=record_counter,
+            step_number=step_number,
             video_outdir=video_outdir
         )
     stats = dict(
@@ -466,7 +466,7 @@ class Evaluator(object):
         save_best_so_far_agent=True,
         logger=None,
         use_tensorboard=False,
-        record_counter=None
+        record=False
     ):
         assert (n_steps is None) != (n_episodes is None), (
             "One of n_steps or n_episodes must be None. "
@@ -487,7 +487,8 @@ class Evaluator(object):
         self.prev_eval_t = self.step_offset - self.step_offset % self.eval_interval
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
-        self.record_counter = record_counter
+
+        self.record = record
         # Write a header line first
         with open(os.path.join(self.outdir, "scores.txt"), "w") as f:
             custom_columns = tuple(t[0] for t in self.agent.get_statistics())
@@ -505,7 +506,7 @@ class Evaluator(object):
             self.n_episodes,
             max_episode_len=self.max_episode_len,
             logger=self.logger,
-            record_counter=self.record_counter,
+            step_number=t if self.record else None,
             video_outdir=self.outdir
         )
         elapsed = time.time() - self.start_time
@@ -532,9 +533,6 @@ class Evaluator(object):
             self.max_score = mean
             if self.save_best_so_far_agent:
                 save_agent(self.agent, "best", self.outdir, self.logger)
-
-        if self.record_counter is not None:
-            self.record_counter += 1
 
         return mean
 

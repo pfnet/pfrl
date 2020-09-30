@@ -112,7 +112,7 @@ def parse_rl_args():
     )
     parser.add_argument(
         "--env",
-        default="AntMaze",
+        default="AntFall",
         help="Type of Ant Env to use. Options are AntMaze, AntFall, and AntPush.",
         type=str)
     parser.add_argument(
