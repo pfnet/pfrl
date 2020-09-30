@@ -82,13 +82,12 @@ def _run_episodes(
 
 def _hrl_run_episodes(
     env, agent: HIROAgent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None
+    record_counter=None, video_outdir=None
 ):
     """Run multiple episodes and return returns."""
     assert (n_steps is None) != (n_episodes is None)
     if record_counter is not None:
-        current_dir = os.getcwd()
-        evaluation_videos_dir = f'{current_dir}/evaluation_videos'
+        evaluation_videos_dir = f'{video_outdir}/evaluation_videos'
         os.makedirs(evaluation_videos_dir, exist_ok=True)
         video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{record_counter}.mp4')
     logger = logger or logging.getLogger(__name__)
@@ -150,7 +149,7 @@ def _hrl_run_episodes(
 
 def run_evaluation_episodes(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None
+    record_counter=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return returns.
 
@@ -176,7 +175,8 @@ def run_evaluation_episodes(
                 n_episodes=n_episodes,
                 max_episode_len=max_episode_len,
                 logger=logger,
-                record_counter=record_counter
+                record_counter=record_counter,
+                video_outdir=video_outdir
             )
         else:
             return _run_episodes(
@@ -333,7 +333,7 @@ def batch_run_evaluation_episodes(
 
 def eval_performance(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
-    record_counter=None
+    record_counter=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return statistics.
 
@@ -370,7 +370,8 @@ def eval_performance(
             n_episodes,
             max_episode_len=max_episode_len,
             logger=logger,
-            record_counter=record_counter
+            record_counter=record_counter,
+            video_outdir=video_outdir
         )
     stats = dict(
         episodes=len(scores),
@@ -504,7 +505,8 @@ class Evaluator(object):
             self.n_episodes,
             max_episode_len=self.max_episode_len,
             logger=self.logger,
-            record_counter=self.record_counter
+            record_counter=self.record_counter,
+            video_outdir=self.outdir
         )
         elapsed = time.time() - self.start_time
         agent_stats = self.agent.get_statistics()
