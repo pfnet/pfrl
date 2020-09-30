@@ -224,6 +224,19 @@ class HIROAgent(HRLAgent):
         self.subgoal_freq = temporal_delay
         self.high_con.agent.change_temporal_delay(temporal_delay)
 
+    def evaluate_final_goal(self, fg, obs):
+        """
+        evaluates the final goal compared with the current observation.
+        """
+        goal_size = fg.shape[0]
+        error = np.sqrt(np.sum(np.square(fg-obs[:goal_size])))
+        if goal_size == 2:
+            print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], obs[0], obs[1], error))
+        elif goal_size == 3:
+            print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], fg[2], obs[0], obs[1], obs[2], error))
+        success = error <= 5
+        return success
+
     def get_statistics(self):
         """
         gets the statistics of all of the actors and critics for the high
