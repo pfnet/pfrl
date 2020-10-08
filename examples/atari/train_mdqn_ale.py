@@ -1,6 +1,5 @@
 import argparse
 
-import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
@@ -12,54 +11,10 @@ from pfrl import experiments
 from pfrl import explorers
 from pfrl import nn as pnn
 from pfrl import utils
-from pfrl.q_functions import DuelingDQN
 from pfrl import replay_buffers
 
 from pfrl.wrappers import atari_wrappers
 from pfrl.initializers import init_chainer_default
-
-
-class SingleSharedBias(nn.Module):
-    """Single shared bias used in the Double DQN paper.
-
-    You can add this link after a Linear layer with nobias=True to implement a
-    Linear layer with a single shared bias parameter.
-
-    See http://arxiv.org/abs/1509.06461.
-    """
-
-    def __init__(self):
-        super().__init__()
-        self.bias = nn.Parameter(torch.zeros([1], dtype=torch.float32))
-
-    def __call__(self, x):
-        return x + self.bias.expand_as(x)
-
-
-def parse_arch(arch, n_actions):
-    if arch == "nature":
-        return nn.Sequential(
-            pnn.LargeAtariCNN(),
-            init_chainer_default(nn.Linear(512, n_actions)),
-            DiscreteActionValueHead(),
-        )
-    elif arch == "doubledqn":
-        return nn.Sequential(
-            pnn.LargeAtariCNN(),
-            init_chainer_default(nn.Linear(512, n_actions, bias=False)),
-            SingleSharedBias(),
-            DiscreteActionValueHead(),
-        )
-    elif arch == "nips":
-        return nn.Sequential(
-            pnn.SmallAtariCNN(),
-            init_chainer_default(nn.Linear(256, n_actions)),
-            DiscreteActionValueHead(),
-        )
-    elif arch == "dueling":
-        return DuelingDQN(n_actions)
-    else:
-        raise RuntimeError("Not supported architecture: {}".format(arch))
 
 
 def main():
@@ -103,7 +58,6 @@ def main():
         default=0.001,
         help="Exploration epsilon used during eval episodes.",
     )
-    parser.add_argument("--noisy-net-sigma", type=float, default=None)
     parser.add_argument(
         "--arch",
         type=str,
@@ -174,12 +128,6 @@ def main():
     )
     parser.add_argument("--lr", type=float, default=5e-5, help="Learning rate.")
     parser.add_argument(
-        "--prioritized",
-        action="store_true",
-        default=False,
-        help="Use prioritized experience replay.",
-    )
-    parser.add_argument(
         "--checkpoint-frequency",
         type=int,
         default=None,
@@ -225,36 +173,22 @@ def main():
     eval_env = make_env(test=True)
 
     n_actions = env.action_space.n
-    q_func = parse_arch(args.arch, n_actions)
+    q_func = nn.Sequential(
+        pnn.LargeAtariCNN(),
+        init_chainer_default(nn.Linear(512, n_actions)),
+        DiscreteActionValueHead(),
+    )
 
-    if args.noisy_net_sigma is not None:
-        pnn.to_factorized_noisy(q_func, sigma_scale=args.noisy_net_sigma)
-        # Turn off explorer
-        explorer = explorers.Greedy()
-    else:
-        explorer = explorers.LinearDecayEpsilonGreedy(
-            1.0,
-            args.final_epsilon,
-            args.final_exploration_frames,
-            lambda: np.random.randint(n_actions),
-        )
+    explorer = explorers.LinearDecayEpsilonGreedy(
+        1.0,
+        args.final_epsilon,
+        args.final_exploration_frames,
+        lambda: np.random.randint(n_actions),
+    )
 
-    # Use the Nature paper's hyperparameters
     opt = optim.Adam(q_func.parameters(), lr=args.lr, eps=1e-2 / args.batch_size)
 
-    # Select a replay buffer to use
-    if args.prioritized:
-        # Anneal beta from beta0 to 1 throughout training
-        betasteps = args.steps / args.update_interval
-        rbuf = replay_buffers.PrioritizedReplayBuffer(
-            10 ** 6,
-            alpha=0.6,
-            beta0=0.4,
-            betasteps=betasteps,
-            num_steps=args.num_step_return,
-        )
-    else:
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6, args.num_step_return)
+    rbuf = replay_buffers.ReplayBuffer(10 ** 6, args.num_step_return)
 
     def phi(x):
         # Feature extractor
