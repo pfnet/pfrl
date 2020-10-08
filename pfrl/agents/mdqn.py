@@ -1,18 +1,11 @@
-import collections
 from logging import getLogger
 
 import torch
 import torch.nn.functional as F
-import numpy as np
 
 from pfrl.agents import dqn
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.recurrent import pack_and_forward
-
-
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
 
 
 class MDQN(dqn.DQN):
@@ -110,14 +103,6 @@ class MDQN(dqn.DQN):
         self.scaling_term = scaling_term
         self.clip_l0 = clip_l0
 
-        self.pi_sum_record = collections.deque(maxlen=1000)
-        self.chosen_pi_record = collections.deque(maxlen=1000)
-        self.bonus_reward_record = collections.deque(maxlen=1000)
-        self.augmented_reward_record = collections.deque(maxlen=1000)
-        self.next_pi_sum_record = collections.deque(maxlen=1000)
-        self.next_value_record = collections.deque(maxlen=1000)
-        self.next_entropy_record = collections.deque(maxlen=1000)
-
     def _compute_target_values(self, exp_batch):
         # Compute Q-values for current states using the target network
         batch_state = exp_batch["state"]
@@ -134,25 +119,22 @@ class MDQN(dqn.DQN):
         t_ln_pi = advantages - self.temperature * (
             advantages / self.temperature
         ).logsumexp(dim=1, keepdim=True)
-        pi = (t_ln_pi / self.temperature).exp()
-        self.pi_sum_record.extend(pi.sum(dim=1).detach().cpu().numpy())
 
         # add scaled log policy
         batch_actions = exp_batch["action"].long().unsqueeze(1)
         chosen_t_ln_pi = t_ln_pi.gather(dim=1, index=batch_actions).flatten()
-        chosen_pi = (chosen_t_ln_pi / self.temperature).exp()
-        self.chosen_pi_record.extend(chosen_pi.detach().cpu().numpy())
-        bonus = self.scaling_term * torch.clamp(chosen_t_ln_pi, min=self.clip_l0, max=0)
-        self.bonus_reward_record.extend(bonus.detach().cpu().numpy())
-        augmented_rewards = exp_batch["reward"] + bonus
-        self.augmented_reward_record.extend(augmented_rewards.detach().cpu().numpy())
+        augmented_rewards = exp_batch["reward"] + self.scaling_term * torch.clamp(
+            chosen_t_ln_pi, min=self.clip_l0, max=0
+        )
 
         # value of next state (entropy-augmented) using the target network
         batch_next_state = exp_batch["next_state"]
 
         if self.recurrent:
             target_next_qout, _ = pack_and_forward(
-                self.target_model, batch_next_state, exp_batch["next_recurrent_state"],
+                self.target_model,
+                batch_next_state,
+                exp_batch["next_recurrent_state"],
             )
         else:
             target_next_qout = self.target_model(batch_next_state)
@@ -163,28 +145,10 @@ class MDQN(dqn.DQN):
         next_t_ln_pi = next_advantages - self.temperature * (
             next_advantages / self.temperature
         ).logsumexp(dim=1, keepdim=True)
-        #next_pi = (next_t_ln_pi / self.temperature).exp()
         next_pi = F.softmax(target_next_qout.q_values / self.temperature, dim=1)
-        #next_pi = F.softmax(target_next_qout.q_values, dim=1)
-        self.next_pi_sum_record.extend(next_pi.sum(dim=1).detach().cpu().numpy())
         next_value = (next_pi * (target_next_qout.q_values - next_t_ln_pi)).sum(dim=1)
-        self.next_value_record.extend(next_value.detach().cpu().numpy())
-
-        next_entropy = -(next_pi * next_t_ln_pi).sum(dim=1)
-        self.next_entropy_record.extend(next_entropy.detach().cpu().numpy())
 
         batch_terminal = exp_batch["is_state_terminal"]
         discount = exp_batch["discount"]
 
         return augmented_rewards + discount * (1.0 - batch_terminal) * next_value
-
-    def get_statistics(self):
-        return super(MDQN, self).get_statistics() + [
-            ("chosen_pi", _mean_or_nan(self.chosen_pi_record)),
-            ("pi_sum", _mean_or_nan(self.pi_sum_record)),
-            ("bonus", _mean_or_nan(self.bonus_reward_record)),
-            ("augmented_reward", _mean_or_nan(self.augmented_reward_record)),
-            ("next_pi_sum", _mean_or_nan(self.next_pi_sum_record)),
-            ("next_value", _mean_or_nan(self.next_value_record)),
-            ("next_entropy", _mean_or_nan(self.next_entropy_record)),
-        ]
