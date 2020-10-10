@@ -93,12 +93,14 @@ def _hrl_run_episodes(
     logger = logger or logging.getLogger(__name__)
     scores = []
     successes = 0
+    success_rate = 0
     terminate = False
     timestep = 0
     env.evaluate = True
     reset = True
     while not terminate:
         if reset:
+            env.seed(np.random.randint(0, 2 ** 32 - 1))
             obs_dict = env.reset()
             fg = obs_dict['desired_goal']
             obs = obs_dict['observation']
@@ -107,12 +109,14 @@ def _hrl_run_episodes(
             test_r = 0
             episode_len = 0
             info = {}
+
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
         if step_number is not None:
             video_recorder.capture_frame()
         # select subgoal for the lower level controller.    
         obs = obs_dict['observation']
+        # select subgoal for the lower level controller.
         n_sg = agent.act_high_level(obs, fg, sg, timestep)
 
         test_r += r
@@ -131,6 +135,7 @@ def _hrl_run_episodes(
             # As mixing float and numpy float causes errors in statistics
             # functions, here every score is cast to float.
             scores.append(float(test_r))
+
         if n_steps is None:
             terminate = len(scores) >= n_episodes
         else:
@@ -144,7 +149,10 @@ def _hrl_run_episodes(
     if step_number is not None:
         print("Saved video.")
         video_recorder.close()
-    return scores
+    success_rate = successes / n_episodes
+    logger.info(f"Success Rate: {success_rate}")
+
+    return scores, success_rate
 
 
 def run_evaluation_episodes(
@@ -373,14 +381,28 @@ def eval_performance(
             step_number=step_number,
             video_outdir=video_outdir
         )
-    stats = dict(
-        episodes=len(scores),
-        mean=statistics.mean(scores),
-        median=statistics.median(scores),
-        stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
-        max=np.max(scores),
-        min=np.min(scores),
-    )
+    if isinstance(scores, tuple):
+        reward_scores = scores[0]
+        success_rate = scores[1]
+        stats = dict(
+            episodes=len(reward_scores),
+            mean=statistics.mean(reward_scores),
+            median=statistics.median(reward_scores),
+            stdev=statistics.stdev(reward_scores) if len(reward_scores) >= 2 else 0.0,
+            max=np.max(reward_scores),
+            min=np.min(reward_scores),
+            success_rate=success_rate,
+        )
+
+    else:
+        stats = dict(
+            episodes=len(scores),
+            mean=statistics.mean(scores),
+            median=statistics.median(scores),
+            stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
+            max=np.max(scores),
+            min=np.min(scores),
+        )
     return stats
 
 
@@ -417,6 +439,10 @@ def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
     for stat in ("mean", "median", "max", "min", "stdev"):
         value = eval_stats[stat]
         summary_writer.add_scalar("eval/" + stat, value, t, cur_time)
+
+    if "success_rate" in eval_stats:
+        value = eval_stats["success_rate"]
+        summary_writer.add_scalar("eval/success_rate", value, t, cur_time)
 
     summary_writer.add_scalar(
         "extras/meanplusstdev", eval_stats["mean"] + eval_stats["stdev"], t, cur_time
@@ -524,7 +550,6 @@ class Evaluator(object):
             eval_stats["min"],
         ) + custom_values
         record_stats(self.outdir, values)
-        print(self.outdir)
         if self.use_tensorboard:
             record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
 
