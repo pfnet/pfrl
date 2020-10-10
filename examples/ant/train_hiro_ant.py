@@ -65,7 +65,7 @@ def parse_rl_args():
     parser.add_argument(
         "--add-entropy",
         type=bool,
-        default=True,
+        default=False,
         help="Whether or not to add entropy.",
     )
     parser.add_argument(
@@ -94,7 +94,7 @@ def parse_rl_args():
     )
     parser.add_argument(
         "--env",
-        default="AntFall",
+        default="AntMaze",
         help="Type of Ant Env to use. Options are AntMaze, AntFall, and AntPush.",
         type=str)
     parser.add_argument(
