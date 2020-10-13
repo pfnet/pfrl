@@ -102,8 +102,10 @@ class AttributeSavingMixin(object):
                 ), "Avoid an infinite loop"
                 attr_value.__save(os.path.join(dirname, attr), ancestors)
             else:
-                if isinstance(attr_value, (torch.nn.parallel.DistributedDataParallel,
-                                           torch.nn.DataParallel)):
+                if isinstance(
+                    attr_value,
+                    (torch.nn.parallel.DistributedDataParallel, torch.nn.DataParallel),
+                ):
                     attr_value = attr_value.module
                 torch.save(
                     attr_value.state_dict(), os.path.join(dirname, "{}.pt".format(attr))
@@ -128,8 +130,10 @@ class AttributeSavingMixin(object):
                 ), "Avoid an infinite loop"
                 attr_value.load(os.path.join(dirname, attr))
             else:
-                if isinstance(attr_value, (torch.nn.parallel.DistributedDataParallel,
-                                           torch.nn.DataParallel)):
+                if isinstance(
+                    attr_value,
+                    (torch.nn.parallel.DistributedDataParallel, torch.nn.DataParallel),
+                ):
                     attr_value = attr_value.module
                 attr_value.load_state_dict(
                     torch.load(
