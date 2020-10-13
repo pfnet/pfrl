@@ -24,6 +24,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
     env = mock.Mock()
     env.reset.return_value = "obs"
     env.step.return_value = ("obs", 0, True, {})
+    env.get_statistics.return_value = []
 
     either_none = (n_steps is None) != (n_episodes is None)
     if not either_none:
@@ -101,6 +102,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
     env = mock.Mock()
     env.reset.return_value = "obs"
     env.step.return_value = ("obs", 0, True, {})
+    env.get_statistics.return_value = []
 
     agent_evaluator = evaluator.AsyncEvaluator(
         n_steps=None,
