@@ -1,6 +1,7 @@
 import random
-import torch
+
 import numpy as np
+import torch
 
 
 def set_random_seed(seed):

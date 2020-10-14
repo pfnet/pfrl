@@ -11,12 +11,13 @@ from torch import nn
 import pfrl
 from pfrl.agents import a3c
 from pfrl.envs.abc import ABC
-from pfrl.experiments.train_agent_async import train_agent_async
 from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.nn import RecurrentBranched
-from pfrl.nn import RecurrentSequential
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.policies import GaussianHeadWithStateIndependentCovariance
+from pfrl.experiments.train_agent_async import train_agent_async
+from pfrl.nn import RecurrentBranched, RecurrentSequential
+from pfrl.policies import (
+    GaussianHeadWithStateIndependentCovariance,
+    SoftmaxCategoricalHead,
+)
 
 
 class _TestA3C:

@@ -11,8 +11,10 @@ from pfrl.agents.a2c import A2C
 from pfrl.envs.abc import ABC
 from pfrl.experiments.evaluator import batch_run_evaluation_episodes
 from pfrl.nn import Branched
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.policies import GaussianHeadWithStateIndependentCovariance
+from pfrl.policies import (
+    GaussianHeadWithStateIndependentCovariance,
+    SoftmaxCategoricalHead,
+)
 
 
 @pytest.mark.parametrize("num_processes", [1, 3])

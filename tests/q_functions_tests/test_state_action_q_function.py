@@ -1,10 +1,10 @@
-import torch.nn.functional as F
+import unittest
 
 import basetest_state_action_q_function as base
-import pfrl
-
 import pytest
-import unittest
+import torch.nn.functional as F
+
+import pfrl
 
 assertions = unittest.TestCase("__init__")
 

@@ -1,7 +1,6 @@
-from multiprocessing import Pipe
-from multiprocessing import Process
 import signal
 import warnings
+from multiprocessing import Pipe, Process
 
 import numpy as np
 from torch.distributions.utils import lazy_property

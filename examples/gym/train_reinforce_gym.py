@@ -17,10 +17,8 @@ import torch
 from torch import nn
 
 import pfrl
-from pfrl import experiments
-from pfrl import utils
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.policies import GaussianHeadWithFixedCovariance
+from pfrl import experiments, utils
+from pfrl.policies import GaussianHeadWithFixedCovariance, SoftmaxCategoricalHead
 
 
 def main():

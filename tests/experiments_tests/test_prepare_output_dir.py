@@ -2,10 +2,11 @@ import contextlib
 import itertools
 import json
 import os
-import pytest
 import subprocess
 import sys
 import tempfile
+
+import pytest
 
 import pfrl
 

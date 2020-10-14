@@ -2,8 +2,8 @@ import math
 
 import torch
 
-from pfrl.utils.mode_of_distribution import mode_of_distribution
 from pfrl.testing import torch_assert_allclose
+from pfrl.utils.mode_of_distribution import mode_of_distribution
 
 
 def test_transform():

@@ -1,5 +1,6 @@
 import basetest_dqn_like as base
 from basetest_training import _TestBatchTrainingMixin
+
 from pfrl.agents.al import AL
 
 

@@ -1,12 +1,11 @@
 import binascii
 import collections
-from datetime import datetime
-from struct import pack, unpack, calcsize
 import os
 import pickle
+from datetime import datetime
+from struct import calcsize, pack, unpack
 
 from pfrl.collections.random_access_queue import RandomAccessQueue
-
 
 # code for future extension. `_VanillaFS` is a dummy of chainerio's
 # FIleSystem class.

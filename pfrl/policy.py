@@ -1,7 +1,4 @@
-from abc import ABCMeta
-from abc import abstractmethod
-
-
+from abc import ABCMeta, abstractmethod
 from logging import getLogger
 
 logger = getLogger(__name__)

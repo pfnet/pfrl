@@ -1,11 +1,11 @@
-from pfrl.nn.mlp import MLP
-from pfrl.nn.mlp_bn import MLPBN
-from pfrl.q_function import StateActionQFunction
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
 from pfrl.initializers import init_lecun_normal
+from pfrl.nn.mlp import MLP
+from pfrl.nn.mlp_bn import MLPBN
+from pfrl.q_function import StateActionQFunction
 
 
 class SingleModelStateActionQFunction(nn.Module, StateActionQFunction):

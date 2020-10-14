@@ -1,5 +1,5 @@
-from logging import getLogger
 import time
+from logging import getLogger
 
 from gym.wrappers import Monitor as _GymMonitor
 from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder
