@@ -483,7 +483,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
     def batch_act(self, batch_obs: Sequence[Any]) -> Sequence[Any]:
         with torch.no_grad(), evaluating(self.model):
             batch_av = self._evaluate_model_and_update_recurrent_states(batch_obs)
-            batch_argmax = batch_av.greedy_actions.cpu().numpy()
+            batch_argmax = batch_av.greedy_actions.detach().cpu().numpy()
         if self.training:
             batch_action = [
                 self.explorer.select_action(
