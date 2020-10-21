@@ -47,6 +47,8 @@ class Monitor(_GymMonitor):
             autoreset=False,
             env_id=env_id,
         )
+        if mode is not None:
+            self._set_mode(mode)
         return ret
 
 
