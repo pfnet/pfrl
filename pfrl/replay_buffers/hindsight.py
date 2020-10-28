@@ -104,7 +104,7 @@ class HindsightReplayBuffer(EpisodicReplayBuffer):
     We currently do not support N-step transitions for the
     Hindsight Buffer.
     Args:
-       reward_fn(fn): Calculate reward from achieved & observed goals
+       reward_fn(fn): reward fn with input: (achieved_goal, desired_goal)
        replay_strategy: instance of HindsightReplayStrategy()
        capacity (int): Capacity of the replay buffer
        swap_list (list): a list of tuples of keys to swap in the
