@@ -1,3 +1,5 @@
+<div align="center"><img src="https://raw.githubusercontent.com/pfnet/pfrl/master/assets/PFRL.png" height=150/></div>
+
 # PFRL
 [![Documentation Status](https://readthedocs.org/projects/pfrl/badge/?version=latest)](http://pfrl.readthedocs.io/en/latest/?badge=latest)
 [![PyPI](https://img.shields.io/pypi/v/pfrl.svg)](https://pypi.python.org/pypi/pfrl)
@@ -12,7 +14,7 @@ PFRL is a deep reinforcement learning library that implements various state-of-t
 
 ## Installation
 
-PFRL is tested with 3.5.1+. For other requirements, see [requirements.txt](requirements.txt).
+PFRL is tested with Python 3.7.7. For other requirements, see [requirements.txt](requirements.txt).
 
 PFRL can be installed via PyPI:
 ```
@@ -40,7 +42,7 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 | Categorical DQN | ✓ | x | ✓ | ✓ | x |
 | Rainbow | ✓ | x | ✓ | ✓ | x |
 | IQN | ✓ | x | ✓ | ✓ | x |
-| DDPG | x | ✓ | ✓ | ✓ | x |
+| DDPG | x | ✓ | x | ✓ | x |
 | A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ |
 | ACER | ✓ | ✓ | ✓ | x | ✓ |
 | PPO  | ✓ | ✓ | ✓ | ✓ | x |
@@ -66,11 +68,11 @@ Following algorithms have been implemented in PFRL:
 - [PPO (Proximal Policy Optimization)](https://arxiv.org/abs/1707.06347)
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/ppo) [[atari]](examples/atari/train_ppo_ale.py)
 - [Rainbow](https://arxiv.org/abs/1710.02298)
-  - examples: [[atari reproduction]](examples/atari/reproduction/rainbow)
+  - examples: [[atari reproduction]](examples/atari/reproduction/rainbow) [[Slime volleyball]](examples/slimevolley/)
 - [REINFORCE](http://www-anw.cs.umass.edu/~barto/courses/cs687/williams92simple.pdf)
   - examples: [[general gym]](examples/gym/train_reinforce_gym.py)
 - [SAC (Soft Actor-Critic)](https://arxiv.org/abs/1812.05905)
-  - examples: [[mujoco reproduction]](examples/mujoco/reproduction/soft_actor_critic)
+  - examples: [[mujoco reproduction]](examples/mujoco/reproduction/soft_actor_critic) [[Atlas walk]](examples/atlas/)
 - [TRPO (Trust Region Policy Optimization)](https://arxiv.org/abs/1502.05477) with [GAE (Generalized Advantage Estimation)](https://arxiv.org/abs/1506.02438)
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/trpo)
 - [TD3 (Twin Delayed Deep Deterministic policy gradient algorithm)](https://arxiv.org/abs/1802.09477)

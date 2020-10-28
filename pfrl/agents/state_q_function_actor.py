@@ -76,7 +76,7 @@ class StateQFunctionActor(agent.AsyncAgent):
     def act(self, obs):
         with torch.no_grad(), evaluating(self.model):
             action_value = self._evaluate_model_and_update_recurrent_states([obs])
-            greedy_action = action_value.greedy_actions.cpu().numpy()[0]
+            greedy_action = action_value.greedy_actions.detach().cpu().numpy()[0]
         if self.training:
             action = self.explorer.select_action(
                 self.t, lambda: greedy_action, action_value=action_value
