@@ -172,15 +172,7 @@ def main():
         DiscreteActionValueHead(),
     )
 
-    # Use the same hyperparameters as the Nature paper
-    opt = pfrl.optimizers.RMSpropEpsInsideSqrt(
-        q_func.parameters(),
-        lr=2.5e-4,
-        alpha=0.95,
-        momentum=0.0,
-        eps=1e-2,
-        centered=True,
-    )
+    opt = torch.optim.Adam(q_func.parameters(), eps=1e-3)
 
     if args.use_hindsight:
         rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
@@ -192,7 +184,7 @@ def main():
         rbuf = replay_buffers.ReplayBuffer(10 ** 6)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
-        start_epsilon=1.0,
+        start_epsilon=0.3,
         end_epsilon=0.0,
         decay_steps=5 * 10 ** 3,
         random_action_func=lambda: np.random.randint(n_actions),
@@ -213,7 +205,7 @@ def main():
         gamma=0.99,
         explorer=explorer,
         replay_start_size=args.replay_start_size,
-        target_update_interval=10 ** 4,
+        target_update_interval=10 ** 3,
         clip_delta=True,
         update_interval=4,
         batch_accumulator="sum",
