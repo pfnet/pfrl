@@ -120,7 +120,7 @@ def main():
     parser.add_argument(
         "--replay-start-size",
         type=int,
-        default=5 * 10 ** 4,
+        default=5 * 10 ** 2,
         help="Minimum replay buffer size before " + "performing gradient updates.",
     )
     parser.add_argument(
@@ -188,18 +188,18 @@ def main():
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         start_epsilon=1.0,
-        end_epsilon=0.1,
-        decay_steps=10 ** 6,
+        end_epsilon=0.0,
+        decay_steps=5 * 10 ** 3,
         random_action_func=lambda: np.random.randint(n_actions),
     )
 
     def phi(observation):
         # Feature extractor
-        obs = np.asarray(observation["observation"], dtype=np.float32) / 255
-        dg = np.asarray(observation["desired_goal"], dtype=np.float32) / 255
+        obs = np.asarray(observation["observation"], dtype=np.float32)
+        dg = np.asarray(observation["desired_goal"], dtype=np.float32)
         return np.concatenate((obs, dg))
 
-    Agent = agents.DQN
+    Agent = agents.DoubleDQN
     agent = Agent(
         q_func,
         opt,
