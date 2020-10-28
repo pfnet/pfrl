@@ -16,6 +16,10 @@ from pfrl import replay_buffers
 from pfrl.initializers import init_chainer_default
 
 
+def reward_fn(dg, ag):
+    return -1.0 if (ag != dg).any() else 0.0
+
+
 class BitFlip(gym.GoalEnv):
     """BitFlip environment from https://arxiv.org/pdf/1707.01495.pdf
 
@@ -32,20 +36,33 @@ class BitFlip(gym.GoalEnv):
             achieved_goal=spaces.MultiBinary(n),
             observation=spaces.MultiBinary(n),
         ))
-
-    def compute_reward(self, achieved_goal, desired_goal, info):
-        return -1.0 if (achieved_goal != desired_goal).any() else 0.0
+        self.clear_statistics()
 
     def step(self, action):
-        self.observation["observation"][action] = \
-            int(not self.observation["observation"][action])
-        reward = self.compute_reward(self.observation["achieved_goal"],
-                                     self.observation["desired_goal"], {})
-        done = (self.observation["desired_goal"] == \
+        # Compute action outcome
+        bit_new = int(not self.observation["observation"][action])
+        new_obs = self.observation["observation"].copy()
+        new_obs[action] = bit_new
+        # Set new observation
+        dg = self.observation["desired_goal"]
+        self.observation["desired_goal"] = dg.copy()
+        self.observation["achieved_goal"] = new_obs
+        self.observation["observation"] = new_obs
+
+        reward = reward_fn(self.observation["desired_goal"],
+                           self.observation["achieved_goal"])
+        done_success = (self.observation["desired_goal"] == \
             self.observation["achieved_goal"]).all()
+        done = done_success
         self.steps += 1
         if self.steps == self.n:
             done = True
+        if done:
+            if done_success:
+                assert reward == 0
+                self.results.append(1)
+            else:
+                self.results.append(0)
         return self.observation, reward, done, {}
 
     def reset(self):
@@ -61,6 +78,15 @@ class BitFlip(gym.GoalEnv):
         self.steps = 0
         return self.observation
 
+    def get_statistics(self):
+        failures =  self.results.count(0)
+        successes = self.results.count(1)
+        assert len(self.results) == failures + successes
+        success_rate = successes/float(self.results)
+        return [("success_rate", success_rate)]
+
+    def clear_statistics(self):
+        self.results = []
 
 def main():
     parser = argparse.ArgumentParser()
@@ -150,9 +176,6 @@ def main():
         eps=1e-2,
         centered=True,
     )
-
-    def reward_fn(dg, ag):
-        return -1.0 if (ag != dg).any() else 0.0
 
     if args.use_hindsight:
         rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
