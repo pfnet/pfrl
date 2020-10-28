@@ -2,8 +2,9 @@ import argparse
 
 import gym
 import gym.spaces as spaces
-import torch.nn as nn
 import numpy as np
+import torch
+import torch.nn as nn
 
 import pfrl
 from pfrl.q_functions import DiscreteActionValueHead
@@ -40,6 +41,9 @@ class BitFlip(gym.GoalEnv):
         )
         self.clear_statistics()
 
+    def compute_reward(self, achieved_goal, desired_goal, info):
+        return reward_fn(desired_goal, achieved_goal)
+
     def step(self, action):
         # Compute action outcome
         bit_new = int(not self.observation["observation"][action])
@@ -51,9 +55,9 @@ class BitFlip(gym.GoalEnv):
         self.observation["achieved_goal"] = new_obs
         self.observation["observation"] = new_obs
 
-        reward = reward_fn(
-            self.observation["desired_goal"], self.observation["achieved_goal"]
-        )
+        reward = self.compute_reward(self.observation["achieved_goal"],
+                                     self.observation["desired_goal"],
+                                     {})
         done_success = (
             self.observation["desired_goal"] == self.observation["achieved_goal"]
         ).all()
@@ -86,7 +90,9 @@ class BitFlip(gym.GoalEnv):
         failures = self.results.count(0)
         successes = self.results.count(1)
         assert len(self.results) == failures + successes
-        success_rate = successes / float(self.results)
+        if not self.results:
+            return [("success_rate", None)]
+        success_rate = successes / float(len(self.results))
         return [("success_rate", success_rate)]
 
     def clear_statistics(self):
