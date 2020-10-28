@@ -31,11 +31,13 @@ class BitFlip(gym.GoalEnv):
         self.n = n
         self.steps = 0
         self.action_space = spaces.Discrete(n)
-        self.observation_space = spaces.Dict(dict(
-            desired_goal=spaces.MultiBinary(n),
-            achieved_goal=spaces.MultiBinary(n),
-            observation=spaces.MultiBinary(n),
-        ))
+        self.observation_space = spaces.Dict(
+            dict(
+                desired_goal=spaces.MultiBinary(n),
+                achieved_goal=spaces.MultiBinary(n),
+                observation=spaces.MultiBinary(n),
+            )
+        )
         self.clear_statistics()
 
     def step(self, action):
@@ -49,10 +51,12 @@ class BitFlip(gym.GoalEnv):
         self.observation["achieved_goal"] = new_obs
         self.observation["observation"] = new_obs
 
-        reward = reward_fn(self.observation["desired_goal"],
-                           self.observation["achieved_goal"])
-        done_success = (self.observation["desired_goal"] == \
-            self.observation["achieved_goal"]).all()
+        reward = reward_fn(
+            self.observation["desired_goal"], self.observation["achieved_goal"]
+        )
+        done_success = (
+            self.observation["desired_goal"] == self.observation["achieved_goal"]
+        ).all()
         done = done_success
         self.steps += 1
         if self.steps == self.n:
@@ -67,10 +71,10 @@ class BitFlip(gym.GoalEnv):
 
     def reset(self):
         sample_obs = self.observation_space.sample()
-        state, goal = sample_obs['observation'], sample_obs['desired_goal']
+        state, goal = sample_obs["observation"], sample_obs["desired_goal"]
         while (state == goal).all():
             sample_obs = self.observation_space.sample()
-            state, goal = sample_obs['observation'], sample_obs['desired_goal']
+            state, goal = sample_obs["observation"], sample_obs["desired_goal"]
         self.observation = dict()
         self.observation["desired_goal"] = goal
         self.observation["achieved_goal"] = state
@@ -79,14 +83,15 @@ class BitFlip(gym.GoalEnv):
         return self.observation
 
     def get_statistics(self):
-        failures =  self.results.count(0)
+        failures = self.results.count(0)
         successes = self.results.count(1)
         assert len(self.results) == failures + successes
-        success_rate = successes/float(self.results)
+        success_rate = successes / float(self.results)
         return [("success_rate", success_rate)]
 
     def clear_statistics(self):
         self.results = []
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -181,8 +186,8 @@ def main():
         rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
             reward_fn=reward_fn,
             replay_strategy=replay_buffers.hindsight.ReplayFutureGoal(),
-            capacity=10 ** 6
-            )
+            capacity=10 ** 6,
+        )
     else:
         rbuf = replay_buffers.ReplayBuffer(10 ** 6)
 
@@ -217,7 +222,6 @@ def main():
 
     if args.load:
         agent.load(args.load)
-
 
     if args.demo:
         eval_stats = experiments.eval_performance(
