@@ -29,7 +29,6 @@ class BitFlip(gym.GoalEnv):
 
     def __init__(self, n):
         self.n = n
-        self.steps = 0
         self.action_space = spaces.Discrete(n)
         self.observation_space = spaces.Dict(
             dict(
@@ -42,6 +41,12 @@ class BitFlip(gym.GoalEnv):
 
     def compute_reward(self, achieved_goal, desired_goal, info):
         return reward_fn(desired_goal, achieved_goal)
+
+    def _check_done(self):
+        success = (
+            self.observation["desired_goal"] == self.observation["achieved_goal"]
+        ).all()
+        return (self.steps >= self.n) or success, success
 
     def step(self, action):
         # Compute action outcome
@@ -57,19 +62,12 @@ class BitFlip(gym.GoalEnv):
         reward = self.compute_reward(
             self.observation["achieved_goal"], self.observation["desired_goal"], {}
         )
-        done_success = (
-            self.observation["desired_goal"] == self.observation["achieved_goal"]
-        ).all()
-        done = done_success
         self.steps += 1
-        if self.steps == self.n:
-            done = True
+        done, success = self._check_done()
+        assert success == (reward == 0)
         if done:
-            if done_success:
-                assert reward == 0
-                self.results.append(1)
-            else:
-                self.results.append(0)
+            result = 1 if success else 0
+            self.results.append(result)
         return self.observation, reward, done, {}
 
     def reset(self):
