@@ -55,9 +55,9 @@ class BitFlip(gym.GoalEnv):
         self.observation["achieved_goal"] = new_obs
         self.observation["observation"] = new_obs
 
-        reward = self.compute_reward(self.observation["achieved_goal"],
-                                     self.observation["desired_goal"],
-                                     {})
+        reward = self.compute_reward(
+            self.observation["achieved_goal"], self.observation["desired_goal"], {}
+        )
         done_success = (
             self.observation["desired_goal"] == self.observation["achieved_goal"]
         ).all()
