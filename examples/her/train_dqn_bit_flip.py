@@ -55,9 +55,11 @@ class BitFlip(gym.GoalEnv):
         new_obs[action] = bit_new
         # Set new observation
         dg = self.observation["desired_goal"]
-        self.observation["desired_goal"] = dg.copy()
-        self.observation["achieved_goal"] = new_obs
-        self.observation["observation"] = new_obs
+        self.observation = {
+            "desired_goal": dg.copy(),
+            "achieved_goal": new_obs,
+            "observation": new_obs,
+        }
 
         reward = self.compute_reward(
             self.observation["achieved_goal"], self.observation["desired_goal"], {}
