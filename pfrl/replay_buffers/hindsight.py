@@ -47,7 +47,6 @@ class ReplayFinalGoal(HindsightReplayStrategy):
             transition = episode[t]
             if apply_her:
                 final_transition = episode[-1]
-                final_goal = final_transition["next_state"]["achieved_goal"]
                 transition = copy.deepcopy(transition)
                 transition = relabel_transition_goal(
                     transition, final_transition, reward_fn, swap_keys_list
@@ -88,7 +87,6 @@ class ReplayFutureGoal(HindsightReplayStrategy):
             transition = episode[t]
             if apply_her:
                 future_transition = episode[future_t]
-                future_goal = future_transition["next_state"]["achieved_goal"]
                 transition = copy.deepcopy(transition)
                 transition = relabel_transition_goal(
                     transition, future_transition, reward_fn, swap_keys_list
