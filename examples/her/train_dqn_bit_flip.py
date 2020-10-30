@@ -139,7 +139,7 @@ def main():
         default=10,
         help="Number of bits for BitFlipping environment",
     )
-    parser.add_argument("--no-hindsight", action='store_true', default=False)
+    parser.add_argument("--no-hindsight", action="store_true", default=False)
     parser.add_argument("--eval-n-episodes", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument("--n-best-episodes", type=int, default=100)
@@ -188,8 +188,8 @@ def main():
             capacity=10 ** 6,
         )
 
-    decay_steps = ((args.num_bits + 5) * 10 ** 3)
-    end_epsilon = min(0.1, 0.5/args.num_bits)
+    decay_steps = (args.num_bits + 5) * 10 ** 3
+    end_epsilon = min(0.1, 0.5 / args.num_bits)
     explorer = explorers.LinearDecayEpsilonGreedy(
         start_epsilon=0.5,
         end_epsilon=end_epsilon,
