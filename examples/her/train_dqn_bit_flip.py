@@ -139,7 +139,7 @@ def main():
         default=10,
         help="Number of bits for BitFlipping environment",
     )
-    parser.add_argument("--use-hindsight", type=bool, default=True)
+    parser.add_argument("--no-hindsight", action='store_true', default=False)
     parser.add_argument("--eval-n-episodes", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument("--n-best-episodes", type=int, default=100)
@@ -179,14 +179,14 @@ def main():
 
     opt = torch.optim.Adam(q_func.parameters(), eps=1e-4)
 
-    if args.use_hindsight:
+    if args.no_hindsight:
+        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+    else:
         rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
             reward_fn=reward_fn,
             replay_strategy=replay_buffers.hindsight.ReplayFutureGoal(),
             capacity=10 ** 6,
         )
-    else:
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
 
     decay_steps = ((args.num_bits + 5) * 10 ** 3)
     end_epsilon = min(0.1, 0.5/args.num_bits)
