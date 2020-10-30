@@ -124,7 +124,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=10 ** 7,
+        default=5 * 10 ** 6,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -177,7 +177,7 @@ def main():
         DiscreteActionValueHead(),
     )
 
-    opt = torch.optim.Adam(q_func.parameters(), eps=1e-3)
+    opt = torch.optim.Adam(q_func.parameters(), eps=1e-4)
 
     if args.use_hindsight:
         rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
@@ -188,10 +188,12 @@ def main():
     else:
         rbuf = replay_buffers.ReplayBuffer(10 ** 6)
 
+    decay_steps = ((args.num_bits + 5) * 10 ** 3)
+    end_epsilon = min(0.1, 0.5/args.num_bits)
     explorer = explorers.LinearDecayEpsilonGreedy(
-        start_epsilon=0.3,
-        end_epsilon=0.0,
-        decay_steps=5 * 10 ** 3,
+        start_epsilon=0.5,
+        end_epsilon=end_epsilon,
+        decay_steps=decay_steps,
         random_action_func=lambda: np.random.randint(n_actions),
     )
 
