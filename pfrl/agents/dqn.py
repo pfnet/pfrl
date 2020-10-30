@@ -20,6 +20,7 @@ import numpy as np
 
 import pfrl
 from pfrl import agent
+from pfrl import env
 from pfrl.action_value import ActionValue
 from pfrl.explorer import Explorer
 from pfrl.utils.batch_states import batch_states
@@ -641,6 +642,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         stop_event: mp.synchronize.Event,
         exception_event: mp.synchronize.Event,
         n_updates: Optional[int] = None,
+        step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = [],
+        optimizer_step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = []
     ) -> None:
         try:
             update_counter = 0
@@ -665,6 +668,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 else:
                     with replay_buffer_lock:
                         transitions = self.replay_buffer.sample(self.minibatch_size)
+
                     self.update(transitions)
 
                 # Update the shared model. This can be expensive if GPU is used
@@ -683,6 +687,13 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 # We can safely assign self.t since in the learner
                 # it isn't updated by any other method
                 self.t = effective_timestep
+
+                for hook in optimizer_step_hooks:
+                    hook(None, self, self.optim_t)
+
+                for hook in step_hooks:
+                    hook(None, self, effective_timestep)
+
                 if effective_timestep % self.target_update_interval == 0:
                     self.sync_target_network()
         except Exception:
@@ -710,6 +721,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         update_counter: Optional[Any] = None,
         n_updates: Optional[int] = None,
         actor_update_interval: int = 8,
+        step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = [],
+        optimizer_step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = []
     ):
         if update_counter is None:
             update_counter = mp.Value(ctypes.c_ulong)
@@ -755,6 +768,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 stop_event=learner_stop_event,
                 n_updates=n_updates,
                 exception_event=exception_event,
+                step_hooks=step_hooks,
+                optimizer_step_hooks=optimizer_step_hooks,
             ),
             stop_event=learner_stop_event,
         )
