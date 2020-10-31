@@ -321,6 +321,15 @@ def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
     summary_writer.flush()
 
 
+def record_tb_stats_loop(outdir, queue, stop_event):
+    tb_writer = create_tb_writer(outdir)
+
+    while not (stop_event.wait(1e-6) and queue.empty()):
+        if not queue.empty():
+            agent_stats, eval_stats, t = queue.get()
+            record_tb_stats(tb_writer, agent_stats, eval_stats, t)
+
+
 def save_agent(agent, t, outdir, logger, suffix=""):
     dirname = os.path.join(outdir, "{}{}".format(t, suffix))
     agent.save(dirname)
@@ -459,7 +468,6 @@ class AsyncEvaluator(object):
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
-        use_tensorboard (bool): Additionally log eval stats to tensorboard
     """
 
     def __init__(
@@ -472,7 +480,6 @@ class AsyncEvaluator(object):
         step_offset=0,
         save_best_so_far_agent=True,
         logger=None,
-        use_tensorboard=False,
     ):
         assert (n_steps is None) != (n_episodes is None), (
             "One of n_steps or n_episodes must be None. "
@@ -484,7 +491,6 @@ class AsyncEvaluator(object):
         self.n_episodes = n_episodes
         self.eval_interval = eval_interval
         self.outdir = outdir
-        self.use_tensorboard = use_tensorboard
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
         self.save_best_so_far_agent = save_best_so_far_agent
@@ -501,8 +507,8 @@ class AsyncEvaluator(object):
         with open(os.path.join(self.outdir, "scores.txt"), "a"):
             pass
 
-        if use_tensorboard:
-            self.tb_writer = create_tb_writer(outdir)
+        self.record_tb_stats_queue = None
+        self.record_tb_stats_thread = None
 
     @property
     def max_score(self):
@@ -535,8 +541,8 @@ class AsyncEvaluator(object):
         ) + custom_values
         record_stats(self.outdir, values)
 
-        if self.use_tensorboard:
-            record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
+        if self.record_tb_stats_queue is not None:
+            self.record_tb_stats_queue.put([agent_stats, eval_stats, t])
 
         with self._max_score.get_lock():
             if mean > self._max_score.value:
@@ -561,3 +567,15 @@ class AsyncEvaluator(object):
                     self.wrote_header.value = True
             return self.evaluate_and_update_max_score(t, episodes, env, agent)
         return None
+
+    def start_tensorboard_writer(self, outdir, stop_event):
+        self.record_tb_stats_queue = mp.Queue()
+        self.record_tb_stats_thread = pfrl.utils.StoppableThread(
+            target=record_tb_stats_loop,
+            args=[outdir, self.record_tb_stats_queue, stop_event],
+            stop_event=stop_event,
+        )
+        self.record_tb_stats_thread.start()
+
+    def join_tensorboard_writer(self):
+        self.record_tb_stats_thread.join()
