@@ -167,6 +167,10 @@ class CategoricalDQN(dqn.DQN):
             batch_q_target = self._compute_target_values(exp_batch)
             assert batch_q_target.shape == (batch_size, n_atoms)
 
+            # for `agent.get_statistics()`
+            batch_q_scalars = qout.evaluate_actions(batch_actions)
+            self.q_record.extend(batch_q_scalars.detach().cpu().numpy().ravel())
+
         return batch_q, batch_q_target
 
     def _compute_loss(self, exp_batch, errors_out=None):

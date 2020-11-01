@@ -91,3 +91,34 @@ class TestAttributeSavingMixin(unittest.TestCase):
         # Otherwise it seems to raise OSError: [Errno 63] File name too long
         with self.assertRaises(AssertionError):
             parent1.save(dirname)
+
+    def test_with_data_parallel(self):
+        parent = Parent()
+        parent.link.param.detach().numpy()[:] = 1
+        parent.child.link.param.detach().numpy()[:] = 2
+        parent.link = torch.nn.DataParallel(parent.link)
+
+        # Save
+        dirname = tempfile.mkdtemp()
+        parent.save(dirname)
+        self.assertTrue(os.path.isdir(dirname))
+        self.assertTrue(os.path.isfile(os.path.join(dirname, "link.pt")))
+        self.assertTrue(os.path.isdir(os.path.join(dirname, "child")))
+        self.assertTrue(os.path.isfile(os.path.join(dirname, "child", "link.pt")))
+
+        # Load Parent without data parallel
+        parent = Parent()
+        self.assertEqual(int(parent.link.param.detach().numpy()), 0)
+        self.assertEqual(int(parent.child.link.param.detach().numpy()), 0)
+        parent.load(dirname)
+        self.assertEqual(int(parent.link.param.detach().numpy()), 1)
+        self.assertEqual(int(parent.child.link.param.detach().numpy()), 2)
+
+        # Load Parent with data parallel
+        parent = Parent()
+        parent.link = torch.nn.DataParallel(parent.link)
+        self.assertEqual(int(parent.link.module.param.detach().numpy()), 0)
+        self.assertEqual(int(parent.child.link.param.detach().numpy()), 0)
+        parent.load(dirname)
+        self.assertEqual(int(parent.link.module.param.detach().numpy()), 1)
+        self.assertEqual(int(parent.child.link.param.detach().numpy()), 2)
