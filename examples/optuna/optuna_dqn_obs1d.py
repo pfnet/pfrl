@@ -154,7 +154,7 @@ def _objective_core(
 
 
 def _get_score_from_eval_stats_history(
-        eval_stats_history, agg="last", target="eval_score"
+    eval_stats_history, agg="last", target="eval_score"
 ):
     """Get a scalar score from a list of evaluation statistics dicts."""
     final_score = None
