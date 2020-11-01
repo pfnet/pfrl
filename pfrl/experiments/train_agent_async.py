@@ -3,8 +3,6 @@ import torch.multiprocessing as mp
 import os
 import torch
 from torch import nn
-import warnings
-import time
 
 import numpy as np
 
@@ -37,22 +35,15 @@ def train_loop(
     episodes_counter,
     stop_event,
     exception_event,
-    process0_end_event,
     max_episode_len=None,
     evaluator=None,
     eval_env=None,
     successful_score=None,
     logger=None,
     global_step_hooks=[],
-    statistics_queue=None,
 ):
 
     logger = logger or logging.getLogger(__name__)
-
-    if statistics_queue is not None:
-        warnings.warn(
-            "Statistics collection from async training is an experimental feature."
-        )
 
     if eval_env is None:
         eval_env = env
@@ -95,7 +86,6 @@ def train_loop(
                 hook(env, agent, global_t)
 
             if done or reset or global_t >= steps or stop_event.is_set():
-                stats = None
                 if process_idx == 0:
                     logger.info(
                         "outdir:%s global_step:%s local_step:%s R:%s",
@@ -104,34 +94,24 @@ def train_loop(
                         local_t,
                         episode_r,
                     )
-                    stats = agent.get_statistics()
-                    logger.info("statistics:%s", stats)
-                    stats = dict(stats)
+                    logger.info("statistics:%s", agent.get_statistics())
 
                 # Evaluate the current agent
                 if evaluator is not None:
                     eval_score = evaluator.evaluate_if_necessary(
                         t=global_t, episodes=global_episodes, env=eval_env, agent=agent
                     )
-                    if eval_score is not None:
-                        if process_idx == 0:
-                            stats["eval_score"] = eval_score
-                        if (
-                            successful_score is not None
-                            and eval_score >= successful_score
-                        ):
-                            stop_event.set()
-                            successful = True  # will break while-loop
 
-                if process_idx == 0:
-                    assert stats is not None
-                    if statistics_queue is not None:
-                        statistics_queue.put(stats)
-
-                if successful:
-                    # Break immediately in order to avoid an additional
-                    # call of agent.act_and_train
-                    break
+                    if (
+                        eval_score is not None
+                        and successful_score is not None
+                        and eval_score >= successful_score
+                    ):
+                        stop_event.set()
+                        successful = True
+                        # Break immediately in order to avoid an additional
+                        # call of agent.act_and_train
+                        break
 
                 with episodes_counter.get_lock():
                     episodes_counter.value += 1
@@ -166,9 +146,6 @@ def train_loop(
         agent.save(dirname)
         logger.info("Saved the successful agent to %s", dirname)
 
-    if process_idx == 0:
-        process0_end_event.set()
-
 
 def train_agent_async(
     outdir,
@@ -192,7 +169,6 @@ def train_agent_async(
     random_seeds=None,
     stop_event=None,
     exception_event=None,
-    collect_statistics=False,
 ):
     """Train agent asynchronously using multiprocessing.
 
@@ -231,13 +207,9 @@ def train_agent_async(
             other thread raised an excpetion. The train will be terminated and
             the current agent will be saved.
             If set to None, a new Event object is created and used internally.
-        collect_statistics (bool): I set to True, statistics from
-            process_idx==0 will be returned.
 
     Returns:
-        agent: Trained agent.
-        statistics: (None if collect_statistics is not set) List of
-            episode-wise stats dict, collected on process_idx==0.
+        Trained agent.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -247,11 +219,6 @@ def train_agent_async(
 
     counter = mp.Value("l", 0)
     episodes_counter = mp.Value("l", 0)
-    if collect_statistics:
-        statistics_queue = mp.Queue()
-    else:
-        statistics_queue = None
-    process0_end_event = mp.Event()
 
     if stop_event is None:
         stop_event = mp.Event()
@@ -324,11 +291,9 @@ def train_agent_async(
                 successful_score=successful_score,
                 stop_event=stop_event,
                 exception_event=exception_event,
-                process0_end_event=process0_end_event,
                 eval_env=eval_env,
                 global_step_hooks=global_step_hooks,
                 logger=logger,
-                statistics_queue=statistics_queue,
             )
 
         if profile:
@@ -348,22 +313,4 @@ def train_agent_async(
 
     stop_event.set()
 
-    if collect_statistics:
-        # wait small amount of time to avoid missing last queue item in some edge cases
-        time.sleep(0.5)
-        statistics = []
-        wait_tolerance_sec = 3.0
-        # wait process_idx==0
-        if not process0_end_event.wait(wait_tolerance_sec):
-            warnings.warn(
-                "The evaluation process (process_idx==0) did not set end_event "
-                "properly (tolerance: {} sec). It might exit unexpectedly.".format(
-                    wait_tolerance_sec
-                )
-            )
-        while not statistics_queue.empty():
-            statistics.append(statistics_queue.get())
-    else:
-        statistics = None
-
-    return agent, statistics
+    return agent

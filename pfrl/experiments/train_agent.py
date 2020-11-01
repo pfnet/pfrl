@@ -49,7 +49,7 @@ def train_agent(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
-    statistics = []  # List of episode stats dict
+    eval_stats_history = []  # List of evaluation episode stats dict
     episode_len = 0
     try:
         while t < steps:
@@ -76,14 +76,15 @@ def train_agent(
                     episode_r,
                 )
                 stats = agent.get_statistics()
-                statistics.append(dict(stats))
                 logger.info("statistics:%s", stats)
                 if evaluator is not None:
                     eval_score = evaluator.evaluate_if_necessary(
                         t=t, episodes=episode_idx + 1
                     )
                     if eval_score is not None:
-                        statistics[-1]["eval_score"] = eval_score
+                        eval_stats = dict(stats)
+                        eval_stats["eval_score"] = eval_score
+                        eval_stats_history.append(eval_stats)
                         for hook in evaluation_hooks:
                             hook(env, agent, evaluator, t, eval_score)
                     if (
@@ -109,7 +110,7 @@ def train_agent(
     # Save the final model
     save_agent(agent, t, outdir, logger, suffix="_finish")
 
-    return statistics
+    return eval_stats_history
 
 
 def train_agent_with_evaluation(
@@ -163,7 +164,7 @@ def train_agent_with_evaluation(
         logger (logging.Logger): Logger used in this function.
     Returns:
         agent: Trained agent.
-        statistics: List of episode-wise stats dict.
+        eval_stats_history: List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -190,7 +191,7 @@ def train_agent_with_evaluation(
         logger=logger,
     )
 
-    statistics = train_agent(
+    eval_stats_history = train_agent(
         agent,
         env,
         steps,
@@ -205,4 +206,4 @@ def train_agent_with_evaluation(
         logger=logger,
     )
 
-    return agent, statistics
+    return agent, eval_stats_history

@@ -11,8 +11,8 @@ import pfrl
 @pytest.mark.parametrize("num_envs", [1, 2])
 @pytest.mark.parametrize("max_episode_len", [None, 2])
 @pytest.mark.parametrize("steps", [5, 6])
-@pytest.mark.parametrize("enable_evaluation_hook", [True, False])
-def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation_hook):
+@pytest.mark.parametrize("enable_evaluation", [True, False])
+def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
 
     outdir = tempfile.mkdtemp()
 
@@ -40,48 +40,54 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation_h
 
     hook = mock.Mock()
 
-    log_interval = 5
-    n_logging = 1  # Since all envs will reach to done==True simultaneously.
-    dummy_stats = [
-        ("average_q", 3.14),
-        ("average_loss", 2.7),
-        ("cumulative_steps", 42),
-        ("n_updates", 8),
-        ("rlen", 1),
-    ]
-    agent.get_statistics.side_effect = [dummy_stats] * n_logging
-
-    if enable_evaluation_hook:
+    if enable_evaluation:
+        # evaluator.evaluate_if_necessary will be called `ceil(steps / num_envs)` times
+        # during training. Here we simulate that eval_interval==steps,
+        # i.e., return a float value (= 42 in this case) for the last call only and
+        # otherwise return None (= evaluation is not necessary).
         evaluator = mock.Mock()
-        # evaluator will be called `ceil(steps / num_envs)` times,
-        # but it should return a valid score every eval_interval steps.
-        # Here we assume that eval_interval==steps.
-        # (i.e., return a valid evaluation score on the last call only)
         n_evaluate_if_necessary_calls = math.ceil(steps / num_envs)
-        side_effect = [None] * (n_evaluate_if_necessary_calls - 1) + [42]
+        dummy_eval_score = 42
+        side_effect = [None] * (n_evaluate_if_necessary_calls - 1) + [dummy_eval_score]
         evaluator.evaluate_if_necessary.side_effect = side_effect
         evaluation_hooks = [mock.Mock()]
+
+        n_logging = 1  # Since all envs will reach to done==True simultaneously.
+        n_valid_eval_score_returned = 1  # Since we simulated eval_interval==steps.
+        # agent.get_statistics will be called for logging & eval_stats_history
+        n_get_statistics_calls = n_logging + n_valid_eval_score_returned
+        dummy_stats = [
+            ("average_q", 3.14),
+            ("average_loss", 2.7),
+            ("cumulative_steps", 42),
+            ("n_updates", 8),
+            ("rlen", 1),
+        ]
+        agent.get_statistics.side_effect = [dummy_stats] * n_get_statistics_calls
     else:
         evaluator = None
         evaluation_hooks = ()
 
-    statistics = pfrl.experiments.train_agent_batch(
+    eval_stats_history = pfrl.experiments.train_agent_batch(
         agent=agent,
         env=vec_env,
         steps=steps,
         outdir=outdir,
         max_episode_len=max_episode_len,
-        log_interval=log_interval,
         step_hooks=[hook],
         evaluator=evaluator,
         evaluation_hooks=evaluation_hooks,
     )
 
-    expected_statistics = [dict(dummy_stats) for _ in range(n_logging)]
-    if enable_evaluation_hook:
-        expected_statistics[-1]["eval_score"] = 42
-
-    assert statistics == expected_statistics
+    if enable_evaluation:
+        expected = [
+            dict(**dict(dummy_stats), eval_score=dummy_eval_score)
+            for _ in range(n_valid_eval_score_returned)
+        ]
+    else:
+        # No evaluation invoked when evaluator=None is passed to train_agent_batch.
+        expected = []
+    assert eval_stats_history == expected
 
     iters = math.ceil(steps / num_envs)
     assert agent.batch_act.call_count == iters
@@ -128,7 +134,7 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation_h
         # step starts with 1
         assert args[2] == i + 1
 
-    if enable_evaluation_hook:
+    if enable_evaluation:
         assert (
             evaluator.evaluate_if_necessary.call_count == n_evaluate_if_necessary_calls
         )
@@ -146,7 +152,7 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation_h
             # executed simultaneously.
             t = math.ceil(steps / num_envs) * num_envs
         assert args[3] == t
-        assert args[4] == 42
+        assert args[4] == dummy_eval_score
 
 
 class TestTrainAgentBatchNeedsReset(unittest.TestCase):
@@ -188,26 +194,13 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
 
         vec_env = pfrl.envs.SerialVectorEnv([make_env(i) for i in range(2)])
 
-        log_interval = 5
-        n_logging = steps // log_interval
-        dummy_stats = [
-            ("average_q", 3.14),
-            ("average_loss", 2.7),
-            ("cumulative_steps", 42),
-            ("n_updates", 8),
-            ("rlen", 1),
-        ]
-        agent.get_statistics.side_effect = [dummy_stats] * n_logging
-
-        statistics = pfrl.experiments.train_agent_batch(
-            agent=agent,
-            env=vec_env,
-            steps=steps,
-            outdir=outdir,
-            log_interval=log_interval,
+        eval_stats_history = pfrl.experiments.train_agent_batch(
+            agent=agent, env=vec_env, steps=steps, outdir=outdir,
         )
 
-        self.assertListEqual(statistics, [dict(dummy_stats) for _ in range(n_logging)])
+        # No evaluation invoked when evaluator=None (default) is passed to
+        # train_agent_batch.
+        self.assertListEqual(eval_stats_history, [])
 
         self.assertEqual(vec_env.envs[0].reset.call_count, 2)
         self.assertEqual(vec_env.envs[0].step.call_count, 5)

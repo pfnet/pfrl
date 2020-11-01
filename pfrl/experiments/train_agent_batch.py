@@ -48,7 +48,7 @@ def train_agent_batch(
             called every evaluation. See pfrl.experiments.evaluation_hooks.
         logger (logging.Logger): Logger used in this function.
     Returns:
-        List of stats dict, collected every log_interval steps.
+        List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -66,7 +66,7 @@ def train_agent_batch(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
-    statistics = []  # List of stats dict
+    eval_stats_history = []  # List of evaluation episode stats dict
     try:
         while True:
             # a_t
@@ -123,19 +123,15 @@ def train_agent_batch(
                         np.mean(recent_returns) if recent_returns else np.nan,
                     )
                 )
-                stats = agent.get_statistics()
-                statistics.append(dict(stats))
-                logger.info("statistics: {}".format(stats))
+                logger.info("statistics: {}".format(agent.get_statistics()))
             if evaluator:
                 eval_score = evaluator.evaluate_if_necessary(
                     t=t, episodes=np.sum(episode_idx)
                 )
                 if eval_score is not None:
-                    if len(statistics) > 0:
-                        # The priod of log_interval and evaluation is not synced.
-                        # The eval_score may overwrite an existing record.
-                        statistics[-1]["eval_score"] = eval_score
-
+                    eval_stats = dict(agent.get_statistics())
+                    eval_stats["eval_score"] = eval_score
+                    eval_stats_history.append(eval_stats)
                     for hook in evaluation_hooks:
                         hook(env, agent, evaluator, t, eval_score)
                     if (
@@ -163,7 +159,7 @@ def train_agent_batch(
         # Save the final model
         save_agent(agent, t, outdir, logger, suffix="_finish")
 
-    return statistics
+    return eval_stats_history
 
 
 def train_agent_batch_with_evaluation(
@@ -220,7 +216,7 @@ def train_agent_batch_with_evaluation(
         logger (logging.Logger): Logger used in this function.
     Returns:
         agent: Trained agent.
-        statistics: List of stats dict, collected every log_interval steps.
+        eval_stats_history: List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -246,7 +242,7 @@ def train_agent_batch_with_evaluation(
         logger=logger,
     )
 
-    statistics = train_agent_batch(
+    eval_stats_history = train_agent_batch(
         agent,
         env,
         steps,
@@ -263,4 +259,4 @@ def train_agent_batch_with_evaluation(
         logger=logger,
     )
 
-    return agent, statistics
+    return agent, eval_stats_history
