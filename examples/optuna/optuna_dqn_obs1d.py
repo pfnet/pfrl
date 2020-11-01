@@ -135,7 +135,7 @@ def _objective_core(
     eval_env = make_env(test=True)
 
     evaluation_hooks = [OptunaPrunerHook(trial=trial)]
-    _, statistics = experiments.train_agent_with_evaluation(
+    _, eval_stats_history = experiments.train_agent_with_evaluation(
         agent=agent,
         env=env,
         steps=steps,
@@ -148,21 +148,24 @@ def _objective_core(
         evaluation_hooks=evaluation_hooks,
     )
 
-    score = _get_score_from_statistics(statistics)
+    score = _get_score_from_eval_stats_history(eval_stats_history)
 
     return score
 
 
-def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
+def _get_score_from_eval_stats_history(
+        eval_stats_history, agg="last", target="eval_score"
+):
+    """Get a scalar score from a list of evaluation statistics dicts."""
     final_score = None
     if agg == "last":
-        for stats in reversed(statistics):
+        for stats in reversed(eval_stats_history):
             if target in stats:
                 final_score = stats[target]
                 break
     elif agg == "mean":
         scores = []
-        for stats in statistics:
+        for stats in eval_stats_history:
             if target in stats:
                 score = stats[target]
                 if score is not None:
@@ -170,12 +173,12 @@ def _get_score_from_statistics(statistics, agg="last", target="eval_score"):
         final_score = sum(scores) / len(scores)
     elif agg == "best":
         scores = []
-        for stats in statistics:
+        for stats in eval_stats_history:
             if target in stats:
                 score = stats[target]
                 if score is not None:
                     scores.append(score)
-        final_score = max(scores)
+        final_score = max(scores)  # Assuming larger is better
     else:
         raise ValueError("Unknown agg method: {}".format(agg))
 
@@ -192,11 +195,11 @@ def suggest(trial, steps):
     )
     n_hidden_layers = trial.suggest_int("n_hidden_layers", 1, 3)  # hyper-hyper-param
     hyper_params["hidden_sizes"] = []
-    for l in range(n_hidden_layers):
+    for n_channel in range(n_hidden_layers):
         # If n_channels is a large value, the precise number doesn't matter.
         # In other words, we should search over the smaller values more precisely.
         c = trial.suggest_int(
-            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, l),
+            "n_hidden_layers_{}_n_channels_{}".format(n_hidden_layers, n_channel),
             10,
             200,
             log=True,
