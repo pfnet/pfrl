@@ -403,7 +403,7 @@ class Evaluator(object):
         if use_tensorboard:
             self.tb_writer = create_tb_writer(outdir)
 
-    def _evaluate_and_update_max_score(self, t, episodes):
+    def evaluate_and_update_max_score(self, t, episodes):
         eval_stats = eval_performance(
             self.env,
             self.agent,
@@ -440,7 +440,7 @@ class Evaluator(object):
 
     def evaluate_if_necessary(self, t, episodes):
         if t >= self.prev_eval_t + self.eval_interval:
-            score = self._evaluate_and_update_max_score(t, episodes)
+            score = self.evaluate_and_update_max_score(t, episodes)
             self.prev_eval_t = t - t % self.eval_interval
             return score
         return None
@@ -510,7 +510,7 @@ class AsyncEvaluator(object):
             v = self._max_score.value
         return v
 
-    def _evaluate_and_update_max_score(self, t, episodes, env, agent):
+    def evaluate_and_update_max_score(self, t, episodes, env, agent):
         eval_stats = eval_performance(
             env,
             agent,
@@ -559,5 +559,5 @@ class AsyncEvaluator(object):
                 if not self.wrote_header.value:
                     write_header(self.outdir, agent)
                     self.wrote_header.value = True
-            return self._evaluate_and_update_max_score(t, episodes, env, agent)
+            return self.evaluate_and_update_max_score(t, episodes, env, agent)
         return None
