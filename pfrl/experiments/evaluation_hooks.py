@@ -5,6 +5,7 @@ from abc import abstractmethod
 try:
     # from optuna import TrialPruned
     import optuna
+
     _optuna_available = True
 except ImportError:
     _optuna_available = False
