@@ -1,7 +1,13 @@
 from abc import ABCMeta
 from abc import abstractmethod
 
-import optuna
+# Delay importing optuna since optuna is optional dependency.
+try:
+    # from optuna import TrialPruned
+    import optuna
+    _optuna_available = True
+except ImportError:
+    _optuna_available = False
 
 
 class EvaluationHook(object, metaclass=ABCMeta):
@@ -46,6 +52,8 @@ class OptunaPrunerHook(EvaluationHook):
     """
 
     def __init__(self, trial):
+        if not _optuna_available:
+            raise RuntimeError("OptunaPrunerHook requires optuna installed.")
         self.trial = trial
 
     def __call__(self, env, agent, evaluator, step, eval_score):

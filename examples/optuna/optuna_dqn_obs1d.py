@@ -16,7 +16,11 @@ import random
 
 import torch.optim as optim
 import gym
-import optuna
+
+try:
+    import optuna
+except ImportError:
+    raise RuntimeError("ImportError: optuna required.")
 
 import pfrl
 from pfrl.agents.dqn import DQN

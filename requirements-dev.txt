@@ -3,6 +3,7 @@ autopep8
 atari_py
 flake8
 opencv-python
+optuna
 pytest
 scipy
 sphinx
