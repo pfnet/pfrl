@@ -19,7 +19,9 @@ class EvaluationHook(object, metaclass=ABCMeta):
     accepts (env, agent, evaluator, step, eval_score) as arguments can be used as an
     evaluation hook.
 
-    Note that `step` is the current training step, not the number of evaluations so far.
+    Note that:
+    - ``step`` is the current training step, not the number of evaluations so far.
+    - ``train_agent_async`` DOES NOT support EvaluationHook.
     """
 
     @abstractmethod
@@ -42,7 +44,11 @@ class OptunaPrunerHook(EvaluationHook):
     Optuna regards trials which raise `optuna.TrialPruned` as unpromissed and
     prune them at the early stages of the training.
 
-    Note that `step` is the current training step, not the number of evaluations so far.
+    Note that:
+    - ``step`` is the current training step, not the number of evaluations so far.
+    - ``train_agent_async`` DOES NOT support EvaluationHook.
+      - This hook stops trial by raising an exception, but re-raise error among process
+        is not straight forward.
 
     Args:
         trial (optuna.Trial): Current trial.

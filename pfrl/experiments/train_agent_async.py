@@ -163,6 +163,7 @@ def train_agent_async(
     agent=None,
     make_agent=None,
     global_step_hooks=[],
+    evaluation_hooks=(),
     save_best_so_far_agent=True,
     use_tensorboard=False,
     logger=None,
@@ -194,6 +195,7 @@ def train_agent_async(
         global_step_hooks (list): List of callable objects that accepts
             (env, agent, step) as arguments. They are called every global
             step. See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Not supported for train_agent_async.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
@@ -209,10 +211,14 @@ def train_agent_async(
             If set to None, a new Event object is created and used internally.
 
     Returns:
-        Trained agent.
+        agent: Trained agent.
+        eval_stats_history: Not supported for train_agent_async. Always returns None.
     """
 
     logger = logger or logging.getLogger(__name__)
+
+    if len(evaluation_hooks) > 0:
+        assert RuntimeError("evaluation_hooks is not supported for train_agent_async.")
 
     # Prevent numpy from using multiple threads
     os.environ["OMP_NUM_THREADS"] = "1"
@@ -313,4 +319,5 @@ def train_agent_async(
 
     stop_event.set()
 
-    return agent
+    eval_stats_history = None  # not supported for train_agent_async
+    return agent, eval_stats_history
