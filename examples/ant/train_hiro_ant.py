@@ -96,6 +96,7 @@ def parse_rl_args():
     parser.add_argument(
         "--env",
         default="AntMaze",
+        help="Type of Ant Env to use. Options are AntMaze, AntFall, and AntPush.",
         type=str)
     parser.add_argument(
         "--render",
@@ -153,7 +154,10 @@ def main():
     env_subgoal_dim = eval_env.subgoal_dim
 
     # determined from the ant env
-    env_goal_dim = 2
+    if args.env == 'AntMaze' or args.env == 'AntPush':
+        env_goal_dim = 2
+    else:
+        env_goal_dim = 3
 
     action_space = eval_env.action_space
     subgoal_space = eval_env.subgoal_space
