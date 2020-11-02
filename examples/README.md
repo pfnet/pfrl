@@ -1,5 +1,6 @@
 # Examples
 
+- `ant`: examples using the Mujoco ant for HRL algorithms
 - `atari`: examples for general Atari games
 - `atari/reproduction`: examples with benchmark scores for reproducing published results on Atari
 - `gym`: examples for OpenAI Gym environments
