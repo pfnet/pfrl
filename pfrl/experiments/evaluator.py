@@ -1,7 +1,6 @@
 import logging
 import multiprocessing as mp
 import os
-from numpy.core.records import record
 from pfrl.agent import HRLAgent
 from pfrl.agents import HIROAgent
 import statistics
@@ -117,8 +116,10 @@ def _hrl_run_episodes(
 
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
+
         if step_number is not None:
             video_recorder.capture_frame()
+
         obs = obs_dict['observation']
         # select subgoal for the lower level controller.
         n_sg = agent.act_high_level(obs, fg, sg, timestep)
@@ -153,6 +154,7 @@ def _hrl_run_episodes(
         )
     success_rate = successes / n_episodes
     logger.info(f"Success Rate: {success_rate}")
+
     if step_number is not None:
         print("Saved video.")
         video_recorder.close()
