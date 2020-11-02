@@ -366,74 +366,17 @@ class HigherController(HRLControllerBase):
         # return best candidates with maximum probability
         return candidates[np.arange(batch_size), max_indices]
 
-    def _sample_best_high_controller_actions(self,
-        low_con,
-        batch_size,
-        states,
-        actions,
-        next_states,
-        low_states,
-        low_actions,
-        candidate_goals=8):
-        # Scale
-        goal_dim = self.action_dim
-        spec_range = low_con.scale
-        # Sample from normal distribution
-        loc = (next_states - states)[:, np.newaxis, :goal_dim]
-        scale = 0.5 * self.scale[None, None, :]
-        original_goal = np.array(actions[:, np.newaxis, :])
-        random_goals = np.random.normal(loc=loc, scale=scale, size=(batch_size, candidate_goals, original_goal.shape[-1]))
-
-        candidates = np.concatenate([original_goal, loc, random_goals], axis=1)
-        candidates = candidates.clip(-self.scale, self.scale)
-
-        # For ease
-        low_actions = np.array(low_actions)
-        seq_len = len(low_states[0])
-        new_batch_sz = seq_len * batch_size
-        low_action_dim = low_actions[0][0].shape
-        low_obs_dim = low_states[0][0].shape
-        ncands = candidates.shape[1]
-
-        true_low_actions = low_actions.reshape((new_batch_sz,) + low_action_dim)
-        observations = low_states.reshape((new_batch_sz,) + low_obs_dim)
-        goal_shape = (new_batch_sz, self.action_dim)
-
-        pred_actions = np.zeros((ncands, new_batch_sz) + low_action_dim)
-
-        low_con.agent.training = False
-        for c in range(ncands):
-            subgoal = candidates[:, c]
-            candidate = (subgoal + low_states[:, 0, :self.action_dim])[:, None] - low_states[:, :, :self.action_dim]
-            candidate = candidate.reshape(*goal_shape)
-            pred_actions[c] = low_con.policy(torch.tensor(observations).float(), torch.tensor(candidate).float())
-        low_con.agent.training = True
-
-        difference = (pred_actions - true_low_actions)
-        # difference = np.where(difference != -np.inf, difference, 0)
-        difference = difference.reshape((ncands, batch_size, seq_len) + low_action_dim).transpose(1, 0, 2, 3)
-
-        normalized_error = - np.square(difference) / np.square(spec_range)
-        fitness = np.sum(normalized_error, axis=(2, 3))
-        best_actions = np.argmax(fitness, axis=-1)
-
-        return candidates[np.arange(batch_size), best_actions]
-
     def update(self, low_con):
         batch = self.agent.sample_if_possible()
         if batch:
             experience = high_level_batch_experiences_with_goal(batch, self.device, lambda x: x, self.gamma)
-            states = experience['state']
             actions = experience['action']
-            next_states = experience['next_state']
             action_arr = experience['action_arr']
             state_arr = experience['state_arr']
-            actions = self._sample_best_high_controller_actions(
+            actions = self._off_policy_corrections(
                 low_con,
                 self.minibatch_size,
-                states.cpu().data.numpy(),
                 actions.cpu().data.numpy(),
-                next_states.cpu().data.numpy(),
                 state_arr.cpu().data.numpy(),
                 action_arr.cpu().data.numpy())
 
