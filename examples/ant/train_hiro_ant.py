@@ -160,7 +160,6 @@ def main():
     else:
         env_goal_dim = 3
 
-
     action_space = eval_env.action_space
     subgoal_space = eval_env.subgoal_space
     scale_low = action_space.high * np.ones(env_action_dim)
