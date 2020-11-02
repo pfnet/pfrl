@@ -103,11 +103,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         buffer_freq=10,
         q_func_grad_variance_record_size=10,
         policy_grad_variance_record_size=100,
+        recent_variance_size=100,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
         add_entropy=False
     ):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
+        self.recent_variance_size = recent_variance_size
         self.add_entropy = add_entropy
 
         if add_entropy:
@@ -190,8 +192,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
 
-        q1_recent_variance = np.var(list(self.q1_record)[-100:])
-        q2_recent_variance = np.var(list(self.q2_record)[-100:])
+        q1_recent_variance = np.var(list(self.q1_record)[-self.recent_variance_size:])
+        q2_recent_variance = np.var(list(self.q2_record)[-self.recent_variance_size:])
         self.q_func1_variance_record.append(q1_recent_variance)
         self.q_func2_variance_record.append(q2_recent_variance)
 
