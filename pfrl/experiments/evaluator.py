@@ -5,7 +5,6 @@ from pfrl.agent import HRLAgent
 from pfrl.agents import HIROAgent
 import statistics
 import time
-from gym.wrappers.monitoring.video_recorder import VideoRecorder
 import numpy as np
 
 import pfrl
@@ -150,9 +149,7 @@ def _hrl_run_episodes(
         logger.info(
             "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
         )
-    if step_number is not None:
-        print("Saved video.")
-        video_recorder.close()
+
     success_rate = successes / n_episodes
     logger.info(f"Success Rate: {success_rate}")
 
