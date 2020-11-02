@@ -124,7 +124,8 @@ def train_hrl_agent_with_evaluation(
     step_hooks=(),
     save_best_so_far_agent=True,
     use_tensorboard=False,
-    logger=None
+    logger=None,
+    record=False
 ):
     """Train an HRL (hierarchical reinforcement
     learning) agent while periodically evaluating it.
@@ -177,6 +178,7 @@ def train_hrl_agent_with_evaluation(
         save_best_so_far_agent=save_best_so_far_agent,
         use_tensorboard=use_tensorboard,
         logger=logger,
+        record=record
     )
 
     train_hrl_agent(
