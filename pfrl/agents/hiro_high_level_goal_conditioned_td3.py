@@ -93,6 +93,9 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         burnin_action_func=None,
         policy_update_delay=2,
         buffer_freq=10,
+        q_func_grad_variance_record_size=10,
+        policy_grad_variance_record_size=100,
+        recent_variance_size=100,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
         add_entropy=False
     ):
@@ -120,6 +123,9 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
                                                               buffer_freq=buffer_freq,
                                                               burnin_action_func=burnin_action_func,
                                                               policy_update_delay=policy_update_delay,
+                                                              q_func_grad_variance_record_size=q_func_grad_variance_record_size,
+                                                              policy_grad_variance_record_size=policy_grad_variance_record_size,
+                                                              recent_variance_size=recent_variance_size,
                                                               target_policy_smoothing_func=target_policy_smoothing_func,
                                                               add_entropy=add_entropy)
 
@@ -183,6 +189,11 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         self.q2_record.extend(predict_q2.detach().cpu().numpy())
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
+
+        q1_recent_variance = np.var(list(self.q1_record)[-self.recent_variance_size:])
+        q2_recent_variance = np.var(list(self.q2_record)[-self.recent_variance_size:])
+        self.q_func1_variance_record.append(q1_recent_variance)
+        self.q_func2_variance_record.append(q2_recent_variance)
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
