@@ -1,5 +1,7 @@
 from logging import getLogger
 
+import collections
+import numpy as np
 import torch
 from torch.nn import functional as F
 
@@ -9,6 +11,11 @@ from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.replay_buffer import batch_experiences_with_goal
 from pfrl.utils import clip_l2_grad_norm_
+
+
+def _mean_or_nan(xs):
+    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
+    return np.mean(xs) if xs else np.nan
 
 
 def default_target_policy_smoothing_func(batch_action):
@@ -100,8 +107,15 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
         self.add_entropy = add_entropy
+
         if add_entropy:
             self.temperature = 1.0
+        self.q_func1_variance_record = collections.deque(maxlen=10)
+        self.q_func2_variance_record = collections.deque(maxlen=10)
+
+        self.policy_gradients_variance_record = collections.deque(maxlen=100)
+        self.policy_gradients_mean_record = collections.deque(maxlen=100)
+
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
                                                  q_func2=q_func2,
@@ -174,7 +188,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
 
+        q1_recent_variance = np.var(list(self.q1_record)[-100:])
+        q2_recent_variance = np.var(list(self.q2_record)[-100:])
+        self.q_func1_variance_record.append(q1_recent_variance)
+        self.q_func2_variance_record.append(q2_recent_variance)
+
         self.q_func1_optimizer.zero_grad()
+
         loss1.backward()
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func1.parameters(), self.max_grad_norm)
@@ -207,6 +227,14 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.policy_loss_record.append(float(loss))
         self.policy_optimizer.zero_grad()
         loss.backward()
+
+        # get policy gradients
+        gradients = self.get_and_flatten_policy_gradients()
+        gradient_variance = torch.var(gradients)
+        gradient_mean = torch.mean(gradients)
+        self.policy_gradients_variance_record.append(float(gradient_variance))
+        self.policy_gradients_mean_record.append(float(gradient_mean))
+
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.policy.parameters(), self.max_grad_norm)
         self.policy_optimizer.step()
@@ -215,6 +243,16 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
     def sample_if_possible(self):
         sample = self.replay_updater.can_update_then_sample(self.t)
         return sample if not sample else sample[0]
+
+    def get_and_flatten_policy_gradients(self):
+        parameters = list(self.policy.parameters())
+        gradients = None
+        for param in parameters:
+            if gradients is None:
+                gradients = torch.flatten(param.grad)
+            else:
+                gradients = torch.cat((gradients, torch.flatten(param.grad)))
+        return gradients
 
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""
@@ -296,3 +334,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
             self.replay_updater.update_if_necessary(self.t)
+
+    def get_statistics(self):
+        td3_statistics = super(GoalConditionedTD3, self).get_statistics()
+        new_stats = [
+            ("q1_recent_variance", _mean_or_nan(self.q_func1_variance_record)),
+            ("q2_recent_variance", _mean_or_nan(self.q_func2_variance_record)),
+            ("policy_gradients_variance", _mean_or_nan(self.policy_gradients_variance_record)),
+            ("policy_gradients_mean", _mean_or_nan(self.policy_gradients_mean_record))
+        ]
+        return td3_statistics.extend(new_stats)
