@@ -8,39 +8,16 @@ Example:
 """
 import argparse
 import functools
-import os
 import logging
 
-import gym
-import gym.spaces
 import numpy as np
 import torch
-
 from hiro_robot_envs.envs import create_maze_env, AntEnvWithGoal
+
 import pfrl
 from pfrl import utils
 from pfrl import experiments
 from pfrl.agents.hrl.hiro_agent import HIROAgent
-
-
-class RecordMovie(gym.Wrapper):
-    """Record MP4 videos using pybullet's logging API."""
-
-    def __init__(self, env, dirname):
-        super().__init__(env)
-        self._episode_idx = -1
-        self._dirname = dirname
-
-    def reset(self):
-        obs = self.env.reset()
-        self._episode_idx += 1
-        import pybullet
-
-        pybullet.startStateLogging(
-            pybullet.STATE_LOGGING_VIDEO_MP4,
-            os.path.join(self._dirname, "{}.mp4".format(self._episode_idx)),
-        )
-        return obs
 
 
 def parse_rl_args():
@@ -85,7 +62,6 @@ def parse_rl_args():
         default=0.2,
         help="Final value of epsilon during training.",
     )
-
     parser.add_argument(
         "--add-entropy",
         type=bool,
@@ -121,12 +97,6 @@ def parse_rl_args():
         help="Render env states in a GUI window.",
     )
     parser.add_argument("--num-envs", type=int, default=1, help="Number of envs run in parallel.")
-    parser.add_argument(
-        "--record",
-        action="store_true",
-        default=False,
-        help="Record videos of evaluation envs. --render should also be specified.",
-    )
     args = parser.parse_args()
     return args
 
@@ -161,11 +131,6 @@ def main():
         if args.render:
             env = pfrl.wrappers.GymLikeEnvRender(env)
 
-        if test and args.record:
-            assert args.render, "To use --record, --render needs be specified."
-            video_dir = os.path.join(args.outdir, "video_{}".format(idx))
-            os.mkdir(video_dir)
-            env = RecordMovie(env, video_dir)
         return env
 
     def make_batch_ant__env(test):
@@ -238,7 +203,7 @@ def main():
             outdir=args.outdir,
             eval_n_steps=None,
             eval_interval=5000,
-            eval_n_episodes=5,
+            eval_n_episodes=10,
             use_tensorboard=True
         )
 
