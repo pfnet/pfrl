@@ -229,7 +229,7 @@ class HIROAgent(HRLAgent):
         evaluates the final goal compared with the current observation.
         """
         goal_size = fg.shape[0]
-        error = np.sqrt(np.sum(np.square(fg-obs[:goal_size])))
+        error = np.sqrt(np.sum(np.square(fg - obs[:goal_size])))
         if goal_size == 2:
             print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], obs[0], obs[1], error))
         elif goal_size == 3:

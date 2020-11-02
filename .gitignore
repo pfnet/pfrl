@@ -6,3 +6,5 @@ dist/
 .idea/
 results/
 examples/gym/results/
+*.mp4
+*.json

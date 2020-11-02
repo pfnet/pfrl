@@ -12,6 +12,7 @@ import logging
 
 import numpy as np
 import torch
+
 from hiro_robot_envs.envs import create_maze_env, AntEnvWithGoal
 
 import pfrl

@@ -10,6 +10,7 @@ import numpy as np
 
 import pfrl
 
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
 """Columns that describe information about an experiment.
 
@@ -86,10 +87,13 @@ def _hrl_run_episodes(
 ):
     """Run multiple episodes and return returns."""
     assert (n_steps is None) != (n_episodes is None)
-    if step_number is not None:
-        evaluation_videos_dir = f'{video_outdir}/evaluation_videos'
-        os.makedirs(evaluation_videos_dir, exist_ok=True)
-        video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{step_number}.mp4')
+
+
+    evaluation_videos_dir = f'{video_outdir}/evaluation_videos'
+    os.makedirs(evaluation_videos_dir, exist_ok=True)
+    video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{step_number}.mp4')
+    video_recorder.enabled = step_number is not None
+
     logger = logger or logging.getLogger(__name__)
     scores = []
     successes = 0
@@ -112,9 +116,9 @@ def _hrl_run_episodes(
 
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
-        if step_number is not None:
-            video_recorder.capture_frame()
-        # select subgoal for the lower level controller.    
+
+        video_recorder.capture_frame()
+
         obs = obs_dict['observation']
         # select subgoal for the lower level controller.
         n_sg = agent.act_high_level(obs, fg, sg, timestep)
@@ -152,6 +156,9 @@ def _hrl_run_episodes(
     success_rate = successes / n_episodes
     logger.info(f"Success Rate: {success_rate}")
 
+    if step_number is not None:
+        print("Saved video.")
+    video_recorder.close()
     return scores, success_rate
 
 
@@ -368,7 +375,7 @@ def eval_performance(
             n_steps,
             n_episodes,
             max_episode_len=max_episode_len,
-            logger=logger,
+            logger=logger
         )
     else:
         scores = run_evaluation_episodes(
