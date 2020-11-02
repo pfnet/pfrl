@@ -101,6 +101,8 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         burnin_action_func=None,
         policy_update_delay=2,
         buffer_freq=10,
+        q_func_grad_variance_record_size=10,
+        policy_grad_variance_record_size=100,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
         add_entropy=False
     ):
@@ -110,11 +112,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
 
         if add_entropy:
             self.temperature = 1.0
-        self.q_func1_variance_record = collections.deque(maxlen=10)
-        self.q_func2_variance_record = collections.deque(maxlen=10)
+        self.q_func1_variance_record = collections.deque(maxlen=q_func_grad_variance_record_size)
+        self.q_func2_variance_record = collections.deque(maxlen=q_func_grad_variance_record_size)
 
-        self.policy_gradients_variance_record = collections.deque(maxlen=100)
-        self.policy_gradients_mean_record = collections.deque(maxlen=100)
+        self.policy_gradients_variance_record = collections.deque(maxlen=policy_grad_variance_record_size)
+        self.policy_gradients_mean_record = collections.deque(maxlen=policy_grad_variance_record_size)
 
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
