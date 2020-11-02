@@ -12,6 +12,7 @@ import logging
 
 import numpy as np
 import torch
+
 from hiro_robot_envs.envs import create_maze_env, AntEnvWithGoal
 
 import pfrl
@@ -85,6 +86,12 @@ def parse_rl_args():
         type=int,
         default=20,
         help="Logging level. 10:DEBUG, 20:INFO etc.",
+    )
+    parser.add_argument(
+        "--record",
+        action="store_true",
+        default=False,
+        help="Record videos of evaluation envs. --render should also be specified.",
     )
     parser.add_argument(
         "--env",
@@ -181,6 +188,10 @@ def main():
         # load weights from a file if arg supplied
         agent.load(args.load)
 
+    if args.record:
+        from mujoco_py import GlfwContext
+        GlfwContext(offscreen=True)
+
     if args.demo:
         eval_stats = experiments.eval_performance(
             env=eval_env, agent=agent, n_steps=None, n_episodes=args.eval_n_runs
@@ -204,7 +215,8 @@ def main():
             eval_n_steps=None,
             eval_interval=5000,
             eval_n_episodes=10,
-            use_tensorboard=True
+            use_tensorboard=True,
+            record=args.record
         )
 
 
