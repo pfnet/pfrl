@@ -1,6 +1,7 @@
 import logging
 import multiprocessing as mp
 import os
+from numpy.core.records import record
 from pfrl.agent import HRLAgent
 from pfrl.agents import HIROAgent
 import statistics
@@ -10,6 +11,7 @@ import numpy as np
 
 import pfrl
 
+from gym.wrappers.monitoring.video_recorder import VideoRecorder
 
 """Columns that describe information about an experiment.
 
@@ -82,9 +84,16 @@ def _run_episodes(
 
 def _hrl_run_episodes(
     env, agent: HIROAgent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    step_number=None, video_outdir=None
 ):
     """Run multiple episodes and return returns."""
     assert (n_steps is None) != (n_episodes is None)
+
+
+    if step_number is not None:
+        evaluation_videos_dir = f'{video_outdir}/evaluation_videos'
+        os.makedirs(evaluation_videos_dir, exist_ok=True)
+        video_recorder = VideoRecorder(env, path=f'{evaluation_videos_dir}/evaluation_{step_number}.mp4')
 
     logger = logger or logging.getLogger(__name__)
     scores = []
@@ -108,6 +117,8 @@ def _hrl_run_episodes(
 
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
+        if step_number is not None:
+            video_recorder.capture_frame()
         obs = obs_dict['observation']
         # select subgoal for the lower level controller.
         n_sg = agent.act_high_level(obs, fg, sg, timestep)
@@ -142,12 +153,15 @@ def _hrl_run_episodes(
         )
     success_rate = successes / n_episodes
     logger.info(f"Success Rate: {success_rate}")
-
+    if step_number is not None:
+        print("Saved video.")
+        video_recorder.close()
     return scores, success_rate
 
 
 def run_evaluation_episodes(
     env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    step_number=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return returns.
 
@@ -173,6 +187,8 @@ def run_evaluation_episodes(
                 n_episodes=n_episodes,
                 max_episode_len=max_episode_len,
                 logger=logger,
+                step_number=step_number,
+                video_outdir=video_outdir
             )
         else:
             return _run_episodes(
@@ -328,7 +344,8 @@ def batch_run_evaluation_episodes(
 
 
 def eval_performance(
-    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None
+    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    step_number=None, video_outdir=None
 ):
     """Run multiple evaluation episodes and return statistics.
 
@@ -355,7 +372,7 @@ def eval_performance(
             n_steps,
             n_episodes,
             max_episode_len=max_episode_len,
-            logger=logger,
+            logger=logger
         )
     else:
         scores = run_evaluation_episodes(
@@ -365,6 +382,9 @@ def eval_performance(
             n_episodes,
             max_episode_len=max_episode_len,
             logger=logger,
+            step_number=step_number,
+            video_outdir=video_outdir
+
         )
     if isinstance(scores, tuple):
         reward_scores = scores[0]
@@ -477,6 +497,7 @@ class Evaluator(object):
         save_best_so_far_agent=True,
         logger=None,
         use_tensorboard=False,
+        record=False
     ):
         assert (n_steps is None) != (n_episodes is None), (
             "One of n_steps or n_episodes must be None. "
@@ -498,6 +519,8 @@ class Evaluator(object):
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
 
+        self.record = record
+
         # Write a header line first
         with open(os.path.join(self.outdir, "scores.txt"), "w") as f:
             custom_columns = tuple(t[0] for t in self.agent.get_statistics())
@@ -515,6 +538,8 @@ class Evaluator(object):
             self.n_episodes,
             max_episode_len=self.max_episode_len,
             logger=self.logger,
+            step_number=t if self.record else None,
+            video_outdir=self.outdir
         )
         elapsed = time.time() - self.start_time
         agent_stats = self.agent.get_statistics()
