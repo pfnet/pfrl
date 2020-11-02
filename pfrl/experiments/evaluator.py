@@ -117,8 +117,7 @@ def _hrl_run_episodes(
         a = agent.act_low_level(obs, sg)
         obs_dict, r, done, info = env.step(a)
 
-        if step_number is not None:
-            video_recorder.capture_frame()
+        video_recorder.capture_frame()
 
         obs = obs_dict['observation']
         # select subgoal for the lower level controller.
@@ -157,7 +156,7 @@ def _hrl_run_episodes(
 
     if step_number is not None:
         print("Saved video.")
-        video_recorder.close()
+    video_recorder.close()
     return scores, success_rate
 
 
