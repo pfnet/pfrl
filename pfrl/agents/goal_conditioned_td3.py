@@ -20,9 +20,6 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
 
 
 class TemperatureHolder(nn.Module):
