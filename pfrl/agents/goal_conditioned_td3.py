@@ -20,8 +20,6 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-
-
 class TemperatureHolder(nn.Module):
     """Module that holds a temperature as a learnable value.
 
