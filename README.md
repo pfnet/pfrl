@@ -77,6 +77,8 @@ Following algorithms have been implemented in PFRL:
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/trpo)
 - [TD3 (Twin Delayed Deep Deterministic policy gradient algorithm)](https://arxiv.org/abs/1802.09477)
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/td3)
+- [HIRO (Data Efficient Hiearchical Reinforcement Learning with Off Policy Correction](https://arxiv.org/abs/1805.08296)
+  - examples: [[ant env in mujoco]](examples/ant)
 
 Following useful techniques have been also implemented in PFRL:
 - [NoisyNet](https://arxiv.org/abs/1706.10295)
@@ -90,8 +92,6 @@ Following useful techniques have been also implemented in PFRL:
 - [Deep Recurrent Q-Network](https://arxiv.org/abs/1507.06527)
   - examples: [[DQN]](examples/atari/train_drqn_ale.py)
 
-
-TBD: Hierarchical Reinforcement Algorithms - including HIRO
 
 ## Environments
 
