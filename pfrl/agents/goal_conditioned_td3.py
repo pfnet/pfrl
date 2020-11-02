@@ -11,7 +11,7 @@ from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.replay_buffer import batch_experiences_with_goal
-from pfrl.utils import clip_l2_grad_norm_
+from pfrl.utils import clip_l2_grad_norm_, _mean_or_nan
 
 
 def default_target_policy_smoothing_func(batch_action):
@@ -120,22 +120,28 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         burnin_action_func=None,
         policy_update_delay=2,
         buffer_freq=10,
+        q_func_grad_variance_record_size=10,
+        policy_grad_variance_record_size=100,
+        recent_variance_size=100,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
         add_entropy=False,
         scale=1
     ):
         self.buffer_freq = buffer_freq
         self.minibatch_size = minibatch_size
+        self.recent_variance_size = recent_variance_size
         self.add_entropy = add_entropy
         self.scale = scale
-        self.q_func1_variance_record = collections.deque(maxlen=10)
-        self.q_func2_variance_record = collections.deque(maxlen=10)
-
-        self.policy_gradients_variance_record = collections.deque(maxlen=100)
-        self.policy_gradients_mean_record = collections.deque(maxlen=100)
 
         if add_entropy:
             self.temperature = 1.0
+
+        self.q_func1_variance_record = collections.deque(maxlen=q_func_grad_variance_record_size)
+        self.q_func2_variance_record = collections.deque(maxlen=q_func_grad_variance_record_size)
+
+        self.policy_gradients_variance_record = collections.deque(maxlen=policy_grad_variance_record_size)
+        self.policy_gradients_mean_record = collections.deque(maxlen=policy_grad_variance_record_size)
+
         super(GoalConditionedTD3, self).__init__(policy=policy,
                                                  q_func1=q_func1,
                                                  q_func2=q_func2,
@@ -209,12 +215,13 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.q_func1_loss_record.append(float(loss1))
         self.q_func2_loss_record.append(float(loss2))
 
-        q1_recent_variance = np.var(list(self.q1_record)[-100:])
-        q2_recent_variance = np.var(list(self.q2_record)[-100:])
+        q1_recent_variance = np.var(list(self.q1_record)[-self.recent_variance_size:])
+        q2_recent_variance = np.var(list(self.q2_record)[-self.recent_variance_size:])
         self.q_func1_variance_record.append(q1_recent_variance)
         self.q_func2_variance_record.append(q2_recent_variance)
 
         self.q_func1_optimizer.zero_grad()
+
         loss1.backward()
         if self.max_grad_norm is not None:
             clip_l2_grad_norm_(self.q_func1.parameters(), self.max_grad_norm)
@@ -248,6 +255,7 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         self.policy_loss_record.append(float(loss))
         self.policy_optimizer.zero_grad()
         loss.backward()
+
         # get policy gradients
         gradients = self.get_and_flatten_policy_gradients()
         gradient_variance = torch.var(gradients)
