@@ -10,12 +10,7 @@ from pfrl.agent import GoalConditionedBatchAgent
 from pfrl.agents import TD3
 from pfrl.utils.batch_states import batch_states
 from pfrl.replay_buffer import batch_experiences_with_goal
-from pfrl.utils import clip_l2_grad_norm_
-
-
-def _mean_or_nan(xs):
-    """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
+from pfrl.utils import clip_l2_grad_norm_, _mean_or_nan
 
 
 def default_target_policy_smoothing_func(batch_action):
