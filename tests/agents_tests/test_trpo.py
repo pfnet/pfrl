@@ -10,13 +10,19 @@ from torch import nn
 import pfrl
 from pfrl.agents import trpo
 from pfrl.envs.abc import ABC
-from pfrl.experiments.evaluator import batch_run_evaluation_episodes
-from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.experiments import train_agent_batch_with_evaluation
-from pfrl.experiments import train_agent_with_evaluation
+from pfrl.experiments import (
+    train_agent_batch_with_evaluation,
+    train_agent_with_evaluation,
+)
+from pfrl.experiments.evaluator import (
+    batch_run_evaluation_episodes,
+    run_evaluation_episodes,
+)
 from pfrl.nn import RecurrentSequential
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.policies import GaussianHeadWithStateIndependentCovariance
+from pfrl.policies import (
+    GaussianHeadWithStateIndependentCovariance,
+    SoftmaxCategoricalHead,
+)
 from pfrl.testing import torch_assert_allclose
 
 

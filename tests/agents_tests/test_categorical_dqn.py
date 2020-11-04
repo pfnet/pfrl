@@ -1,19 +1,14 @@
 import unittest
 
-
-import numpy as np
-
 import basetest_dqn_like as base
-from basetest_training import _TestBatchTrainingMixin
-import pfrl
-from pfrl.agents import categorical_dqn
-from pfrl.agents.categorical_dqn import compute_value_loss
-from pfrl.agents.categorical_dqn import compute_weighted_value_loss
-from pfrl.agents import CategoricalDQN
-
-
-import torch
+import numpy as np
 import pytest
+import torch
+from basetest_training import _TestBatchTrainingMixin
+
+import pfrl
+from pfrl.agents import CategoricalDQN, categorical_dqn
+from pfrl.agents.categorical_dqn import compute_value_loss, compute_weighted_value_loss
 
 assertions = unittest.TestCase("__init__")
 

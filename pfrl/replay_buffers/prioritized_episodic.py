@@ -1,10 +1,9 @@
 import collections
 
-from pfrl.collections.random_access_queue import RandomAccessQueue
 from pfrl.collections.prioritized import PrioritizedBuffer
+from pfrl.collections.random_access_queue import RandomAccessQueue
 from pfrl.replay_buffer import random_subseq
-from pfrl.replay_buffers import EpisodicReplayBuffer
-from pfrl.replay_buffers import PriorityWeightError
+from pfrl.replay_buffers import EpisodicReplayBuffer, PriorityWeightError
 
 
 class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer, PriorityWeightError):

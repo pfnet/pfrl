@@ -1,7 +1,7 @@
-import torch
-
 import numpy as np
 import pytest
+import torch
+
 from pfrl.functions.lower_triangular_matrix import lower_triangular_matrix
 
 

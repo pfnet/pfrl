@@ -1,25 +1,26 @@
 # Hyperparameter Tuning with Optuna
 
-Tune hyper parameters using [Optuna](https://optuna.org/).
+Tune hyper parameters by [Optuna](https://optuna.org/).
 
-Although the example script (`optuna_dqn_obs1d.py`) uses fixed target algorithm/environment
-(i.e., DQN and environments with 1d continuous observation space and discrete action space)
+The example script (`optuna_dqn_obs1d.py`) uses fixed target algorithm/environment<sup>†</sup>
 in order to fucus on the concept of Optuna-powered PFRL,
-you can create one for your own use easily thanks to the Optuna's high flexibility!
+but you can create onr for your own use thanks to the Optuna's high flexibility.
+
+†: DQN and environments with 1d continuous observation space and discrete action space
 
 
 ## How to Run
 
 ### Quickstart
 
-The quickstart on your local machine.
+Quickstart on your laptop
 
 ```bash
 storage="sqlite:///example.db"
 study="optuna-pfrl-quickstart"
 pruner="HyperbandPruner"
 
-# In RL, higher score means better performance ("--direction maximize")
+# Higher score means better performance ("--direction maximize")
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
 # Start tuning hyper parameters
@@ -27,7 +28,7 @@ python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${st
 ```
 
 You can see the optimization history of this study on [Jupyter Notebook](https://jupyter.org/install)
-via the [Optuna visualization module](https://optuna.readthedocs.io/en/latest/reference/visualization.html):
+via [Optuna visualization module](https://optuna.readthedocs.io/en/latest/reference/visualization.html):
 
 ```python
 # On jupyter notebook
@@ -49,24 +50,24 @@ If you are interested in the `--optuna-pruner` argument above, see the
 
 ### Distributed Optimization
 
-The script can also be used as a "worker process" for parallel and distributed executions.
+The quickstart script executed below can also be used as a "worker process" for parallel and distributed optimization.
 
 #### Prerequisites
 
 Since [SQLite is not recommended for parallel optimization](https://optuna.readthedocs.io/en/latest/tutorial/004_distributed.html#distributed-optimization),
-we'll use PostgreSQL instead of SQLite hereafter.  
+we'll use PostgreSQL<sup>†</sup> instead of SQLite hereafter.  
+
+†: You can select your favorite RDBMS as far as sqlalchemy (Optuna's backend library) supports.
 
 - **Can access PostgreSQL** database named `${postgres_database}` running on a server `${host}`.
-- `psycopg2` (PostgreSQL python wrapper) https://pypi.org/project/psycopg2/
+- Install `psycopg2` (PostgreSQL python wrapper) https://pypi.org/project/psycopg2/
   - `pip install psycopg2-binary` for installing stand-alone package
-  - `pip install psycopg2` also works when you [have PostgreSQL libraries on your machine](https://www.psycopg.org/docs/install.html#prerequisites).
+  - `pip install psycopg2` also works if you already [have PostgreSQL libraries on your machine](https://www.psycopg.org/docs/install.html#prerequisites).
 
 #### Create a study
 
 ```bash
-# DB specs. We assume PostgreSQL here but you can use various backend DB engines.
-# Here, you must be able to access to a PostgreSQL database named ${postgres_database}
-# running on a server ${host}.
+# Assue PostgreSQL running on a server ${host} with Database named ${database} is available.
 postgres_user="user"
 postgres_password="password"
 postgres_host="host"
@@ -81,8 +82,7 @@ optuna create-study --study-name "${study}" --storage "${storage}" --direction m
 
 #### Run the optimization
 
-The script bellow can work wherever the backend DB is accessible.
-For distributed optimization, just run this script on multiple servers.
+For parallel/distributed optimization, just run this script on any servers where PostgreSQL DB is accessible:
 
 ```bash
 postgres_user="user"
