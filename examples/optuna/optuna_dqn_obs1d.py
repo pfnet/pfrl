@@ -9,13 +9,13 @@ To keep this script simple, the target environment (``--env``) must have:
 The default arguments are set to LunarLander-v2 environment.
 """
 
+import argparse
 import logging
 import os
-import argparse
 import random
 
-import torch.optim as optim
 import gym
+import torch.optim as optim
 
 try:
     import optuna
@@ -23,14 +23,10 @@ except ImportError:
     raise RuntimeError("ImportError: optuna required.")
 
 import pfrl
+from pfrl import experiments, explorers, q_functions, replay_buffers, utils
 from pfrl.agents.dqn import DQN
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import q_functions
-from pfrl import replay_buffers
-from pfrl.nn.mlp import MLP
 from pfrl.experiments.evaluation_hooks import OptunaPrunerHook
+from pfrl.nn.mlp import MLP
 
 
 def _objective_core(
