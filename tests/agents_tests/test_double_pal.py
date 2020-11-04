@@ -1,7 +1,7 @@
-from pfrl.agents.double_pal import DoublePAL
-
 import basetest_dqn_like
 from basetest_training import _TestBatchTrainingMixin
+
+from pfrl.agents.double_pal import DoublePAL
 
 
 class TestDoublePALOnDiscreteABC(

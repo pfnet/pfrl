@@ -2,18 +2,16 @@ import collections
 import copy
 from logging import getLogger
 
+import numpy as np
 import torch
 from torch import nn
 from torch.nn import functional as F
-import numpy as np
 
-from pfrl.agent import AttributeSavingMixin
-from pfrl.agent import BatchAgent
+from pfrl.agent import AttributeSavingMixin, BatchAgent
+from pfrl.replay_buffer import ReplayUpdater, batch_experiences
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.contexts import evaluating
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import batch_experiences
-from pfrl.replay_buffer import ReplayUpdater
 
 
 def _mean_or_nan(xs):

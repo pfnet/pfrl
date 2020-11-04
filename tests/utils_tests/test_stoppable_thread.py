@@ -1,6 +1,6 @@
+import threading
 import unittest
 
-import threading
 from pfrl.utils import StoppableThread
 
 

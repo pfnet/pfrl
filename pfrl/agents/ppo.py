@@ -10,12 +10,14 @@ import pfrl
 from pfrl import agent
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import mask_recurrent_state_at
-from pfrl.utils.recurrent import concatenate_recurrent_states
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import flatten_sequences_time_first
-from pfrl.utils.recurrent import pack_and_forward
+from pfrl.utils.recurrent import (
+    concatenate_recurrent_states,
+    flatten_sequences_time_first,
+    get_recurrent_state_at,
+    mask_recurrent_state_at,
+    one_step_forward,
+    pack_and_forward,
+)
 
 
 def _mean_or_nan(xs):

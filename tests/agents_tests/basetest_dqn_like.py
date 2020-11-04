@@ -1,14 +1,12 @@
 import numpy as np
 import torch.nn as nn
 import torch.optim as optim
+from basetest_training import _TestTraining
 
+from pfrl import q_functions, replay_buffers
 from pfrl.envs.abc import ABC
 from pfrl.explorers.epsilon_greedy import LinearDecayEpsilonGreedy
 from pfrl.nn import RecurrentSequential
-from pfrl import q_functions
-from pfrl import replay_buffers
-
-from basetest_training import _TestTraining
 
 
 class _TestDQNLike(_TestTraining):

@@ -1,6 +1,4 @@
-from typing import Any
-from typing import Callable
-from typing import Sequence
+from typing import Any, Callable, Sequence
 
 import torch
 from torch.utils.data._utils.collate import default_collate

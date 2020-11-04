@@ -1,10 +1,10 @@
-import torch.multiprocessing as mp
 import os
 import tempfile
 import unittest
 from unittest import mock
 
 import pytest
+import torch.multiprocessing as mp
 
 import pfrl
 from pfrl.experiments.train_agent_async import train_loop

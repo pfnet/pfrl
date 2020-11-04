@@ -8,14 +8,12 @@ from torch import nn
 from torch.nn import functional as F
 
 import pfrl
-from pfrl.agent import AttributeSavingMixin
-from pfrl.agent import BatchAgent
+from pfrl.agent import AttributeSavingMixin, BatchAgent
+from pfrl.replay_buffer import ReplayUpdater, batch_experiences
+from pfrl.utils import clip_l2_grad_norm_
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.copy_param import synchronize_parameters
 from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.replay_buffer import batch_experiences
-from pfrl.replay_buffer import ReplayUpdater
-from pfrl.utils import clip_l2_grad_norm_
 
 
 def _mean_or_nan(xs):

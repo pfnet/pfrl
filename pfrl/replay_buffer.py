@@ -1,15 +1,15 @@
-from abc import ABCMeta
-from abc import abstractmethod
-from abc import abstractproperty
+from abc import ABCMeta, abstractmethod, abstractproperty
 from typing import Optional
 
 import numpy as np
 import torch
 
 from pfrl.utils.batch_states import batch_states
-from pfrl.utils.recurrent import concatenate_recurrent_states
-from pfrl.utils.recurrent import flatten_sequences_time_first
-from pfrl.utils.recurrent import recurrent_state_from_numpy
+from pfrl.utils.recurrent import (
+    concatenate_recurrent_states,
+    flatten_sequences_time_first,
+    recurrent_state_from_numpy,
+)
 
 
 class AbstractReplayBuffer(object, metaclass=ABCMeta):

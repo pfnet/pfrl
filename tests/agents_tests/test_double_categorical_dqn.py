@@ -1,6 +1,5 @@
-import torch.nn as nn
-
 import basetest_dqn_like as base
+import torch.nn as nn
 from basetest_training import _TestBatchTrainingMixin
 
 import pfrl

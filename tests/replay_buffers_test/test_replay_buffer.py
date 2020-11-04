@@ -6,10 +6,9 @@ import unittest
 
 import numpy as np
 import pytest
-
-from pfrl import replay_buffers
-from pfrl import replay_buffer
 import torch
+
+from pfrl import replay_buffer, replay_buffers
 
 
 @pytest.mark.parametrize("capacity", [100, None])
