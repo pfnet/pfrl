@@ -21,9 +21,10 @@ To test examples, run `test_examples.sh [gpu device id]`. `-1` would run example
 
 ## Coding style
 
-We use PEP8. To check your code, use the `black` and `flake8` packages.
+We use PEP8. To check your code, use the `black`, `isort`, and `flake8` packages.
 ```
-$ pip install git+git://github.com/psf/black.git flake8
+$ pip install git+git://github.com/psf/black.git flake8 isort
 $ black path/to/your/code.py
 $ flake8 path/to/your/code.py
+$ isort path/to/your/code.py
 ```
