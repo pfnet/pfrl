@@ -6,14 +6,9 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from pfrl.q_functions import DiscreteActionValueHead
-from pfrl import agents
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import replay_buffers
-
+from pfrl import agents, experiments, explorers, replay_buffers, utils
 from pfrl.initializers import init_chainer_default
+from pfrl.q_functions import DiscreteActionValueHead
 
 
 def reward_fn(dg, ag):

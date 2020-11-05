@@ -2,8 +2,8 @@ import copy
 
 import numpy as np
 
-from pfrl.replay_buffers.episodic import EpisodicReplayBuffer
 from pfrl.replay_buffer import random_subseq
+from pfrl.replay_buffers.episodic import EpisodicReplayBuffer
 
 
 def relabel_transition_goal(transition, goal_transition, reward_fn, swap_keys_list):
