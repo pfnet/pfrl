@@ -104,7 +104,7 @@ def _hrl_run_episodes(
     reset = True
     while not terminate:
         if reset:
-            env.seed(np.random.randint(0, 2 ** 32 - 1))
+            # env.seed(np.random.randint(0, 2 ** 32 - 1))
             obs_dict = env.reset()
             fg = obs_dict['desired_goal']
             obs = obs_dict['observation']
