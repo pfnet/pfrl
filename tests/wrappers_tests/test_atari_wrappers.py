@@ -9,9 +9,7 @@ import gym.spaces
 import numpy as np
 import pytest
 
-from pfrl.wrappers.atari_wrappers import FrameStack
-from pfrl.wrappers.atari_wrappers import LazyFrames
-from pfrl.wrappers.atari_wrappers import ScaledFloatFrame
+from pfrl.wrappers.atari_wrappers import FrameStack, LazyFrames, ScaledFloatFrame
 
 
 @pytest.mark.parametrize("dtype", [np.uint8, np.float32])

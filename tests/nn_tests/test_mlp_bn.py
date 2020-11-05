@@ -1,10 +1,10 @@
-import torch
+import unittest
+
 import numpy as np
+import pytest
+import torch
 
 import pfrl
-
-import pytest
-import unittest
 
 assertions = unittest.TestCase("__init__")
 

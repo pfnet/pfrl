@@ -1,10 +1,12 @@
 from torch import nn
 
 from pfrl.nn.recurrent import Recurrent
-from pfrl.utils.recurrent import is_recurrent
-from pfrl.utils.recurrent import get_packed_sequence_info
-from pfrl.utils.recurrent import wrap_packed_sequences_recursive
-from pfrl.utils.recurrent import unwrap_packed_sequences_recursive
+from pfrl.utils.recurrent import (
+    get_packed_sequence_info,
+    is_recurrent,
+    unwrap_packed_sequences_recursive,
+    wrap_packed_sequences_recursive,
+)
 
 
 class RecurrentSequential(Recurrent, nn.Sequential):

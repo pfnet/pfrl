@@ -2,8 +2,8 @@ import collections
 import pickle
 from typing import Optional
 
-from pfrl.collections.random_access_queue import RandomAccessQueue
 from pfrl import replay_buffer
+from pfrl.collections.random_access_queue import RandomAccessQueue
 
 
 class ReplayBuffer(replay_buffer.AbstractReplayBuffer):

@@ -1,9 +1,8 @@
 import numpy
+import pytest
+import torch
 
 from pfrl.nn import noisy_linear
-
-import torch
-import pytest
 
 
 @pytest.mark.parametrize("bias", [False, True])

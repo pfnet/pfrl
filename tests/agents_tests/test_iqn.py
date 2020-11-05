@@ -1,13 +1,13 @@
-import numpy as np
-import torch
-from torch import nn
-import pytest
-
 import basetest_dqn_like as base
+import numpy as np
+import pytest
+import torch
 
 # IQN does not support the actor-learner interface for now
 # from basetest_training import _TestActorLearnerTrainingMixin
 from basetest_training import _TestBatchTrainingMixin
+from torch import nn
+
 import pfrl
 from pfrl.agents import iqn
 from pfrl.testing import torch_assert_allclose

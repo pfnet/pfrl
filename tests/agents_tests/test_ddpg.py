@@ -1,8 +1,8 @@
+import basetest_ddpg as base
 import pytest
+from basetest_training import _TestBatchTrainingMixin
 
 from pfrl.agents.ddpg import DDPG
-import basetest_ddpg as base
-from basetest_training import _TestBatchTrainingMixin
 
 
 @pytest.mark.skip  # recurrent=True is not supported yet

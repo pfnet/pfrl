@@ -1,14 +1,10 @@
 import argparse
 
-import torch
 import numpy as np
+import torch
 
 import pfrl
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import replay_buffers
-
+from pfrl import experiments, explorers, replay_buffers, utils
 from pfrl.wrappers import atari_wrappers
 
 

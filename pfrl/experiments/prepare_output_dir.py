@@ -1,5 +1,4 @@
 import argparse
-from binascii import crc32
 import datetime
 import json
 import os
@@ -7,6 +6,7 @@ import pickle
 import shutil
 import subprocess
 import sys
+from binascii import crc32
 
 import pfrl
 

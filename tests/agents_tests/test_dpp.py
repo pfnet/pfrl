@@ -1,9 +1,8 @@
-import pytest
 import basetest_dqn_like as base
+import pytest
 from basetest_training import _TestBatchTrainingMixin
-from pfrl.agents.dpp import DPP
-from pfrl.agents.dpp import DPPGreedy
-from pfrl.agents.dpp import DPPL
+
+from pfrl.agents.dpp import DPP, DPPL, DPPGreedy
 
 
 def parse_dpp_agent(dpp_type):

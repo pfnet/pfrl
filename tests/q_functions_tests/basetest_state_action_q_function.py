@@ -1,6 +1,6 @@
 import unittest
-import numpy as np
 
+import numpy as np
 import torch
 
 assertions = unittest.TestCase("__init__")

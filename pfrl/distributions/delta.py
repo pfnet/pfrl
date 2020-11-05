@@ -1,7 +1,7 @@
 from numbers import Number
 
 import torch
-from torch.distributions import constraints, Distribution
+from torch.distributions import Distribution, constraints
 
 
 class Delta(Distribution):

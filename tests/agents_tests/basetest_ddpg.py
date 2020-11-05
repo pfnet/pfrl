@@ -1,16 +1,13 @@
 import numpy as np
 import torch
+from basetest_training import _TestTraining
 from torch import nn
 
+from pfrl import replay_buffers
 from pfrl.envs.abc import ABC
 from pfrl.explorers.epsilon_greedy import LinearDecayEpsilonGreedy
-from pfrl import replay_buffers
-from pfrl.nn import RecurrentSequential
-from pfrl.nn import ConcatObsAndAction
-from pfrl.nn import BoundByTanh
+from pfrl.nn import BoundByTanh, ConcatObsAndAction, RecurrentSequential
 from pfrl.policies import DeterministicHead
-
-from basetest_training import _TestTraining
 
 
 class _TestDDPGOnABC(_TestTraining):
