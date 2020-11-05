@@ -2,17 +2,17 @@
 https://github.com/chainer/chainercv/blob/master/chainercv/utils/download.py
 """
 
-import filelock
 import hashlib
 import os
 import posixpath
 import shutil
+import sys
 import tempfile
 import time
-import sys
 import zipfile
-from six.moves.urllib import request
 
+import filelock
+from six.moves.urllib import request
 
 _models_root = os.environ.get(
     "PFRL_MODELS_ROOT", os.path.join(os.path.expanduser("~"), ".pfrl", "models")
