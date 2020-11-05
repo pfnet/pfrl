@@ -1,10 +1,10 @@
 import unittest
 
 import numpy as np
+import pytest
+import torch
 
 import pfrl
-import torch
-import pytest
 
 
 @pytest.mark.skip

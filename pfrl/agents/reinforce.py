@@ -1,14 +1,14 @@
-from logging import getLogger
 import warnings
+from logging import getLogger
 
 import numpy as np
 import torch
 
 import pfrl
 from pfrl import agent
+from pfrl.utils import clip_l2_grad_norm_
 from pfrl.utils.mode_of_distribution import mode_of_distribution
 from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils import clip_l2_grad_norm_
 
 
 class REINFORCE(agent.AttributeSavingMixin, agent.Agent):

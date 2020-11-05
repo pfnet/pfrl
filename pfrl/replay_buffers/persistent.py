@@ -1,10 +1,10 @@
 import os
 import warnings
 
-from .replay_buffer import ReplayBuffer
-from .episodic import EpisodicReplayBuffer
-
 from pfrl.collections.persistent_collections import PersistentRandomAccessQueue
+
+from .episodic import EpisodicReplayBuffer
+from .replay_buffer import ReplayBuffer
 
 
 class PersistentReplayBuffer(ReplayBuffer):

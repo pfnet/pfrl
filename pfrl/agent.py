@@ -1,13 +1,7 @@
-from abc import ABCMeta
-from abc import abstractmethod
-from abc import abstractproperty
 import contextlib
 import os
-from typing import Any
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
+from abc import ABCMeta, abstractmethod, abstractproperty
+from typing import Any, List, Optional, Sequence, Tuple
 
 import torch
 
@@ -102,6 +96,11 @@ class AttributeSavingMixin(object):
                 ), "Avoid an infinite loop"
                 attr_value.__save(os.path.join(dirname, attr), ancestors)
             else:
+                if isinstance(
+                    attr_value,
+                    (torch.nn.parallel.DistributedDataParallel, torch.nn.DataParallel),
+                ):
+                    attr_value = attr_value.module
                 torch.save(
                     attr_value.state_dict(), os.path.join(dirname, "{}.pt".format(attr))
                 )
@@ -125,6 +124,11 @@ class AttributeSavingMixin(object):
                 ), "Avoid an infinite loop"
                 attr_value.load(os.path.join(dirname, attr))
             else:
+                if isinstance(
+                    attr_value,
+                    (torch.nn.parallel.DistributedDataParallel, torch.nn.DataParallel),
+                ):
+                    attr_value = attr_value.module
                 attr_value.load_state_dict(
                     torch.load(
                         os.path.join(dirname, "{}.pt".format(attr)), map_location

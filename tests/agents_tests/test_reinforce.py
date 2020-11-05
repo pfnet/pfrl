@@ -2,15 +2,17 @@ import logging
 import tempfile
 
 import numpy as np
+import pytest
 import torch
 from torch import nn
-import pytest
 
 import pfrl
-from pfrl.experiments.evaluator import run_evaluation_episodes
 from pfrl.envs.abc import ABC
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.policies import GaussianHeadWithStateIndependentCovariance
+from pfrl.experiments.evaluator import run_evaluation_episodes
+from pfrl.policies import (
+    GaussianHeadWithStateIndependentCovariance,
+    SoftmaxCategoricalHead,
+)
 
 
 @pytest.mark.parametrize("discrete", [True, False])

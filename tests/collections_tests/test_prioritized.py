@@ -1,7 +1,7 @@
+import random
 import unittest
 
 import numpy as np
-import random
 import pytest
 
 from pfrl.collections import prioritized

@@ -1,6 +1,6 @@
 import torch
 
-from pfrl.nn import Lambda
+from pfrl.nn.lmbda import Lambda
 
 
 def concat_obs_and_action(obs_and_action):

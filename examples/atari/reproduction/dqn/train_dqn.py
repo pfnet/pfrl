@@ -1,21 +1,17 @@
 import argparse
+import json
 import os
 
-import torch.nn as nn
 import numpy as np
+import torch.nn as nn
 
 import pfrl
-from pfrl.q_functions import DiscreteActionValueHead
-from pfrl import agents
-from pfrl import experiments
-from pfrl import explorers
+from pfrl import agents, experiments, explorers
 from pfrl import nn as pnn
-from pfrl import utils
-from pfrl import replay_buffers
-
-from pfrl.wrappers import atari_wrappers
+from pfrl import replay_buffers, utils
 from pfrl.initializers import init_chainer_default
-import json
+from pfrl.q_functions import DiscreteActionValueHead
+from pfrl.wrappers import atari_wrappers
 
 
 def main():

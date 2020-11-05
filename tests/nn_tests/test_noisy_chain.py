@@ -1,6 +1,7 @@
-import torch
-import numpy
 import unittest
+
+import numpy
+import torch
 
 from pfrl.nn import to_factorized_noisy
 

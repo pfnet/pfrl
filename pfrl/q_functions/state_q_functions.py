@@ -1,17 +1,18 @@
 import numpy as np
-
-from pfrl.action_value import DiscreteActionValue
-from pfrl.action_value import DistributionalDiscreteActionValue
-from pfrl.action_value import QuadraticActionValue
-from pfrl.functions.lower_triangular_matrix import lower_triangular_matrix
-from pfrl.nn import Lambda
-from pfrl.nn.mlp import MLP
-from pfrl.q_function import StateQFunction
-
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+
+from pfrl.action_value import (
+    DiscreteActionValue,
+    DistributionalDiscreteActionValue,
+    QuadraticActionValue,
+)
+from pfrl.functions.lower_triangular_matrix import lower_triangular_matrix
 from pfrl.initializers import init_chainer_default
+from pfrl.nn import Lambda
+from pfrl.nn.mlp import MLP
+from pfrl.q_function import StateQFunction
 
 
 def scale_by_tanh(x, low, high):

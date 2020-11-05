@@ -1,12 +1,10 @@
-from collections import deque
 import logging
 import os
+from collections import deque
 
 import numpy as np
 
-
-from pfrl.experiments.evaluator import Evaluator
-from pfrl.experiments.evaluator import save_agent
+from pfrl.experiments.evaluator import Evaluator, save_agent
 
 
 def train_agent_batch(

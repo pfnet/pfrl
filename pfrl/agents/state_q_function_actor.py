@@ -3,11 +3,13 @@ from logging import getLogger
 import torch
 
 from pfrl import agent
-from pfrl.utils.batch_states import batch_states
 from pfrl.utils import evaluating
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import recurrent_state_as_numpy
+from pfrl.utils.batch_states import batch_states
+from pfrl.utils.recurrent import (
+    get_recurrent_state_at,
+    one_step_forward,
+    recurrent_state_as_numpy,
+)
 
 
 class StateQFunctionActor(agent.AsyncAgent):
@@ -76,7 +78,7 @@ class StateQFunctionActor(agent.AsyncAgent):
     def act(self, obs):
         with torch.no_grad(), evaluating(self.model):
             action_value = self._evaluate_model_and_update_recurrent_states([obs])
-            greedy_action = action_value.greedy_actions.cpu().numpy()[0]
+            greedy_action = action_value.greedy_actions.detach().cpu().numpy()[0]
         if self.training:
             action = self.explorer.select_action(
                 self.t, lambda: greedy_action, action_value=action_value

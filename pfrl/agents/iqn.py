@@ -5,8 +5,7 @@ from torch import nn
 from pfrl.action_value import QuantileDiscreteActionValue
 from pfrl.agents import dqn
 from pfrl.nn import Recurrent
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import pack_and_forward
+from pfrl.utils.recurrent import one_step_forward, pack_and_forward
 
 
 def cosine_basis_functions(x, n_basis_functions=64):

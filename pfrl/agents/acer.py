@@ -5,14 +5,12 @@ import numpy as np
 import torch
 from torch import nn
 
-from pfrl.action_value import SingleActionValue
 from pfrl import agent
+from pfrl.action_value import SingleActionValue
+from pfrl.utils import clip_l2_grad_norm_, copy_param
 from pfrl.utils.batch_states import batch_states
-from pfrl.utils import copy_param
 from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import detach_recurrent_state
-from pfrl.utils import clip_l2_grad_norm_
+from pfrl.utils.recurrent import detach_recurrent_state, one_step_forward
 
 
 def compute_importance(pi, mu, x):

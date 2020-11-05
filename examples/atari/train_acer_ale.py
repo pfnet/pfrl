@@ -10,13 +10,11 @@ import numpy as np
 from torch import nn
 
 import pfrl
+from pfrl import experiments, utils
 from pfrl.agents import acer
-from pfrl import experiments
-from pfrl import utils
-from pfrl.replay_buffers import EpisodicReplayBuffer
 from pfrl.policies import SoftmaxCategoricalHead
 from pfrl.q_functions import DiscreteActionValueHead
-
+from pfrl.replay_buffers import EpisodicReplayBuffer
 from pfrl.wrappers import atari_wrappers
 
 

@@ -15,13 +15,9 @@ import torch
 from torch import nn
 
 import pfrl
+from pfrl import experiments, explorers, replay_buffers, utils
 from pfrl.agents.ddpg import DDPG
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import replay_buffers
-from pfrl.nn import ConcatObsAndAction
-from pfrl.nn import BoundByTanh
+from pfrl.nn import BoundByTanh, ConcatObsAndAction
 from pfrl.policies import DeterministicHead
 
 

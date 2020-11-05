@@ -2,17 +2,14 @@ import argparse
 import json
 import os
 
-import torch
 import numpy as np
+import torch
 
 import pfrl
-from pfrl import agents
-from pfrl import experiments
-from pfrl import explorers
+from pfrl import agents, experiments, explorers
 from pfrl import nn as pnn
-from pfrl import utils
+from pfrl import replay_buffers, utils
 from pfrl.q_functions import DistributionalDuelingDQN
-from pfrl import replay_buffers
 from pfrl.wrappers import atari_wrappers
 
 

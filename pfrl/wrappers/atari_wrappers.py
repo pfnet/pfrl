@@ -6,11 +6,9 @@ from collections import deque
 
 import gym
 import numpy as np
-
 from gym import spaces
 
 import pfrl
-
 
 try:
     import cv2
