@@ -1,11 +1,11 @@
 import unittest
 
+import numpy as np
 import torch
 import torch.nn as nn
-import numpy as np
 
-from pfrl.utils import copy_param
 from pfrl.testing import torch_assert_allclose
+from pfrl.utils import copy_param
 
 
 class TestCopyParam(unittest.TestCase):

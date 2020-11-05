@@ -1,5 +1,6 @@
 import basetest_dqn_like
 from basetest_training import _TestBatchTrainingMixin
+
 from pfrl.agents.double_dqn import DoubleDQN
 
 

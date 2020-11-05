@@ -9,11 +9,8 @@ import torch
 from torch import nn
 
 import pfrl
+from pfrl import experiments, explorers, replay_buffers, utils
 from pfrl.q_functions import DiscreteActionValueHead
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import replay_buffers
 
 
 class CastAction(gym.ActionWrapper):
@@ -243,9 +240,9 @@ def main():
     max_episode_steps = 8
 
     def make_env(idx, test):
-        from pybullet_envs.bullet.kuka_diverse_object_gym_env import (
+        from pybullet_envs.bullet.kuka_diverse_object_gym_env import (  # NOQA
             KukaDiverseObjectEnv,
-        )  # NOQA
+        )
 
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[idx])

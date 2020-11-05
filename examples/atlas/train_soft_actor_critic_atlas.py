@@ -8,14 +8,11 @@ import gym
 import gym.wrappers
 import numpy as np
 import torch
-from torch import nn
-from torch import distributions
+from torch import distributions, nn
 
 import pfrl
-from pfrl import experiments
+from pfrl import experiments, replay_buffers, utils
 from pfrl.nn.lmbda import Lambda
-from pfrl import utils
-from pfrl import replay_buffers
 
 
 def make_env(args, seed, test):
