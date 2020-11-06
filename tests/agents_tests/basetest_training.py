@@ -1,17 +1,21 @@
 import logging
 import os
 import tempfile
-import pytest
 import mock
 
 import numpy as np
+import pytest
 
 import pfrl
-from pfrl.experiments.evaluator import batch_run_evaluation_episodes
-from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.experiments import train_agent_async
-from pfrl.experiments import train_agent_batch_with_evaluation
-from pfrl.experiments import train_agent_with_evaluation
+from pfrl.experiments import (
+    train_agent_async,
+    train_agent_batch_with_evaluation,
+    train_agent_with_evaluation,
+)
+from pfrl.experiments.evaluator import (
+    batch_run_evaluation_episodes,
+    run_evaluation_episodes,
+)
 from pfrl.utils import random_seed
 
 

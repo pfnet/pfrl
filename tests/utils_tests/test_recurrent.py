@@ -4,10 +4,12 @@ import pytest
 import torch
 from torch import nn
 
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import mask_recurrent_state_at
-from pfrl.utils.recurrent import concatenate_recurrent_states
 from pfrl.testing import torch_assert_allclose
+from pfrl.utils.recurrent import (
+    concatenate_recurrent_states,
+    get_recurrent_state_at,
+    mask_recurrent_state_at,
+)
 
 
 class TestRecurrentStateFunctions(unittest.TestCase):

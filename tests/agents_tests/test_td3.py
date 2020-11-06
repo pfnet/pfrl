@@ -8,10 +8,14 @@ from torch import nn
 
 import pfrl
 from pfrl.envs.abc import ABC
-from pfrl.experiments.evaluator import batch_run_evaluation_episodes
-from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.experiments import train_agent_batch_with_evaluation
-from pfrl.experiments import train_agent_with_evaluation
+from pfrl.experiments import (
+    train_agent_batch_with_evaluation,
+    train_agent_with_evaluation,
+)
+from pfrl.experiments.evaluator import (
+    batch_run_evaluation_episodes,
+    run_evaluation_episodes,
+)
 
 
 @pytest.mark.parametrize("episodic", [False, True])

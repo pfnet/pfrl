@@ -12,13 +12,12 @@ from torch import nn
 import pfrl
 from pfrl.agents import acer
 from pfrl.envs.abc import ABC
-from pfrl.experiments.train_agent_async import train_agent_async
 from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.replay_buffers import EpisodicReplayBuffer
-from pfrl.policies import GaussianHeadWithDiagonalCovariance
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.q_functions import DiscreteActionValueHead
+from pfrl.experiments.train_agent_async import train_agent_async
 from pfrl.nn import ConcatObsAndAction
+from pfrl.policies import GaussianHeadWithDiagonalCovariance, SoftmaxCategoricalHead
+from pfrl.q_functions import DiscreteActionValueHead
+from pfrl.replay_buffers import EpisodicReplayBuffer
 
 
 def extract_gradients_as_single_vector(mod):

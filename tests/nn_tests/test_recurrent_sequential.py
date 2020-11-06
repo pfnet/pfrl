@@ -2,13 +2,11 @@ import unittest
 
 import pytest
 import torch
-from torch import nn
 import torch.nn.functional as F
+from torch import nn
 
-from pfrl.nn import RecurrentSequential
-
+from pfrl.nn import Lambda, RecurrentSequential
 from pfrl.testing import torch_assert_allclose
-from pfrl.nn import Lambda
 
 
 def _step_lstm(lstm, x, state):

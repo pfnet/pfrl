@@ -1,12 +1,12 @@
-from logging import getLogger
 import warnings
+from logging import getLogger
 
 import torch
 
 from pfrl import agent
+from pfrl.utils import clip_l2_grad_norm_
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.utils import clip_l2_grad_norm_
 
 logger = getLogger(__name__)
 

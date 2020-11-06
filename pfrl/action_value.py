@@ -1,7 +1,5 @@
-from abc import ABCMeta
-from abc import abstractmethod
-from abc import abstractproperty
 import warnings
+from abc import ABCMeta, abstractmethod, abstractproperty
 
 import torch
 import torch.nn.functional as F

@@ -1,5 +1,6 @@
-import torch.multiprocessing as mp
 import warnings
+
+import torch.multiprocessing as mp
 
 
 class AbnormalExitWarning(Warning):

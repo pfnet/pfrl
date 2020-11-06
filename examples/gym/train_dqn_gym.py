@@ -12,22 +12,19 @@ To solve Pendulum-v0, run:
 """
 
 import argparse
-import sys
 import os
+import sys
 
-import torch.optim as optim
 import gym
-from gym import spaces
 import numpy as np
+import torch.optim as optim
+from gym import spaces
 
 import pfrl
-from pfrl.agents.dqn import DQN
-from pfrl import experiments
-from pfrl import explorers
+from pfrl import experiments, explorers
 from pfrl import nn as pnn
-from pfrl import utils
-from pfrl import q_functions
-from pfrl import replay_buffers
+from pfrl import q_functions, replay_buffers, utils
+from pfrl.agents.dqn import DQN
 
 
 def main():

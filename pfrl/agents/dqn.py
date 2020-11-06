@@ -1,40 +1,38 @@
-import copy
 import collections
-import time
+import copy
 import ctypes
 import multiprocessing as mp
 import multiprocessing.synchronize
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
-from logging import Logger
-from logging import getLogger
+import time
+from logging import Logger, getLogger
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 
 import pfrl
 from pfrl import agent
 from pfrl import env
 from pfrl.action_value import ActionValue
 from pfrl.explorer import Explorer
+from pfrl.replay_buffer import (
+    AbstractEpisodicReplayBuffer,
+    ReplayUpdater,
+    batch_experiences,
+    batch_recurrent_experiences,
+)
+from pfrl.replay_buffers import PrioritizedReplayBuffer
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.contexts import evaluating
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import AbstractEpisodicReplayBuffer, batch_experiences
-from pfrl.replay_buffer import batch_recurrent_experiences
-from pfrl.replay_buffer import ReplayUpdater
-from pfrl.replay_buffers import PrioritizedReplayBuffer
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import mask_recurrent_state_at
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import pack_and_forward
-from pfrl.utils.recurrent import recurrent_state_as_numpy
+from pfrl.utils.recurrent import (
+    get_recurrent_state_at,
+    mask_recurrent_state_at,
+    one_step_forward,
+    pack_and_forward,
+    recurrent_state_as_numpy,
+)
 
 
 def _mean_or_nan(xs: Sequence[float]) -> float:

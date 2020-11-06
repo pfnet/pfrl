@@ -6,9 +6,8 @@ import numpy as np
 from torch import nn
 
 import pfrl
+from pfrl import experiments, utils
 from pfrl.agents import a2c
-from pfrl import experiments
-from pfrl import utils
 from pfrl.policies import SoftmaxCategoricalHead
 from pfrl.wrappers import atari_wrappers
 

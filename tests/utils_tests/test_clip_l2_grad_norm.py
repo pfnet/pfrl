@@ -1,5 +1,5 @@
-from logging import getLogger
 import timeit
+from logging import getLogger
 
 import numpy as np
 import pytest

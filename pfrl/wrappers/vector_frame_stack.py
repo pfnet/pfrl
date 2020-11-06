@@ -1,7 +1,7 @@
 from collections import deque
 
-from gym import spaces
 import numpy as np
+from gym import spaces
 
 from pfrl.env import VectorEnv
 from pfrl.wrappers.atari_wrappers import LazyFrames

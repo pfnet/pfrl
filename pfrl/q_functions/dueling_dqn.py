@@ -3,9 +3,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from pfrl import action_value
+from pfrl.initializers import init_chainer_default
 from pfrl.nn.mlp import MLP
 from pfrl.q_function import StateQFunction
-from pfrl.initializers import init_chainer_default
 
 
 def constant_bias_initializer(bias=0.0):
