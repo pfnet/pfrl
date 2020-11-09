@@ -253,7 +253,7 @@ def main():
         phi=phi,
         gamma=gamma,
         explorer=explorer,
-        replay_start_size=500,
+        replay_start_size=256,
         target_update_method="soft",
         target_update_interval=50,
         update_interval=50,
