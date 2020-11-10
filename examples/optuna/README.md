@@ -94,3 +94,17 @@ pruner="HyperbandPruner"
 python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
 python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}" &
 ```
+
+
+## Supported features
+
+Currently, PFRL's Optuna hyperparameter tuning feature supports:
+
+- `pfrl.experiments.train_agent.py::train_agent_with_evaluation`
+  - Pass `evaluation_hooks = [OptunaPrunerHook(trial=trial)]` to `train_agent_with_evaluation`.
+- `pfrl.experiments.train_agent_batch.py::train_agent_batch_with_evaluation`
+  - Pass `evaluation_hooks = [OptunaPrunerHook(trial=trial)]` to `train_agent_batch_with_evaluation`.
+
+Note that `pfrl.experiments.train_agent_async.py::train_agent_async` is not supported.  
+Optuna detects pruning signal by `optuna.TrialPruned` exception, but async training mode doesn't re-raise subprocess' exceptions.
+(See: `pfrl.utils.async_.py`)
