@@ -1,7 +1,7 @@
 import logging
 import os
 import tempfile
-import mock
+from unittest import mock
 
 import numpy as np
 import pytest
