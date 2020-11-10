@@ -1,6 +1,6 @@
 # Hyperparameter Tuning with Optuna
 
-Tune hyper parameters by [Optuna](https://optuna.org/).
+Tune hyperparameters by [Optuna](https://optuna.org/).
 
 The example script (`optuna_dqn_obs1d.py`) uses fixed target algorithm/environment<sup>†</sup>
 in order to fucus on the concept of Optuna-powered PFRL,
