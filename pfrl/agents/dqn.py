@@ -13,7 +13,6 @@ import torch.nn.functional as F
 
 import pfrl
 from pfrl import agent
-from pfrl import env
 from pfrl.action_value import ActionValue
 from pfrl.explorer import Explorer
 from pfrl.replay_buffer import (
@@ -640,8 +639,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         stop_event: mp.synchronize.Event,
         exception_event: mp.synchronize.Event,
         n_updates: Optional[int] = None,
-        step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = [],
-        optimizer_step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = []
+        step_hooks: List[Callable[None, agent.Agent, int], Any] = [],
+        optimizer_step_hooks: List[Callable[None, agent.Agent, int], Any] = []
     ) -> None:
         try:
             update_counter = 0
@@ -719,8 +718,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         update_counter: Optional[Any] = None,
         n_updates: Optional[int] = None,
         actor_update_interval: int = 8,
-        step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = [],
-        optimizer_step_hooks: List[Callable[[Optional[env.Env], agent.Agent, int], Any]] = []
+        step_hooks: List[Callable[None, agent.Agent, int], Any] = [],
+        optimizer_step_hooks: List[Callable[None, agent.Agent, int], Any] = []
     ):
         if update_counter is None:
             update_counter = mp.Value(ctypes.c_ulong)
