@@ -406,7 +406,7 @@ def main():
             eval_n_episodes=args.eval_n_episodes,
             eval_interval=args.eval_interval,
             batch_size=args.batch_size,
-            # hyper parameters
+            # hyperparameters
             hyper_params=hyper_params,
         )
 
