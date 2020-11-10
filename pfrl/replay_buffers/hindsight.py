@@ -19,10 +19,7 @@ def relabel_transition_goal(transition, goal_transition, reward_fn, swap_keys_li
 
 
 class HindsightReplayStrategy:
-    """ReplayStrategy for Hindsight experience replay"""
-
-    def __init__(self, reward_fn):
-        self.reward_fn = reward_fn
+    """ReplayStrategy for Hindsight experience replay."""
 
     def apply(self, episodes, reward_fn, swap_keys_list):
         return episodes
@@ -59,7 +56,6 @@ class ReplayFutureGoal(HindsightReplayStrategy):
     """Replay random future goal.
 
     Args:
-        ignore_null_goals (bool): no replace with goal when nothing achieved
         future_k (int): number of future goals to sample per true sample
     """
 
