@@ -1,8 +1,7 @@
 from abc import ABCMeta, abstractmethod
 
-# Delay importing optuna since optuna is optional dependency.
+# Delay importing optuna since it is an optional dependency.
 try:
-    # from optuna import TrialPruned
     import optuna
 
     _optuna_available = True

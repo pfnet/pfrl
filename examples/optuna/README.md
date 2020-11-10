@@ -46,7 +46,7 @@ If you are interested in the `--optuna-pruner` argument above, see the
 
 ### Distributed Optimization
 
-The quickstart script executed below can also be used as a "worker process" for parallel and distributed optimization.
+The quickstart script executed above can also be used as a "worker process" for parallel and distributed optimization.
 
 #### Prerequisites
 
