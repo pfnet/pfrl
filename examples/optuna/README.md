@@ -19,7 +19,7 @@ pruner="HyperbandPruner"
 # Higher score means better performance ("--direction maximize")
 optuna create-study --study-name "${study}" --storage "${storage}" --direction maximize
 
-# Start tuning hyper parameters
+# Start tuning hyperparameters
 python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${storage}" --optuna-pruner "${pruner}"
 ```
 
