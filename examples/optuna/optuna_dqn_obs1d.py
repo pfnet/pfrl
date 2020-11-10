@@ -1,4 +1,4 @@
-"""An example of training DQN, with Optuna-powered hyper-parameters tuning.
+"""An example of training DQN, with Optuna-powered hyperparameters tuning.
 
 An example script of training a DQN agent with
 [Optuna](https://optuna.org/)-powered hyperparameter tuning.
@@ -44,7 +44,7 @@ def _objective_core(
     eval_interval,
     batch_size,
     # hyperparameters
-    hyper_params,
+    hyperparams,
 ):
     # Set a random seed used in PFRL
     utils.set_random_seed(seed)
@@ -84,7 +84,7 @@ def _objective_core(
         if not test:
             # Scale rewards (and thus returns) to a reasonable range so that
             # training is easier
-            env = pfrl.wrappers.ScaleReward(env, hyper_params["reward_scale_factor"])
+            env = pfrl.wrappers.ScaleReward(env, hyperparams["reward_scale_factor"])
         return env
 
     env = make_env(test=False)
@@ -95,7 +95,7 @@ def _objective_core(
 
     # create model & q_function
     model = MLP(
-        in_size=obs_size, out_size=n_actions, hidden_sizes=hyper_params["hidden_sizes"]
+        in_size=obs_size, out_size=n_actions, hidden_sizes=hyperparams["hidden_sizes"]
     )
     q_func = q_functions.SingleModelStateQFunctionWithDiscreteAction(model=model)
 
@@ -103,13 +103,13 @@ def _objective_core(
     start_epsilon = 1
     explorer = explorers.LinearDecayEpsilonGreedy(
         start_epsilon=start_epsilon,
-        end_epsilon=hyper_params["end_epsilon"],
-        decay_steps=hyper_params["decay_steps"],
+        end_epsilon=hyperparams["end_epsilon"],
+        decay_steps=hyperparams["decay_steps"],
         random_action_func=action_space.sample,
     )
 
     opt = optim.Adam(
-        q_func.parameters(), lr=hyper_params["lr"], eps=hyper_params["adam_eps"]
+        q_func.parameters(), lr=hyperparams["lr"], eps=hyperparams["adam_eps"]
     )
 
     rbuf_capacity = steps
@@ -120,11 +120,11 @@ def _objective_core(
         opt,
         rbuf,
         gpu=gpu,
-        gamma=hyper_params["gamma"],
+        gamma=hyperparams["gamma"],
         explorer=explorer,
-        replay_start_size=hyper_params["replay_start_size"],
-        target_update_interval=hyper_params["target_update_interval"],
-        update_interval=hyper_params["update_interval"],
+        replay_start_size=hyperparams["replay_start_size"],
+        target_update_interval=hyperparams["target_update_interval"],
+        update_interval=hyperparams["update_interval"],
         minibatch_size=batch_size,
     )
 
@@ -184,13 +184,13 @@ def _get_score_from_eval_stats_history(
 
 
 def suggest(trial, steps):
-    hyper_params = {}
+    hyperparams = {}
 
-    hyper_params["reward_scale_factor"] = trial.suggest_float(
+    hyperparams["reward_scale_factor"] = trial.suggest_float(
         "reward_scale_factor", 1e-5, 10, log=True
     )
     n_hidden_layers = trial.suggest_int("n_hidden_layers", 1, 3)  # hyper-hyper-param
-    hyper_params["hidden_sizes"] = []
+    hyperparams["hidden_sizes"] = []
     for n_channel in range(n_hidden_layers):
         # If n_channels is a large value, the precise number doesn't matter.
         # In other words, we should search over the smaller values more precisely.
@@ -200,38 +200,38 @@ def suggest(trial, steps):
             200,
             log=True,
         )
-        hyper_params["hidden_sizes"].append(c)
-    hyper_params["end_epsilon"] = trial.suggest_float("end_epsilon", 0.0, 0.3)
+        hyperparams["hidden_sizes"].append(c)
+    hyperparams["end_epsilon"] = trial.suggest_float("end_epsilon", 0.0, 0.3)
     max_decay_steps = steps // 2
     min_decay_steps = min(1e3, max_decay_steps)
-    hyper_params["decay_steps"] = trial.suggest_int(
+    hyperparams["decay_steps"] = trial.suggest_int(
         "decay_steps", min_decay_steps, max_decay_steps
     )
-    hyper_params["lr"] = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
+    hyperparams["lr"] = trial.suggest_float("lr", 1e-4, 1e-2, log=True)
     # Adam's default eps==1e-8 but larger eps oftens helps.
     # (Rainbow: eps==1.5e-4, IQN: eps==1e-2/batch_size=3.125e-4)
-    hyper_params["adam_eps"] = trial.suggest_float("adam_eps", 1e-8, 1e-3, log=True)
+    hyperparams["adam_eps"] = trial.suggest_float("adam_eps", 1e-8, 1e-3, log=True)
     inv_gamma = trial.suggest_float("inv_gamma", 1e-3, 1e-1, log=True)
-    hyper_params["gamma"] = 1 - inv_gamma
+    hyperparams["gamma"] = 1 - inv_gamma
 
     rbuf_capacity = steps
     min_replay_start_size = min(1e3, rbuf_capacity)
     # min: Replay start size cannot exceed replay buffer capacity.
     # max: decaying epsilon without training does not make much sense.
     max_replay_start_size = min(
-        max(1e3, hyper_params["decay_steps"] // 2), rbuf_capacity
+        max(1e3, hyperparams["decay_steps"] // 2), rbuf_capacity
     )
-    hyper_params["replay_start_size"] = trial.suggest_int(
+    hyperparams["replay_start_size"] = trial.suggest_int(
         "replay_start_size", min_replay_start_size, max_replay_start_size,
     )
     # target_update_interval should be a multiple of update_interval
-    hyper_params["update_interval"] = trial.suggest_int("update_interval", 1, 8)
+    hyperparams["update_interval"] = trial.suggest_int("update_interval", 1, 8)
     target_update_interval_coef = trial.suggest_int("target_update_interval_coef", 1, 4)
-    hyper_params["target_update_interval"] = (
-        hyper_params["update_interval"] * target_update_interval_coef
+    hyperparams["target_update_interval"] = (
+        hyperparams["update_interval"] * target_update_interval_coef
     )
 
-    return hyper_params
+    return hyperparams
 
 
 def main():
@@ -383,11 +383,11 @@ def main():
 
     def objective(trial):
         # suggest parameters from Optuna
-        hyper_params = suggest(trial, args.steps)
+        hyperparams = suggest(trial, args.steps)
 
         # seed is generated for each objective
         seed = randomizer.randint(0, 2 ** 31 - 1)
-        additional_args = dict(seed=seed, **hyper_params)
+        additional_args = dict(seed=seed, **hyperparams)
 
         outdir = experiments.prepare_output_dir(args=additional_args, basedir=rootdir)
         print("Output files are saved in {}".format(outdir))
@@ -407,7 +407,7 @@ def main():
             eval_interval=args.eval_interval,
             batch_size=args.batch_size,
             # hyperparameters
-            hyper_params=hyper_params,
+            hyperparams=hyperparams,
         )
 
     sampler = optuna.samplers.TPESampler(seed=args.seed)
