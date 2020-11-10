@@ -84,7 +84,7 @@ Following useful techniques have been also implemented in PFRL:
 - [Prioritized Experience Replay](https://arxiv.org/abs/1511.05952)
   - examples: [[Rainbow]](examples/atari/reproduction/rainbow) [[DQN/DoubleDQN/PAL]](examples/atari/train_dqn_ale.py)
 - [Hindsight Experience Replay](https://arxiv.org/abs/1707.01495)
-  - examples: [[Bit-flip DQN]](examples/her/train_dqn_bit_flip.py)
+  - examples: [[Bit-flip DQN]](examples/her/train_dqn_bit_flip.py) [[DDPG on Fetch Envs]](examples/her/train_ddpg_her_fetch.py)
 - [Dueling Network](https://arxiv.org/abs/1511.06581)
   - examples: [[Rainbow]](examples/atari/reproduction/rainbow) [[DQN/DoubleDQN/PAL]](examples/atari/train_dqn_ale.py)
 - [Normalized Advantage Function](https://arxiv.org/abs/1603.00748)
