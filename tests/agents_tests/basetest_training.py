@@ -200,8 +200,11 @@ class _TestActorLearnerTrainingMixin(object):
                 learner,
                 poller,
                 exception_event,
-            ) = agent.setup_actor_learner_training(n_actors=2, step_hooks=[step_hook],
-                                                   optimizer_step_hooks=[optimizer_step_hook])
+            ) = agent.setup_actor_learner_training(
+                n_actors=2,
+                step_hooks=[step_hook],
+                optimizer_step_hooks=[optimizer_step_hook],
+            )
 
             poller.start()
             learner.start()
