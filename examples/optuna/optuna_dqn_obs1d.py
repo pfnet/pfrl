@@ -43,7 +43,7 @@ def _objective_core(
     eval_n_episodes,
     eval_interval,
     batch_size,
-    # hyper parameters
+    # hyperparameters
     hyper_params,
 ):
     # Set a random seed used in PFRL
