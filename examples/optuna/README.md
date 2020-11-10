@@ -24,7 +24,7 @@ python optuna_dqn_obs1d.py --optuna-study-name "${study}" --optuna-storage "${st
 ```
 
 You can see the optimization history of this study on [Jupyter Notebook](https://jupyter.org/install)
-via [Optuna visualization module](https://optuna.readthedocs.io/en/latest/reference/visualization.html):
+via [Optuna visualization module](https://optuna.readthedocs.io/en/latest/reference/visualization/index.html):
 
 ```python
 # On jupyter notebook
