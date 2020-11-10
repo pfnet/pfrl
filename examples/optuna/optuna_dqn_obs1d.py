@@ -20,7 +20,7 @@ import torch.optim as optim
 try:
     import optuna
 except ImportError:
-    raise RuntimeError("ImportError: optuna required.")
+    raise RuntimeError("This script requires optuna installed.")
 
 import pfrl
 from pfrl import experiments, explorers, q_functions, replay_buffers, utils
