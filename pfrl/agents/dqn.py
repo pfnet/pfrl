@@ -640,7 +640,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         exception_event: mp.synchronize.Event,
         n_updates: Optional[int] = None,
         step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
-        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = []
+        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
     ) -> None:
         try:
             update_counter = 0
@@ -719,7 +719,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         n_updates: Optional[int] = None,
         actor_update_interval: int = 8,
         step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
-        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = []
+        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
     ):
         if update_counter is None:
             update_counter = mp.Value(ctypes.c_ulong)
