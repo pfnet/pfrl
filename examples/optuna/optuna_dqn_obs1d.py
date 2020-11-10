@@ -1,7 +1,7 @@
 """An example of training DQN, with Optuna-powered hyper-parameters tuning.
 
 An example script of training a DQN agent with
-[Optuna](https://optuna.org/)-powered hyper-parameters tuning.
+[Optuna](https://optuna.org/)-powered hyperparameter tuning.
 
 To keep this script simple, the target environment (``--env``) must have:
  - 1d continuous observation space
