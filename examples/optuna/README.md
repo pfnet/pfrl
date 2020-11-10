@@ -2,11 +2,7 @@
 
 Tune hyperparameters by [Optuna](https://optuna.org/).
 
-The example script (`optuna_dqn_obs1d.py`) uses fixed target algorithm/environment<sup>†</sup>
-in order to fucus on the concept of Optuna-powered PFRL,
-but you can create onr for your own use thanks to the Optuna's high flexibility.
-
-†: DQN and environments with 1d continuous observation space and discrete action space
+This script (`optuna_dqn_obs1d.py`) optimizes hyperparameters for training DQN on a 1D-continuous-observation discrete-action environment, set to `LunarLander-v2` by default. You can modify this script to tune hyperparameters for other algorithms and environments.
 
 
 ## How to Run
