@@ -13,6 +13,14 @@ from pfrl.policies import DeterministicHead
 
 
 class ComputeSuccessRate(gym.Wrapper):
+    """Environment wrapper that computes success rate.
+
+    Args:
+        env: Env to wrap
+
+    Attributes:
+        success_record: list of successes
+    """
     def __init__(self, env):
         super().__init__(env)
         self.success_record = []
@@ -64,7 +72,8 @@ class ClipObservation(gym.ObservationWrapper):
 class EpsilonGreedyWithGaussianNoise(pfrl.explorer.Explorer):
     """Epsilon-Greedy with Gaussian noise.
 
-    This type of explorer was used in
+    This type of explorer was used in 
+    https://github.com/openai/baselines/tree/master/baselines/her
     """
 
     def __init__(self, epsilon, random_action_func, noise_scale, low=None, high=None):
@@ -134,15 +143,14 @@ def main():
         "--replay-start-size",
         type=int,
         default=5 * 10 ** 2,
-        help="Minimum replay buffer size before " + "performing gradient updates.",
+        help="Minimum replay buffer size before performing gradient updates.",
     )
-    parser.add_argument(
-        "--num-bits",
-        type=int,
-        default=10,
-        help="Number of bits for BitFlipping environment",
-    )
-    parser.add_argument("--no-hindsight", action="store_true", default=False)
+    parser.add_argument("--replay-strategy",
+                        default="future",
+                        choices=["future", "final"],
+                        help="The replay strategy to use",)
+    parser.add_argument("--no-hindsight", action="store_true", default=False,
+                        help="Do not use Hindsight Replay")
     parser.add_argument("--eval-n-episodes", type=int, default=10)
     parser.add_argument("--eval-interval", type=int, default=500)
     parser.add_argument(
@@ -222,9 +230,13 @@ def main():
     opt_a = torch.optim.Adam(policy.parameters())
     opt_c = torch.optim.Adam(q_func.parameters())
 
+    if args.replay_strategy == "future":
+        replay_strategy = replay_buffers.hindsight.ReplayFutureGoal()
+    else:
+        replay_strategy = replay_buffers.hindsight.ReplayFinalGoal()
     rbuf = replay_buffers.hindsight.HindsightReplayBuffer(
         reward_fn=reward_fn,
-        replay_strategy=replay_buffers.hindsight.ReplayFutureGoal(),
+        replay_strategy=replay_strategy,
         capacity=10 ** 6,
     )
 
@@ -243,7 +255,7 @@ def main():
         dg = np.asarray(observation["desired_goal"], dtype=np.float32)
         return np.concatenate((obs, dg)).clip(-200, 200)
 
-    # 1 eopch = 10 episodes = 500 steps
+    # 1 epoch = 10 episodes = 500 steps
     gamma = 1.0 - 1.0 / timestep_limit
     agent = pfrl.agents.DDPG(
         policy,
