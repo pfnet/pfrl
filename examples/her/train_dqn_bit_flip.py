@@ -220,7 +220,7 @@ def main():
 
     if args.demo:
         eval_stats = experiments.eval_performance(
-            env=eval_env, agent=agent, n_steps=args.eval_n_steps, n_episodes=None
+            env=eval_env, agent=agent, n_steps=None, n_episodes=args.eval_n_episodes
         )
         print(
             "n_episodes: {} mean: {} median: {} stdev {}".format(
