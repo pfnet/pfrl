@@ -64,7 +64,7 @@ class ClipObservation(gym.ObservationWrapper):
 class EpsilonGreedyWithGaussianNoise(pfrl.explorer.Explorer):
     """Epsilon-Greedy with Gaussian noise.
 
-    This type of explorer was used in 
+    This type of explorer was used in
     """
 
     def __init__(self, epsilon, random_action_func, noise_scale, low=None, high=None):
@@ -89,8 +89,9 @@ class EpsilonGreedyWithGaussianNoise(pfrl.explorer.Explorer):
             return a
 
     def __repr__(self):
-        return "EpsilonGreedyWithGaussianNoise(epsilon={}, noise_scale={}, low={}, high={})".format(
-            self.epsilon, self.noise_scale, self.low, self.high
+        return (
+            "EpsilonGreedyWithGaussianNoise(epsilon={}, noise_scale={}, low={},"
+            " high={})".format(self.epsilon, self.noise_scale, self.low, self.high)
         )
 
 

@@ -134,8 +134,12 @@ def main():
         default=10,
         help="Number of bits for BitFlipping environment.",
     )
-    parser.add_argument("--no-hindsight", action="store_true", default=False,
-                        help="Do not use Hindsight Replay.")
+    parser.add_argument(
+        "--no-hindsight",
+        action="store_true",
+        default=False,
+        help="Do not use Hindsight Replay.",
+    )
     parser.add_argument("--eval-n-episodes", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument("--n-best-episodes", type=int, default=100)
