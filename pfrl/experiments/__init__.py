@@ -1,3 +1,5 @@
+from pfrl.experiments.evaluation_hooks import EvaluationHook  # NOQA
+from pfrl.experiments.evaluation_hooks import OptunaPrunerHook  # NOQA
 from pfrl.experiments.evaluator import eval_performance  # NOQA
 from pfrl.experiments.hooks import LinearInterpolationHook  # NOQA
 from pfrl.experiments.hooks import StepHook  # NOQA

@@ -327,7 +327,7 @@ def save_agent(agent, t, outdir, logger, suffix=""):
     logger.info("Saved the agent to %s", dirname)
 
 
-def write_header(outdir, agent):
+def write_header(outdir, agent, env):
     # Columns that describe information about an experiment.
     basic_columns = (
         "steps",  # number of time steps taken (= number of actions taken)
@@ -341,7 +341,10 @@ def write_header(outdir, agent):
     )
     with open(os.path.join(outdir, "scores.txt"), "w") as f:
         custom_columns = tuple(t[0] for t in agent.get_statistics())
-        column_names = basic_columns + custom_columns
+        env_get_stats = getattr(env, "get_statistics", lambda: [])
+        assert callable(env_get_stats)
+        custom_env_columns = tuple(t[0] for t in env_get_stats())
+        column_names = basic_columns + custom_columns + custom_env_columns
         print("\t".join(column_names), file=f)
 
 
@@ -396,14 +399,19 @@ class Evaluator(object):
         self.prev_eval_t = self.step_offset - self.step_offset % self.eval_interval
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
+        self.env_get_stats = getattr(self.env, "get_statistics", lambda: [])
+        self.env_clear_stats = getattr(self.env, "clear_statistics", lambda: None)
+        assert callable(self.env_get_stats)
+        assert callable(self.env_clear_stats)
 
         # Write a header line first
-        write_header(self.outdir, self.agent)
+        write_header(self.outdir, self.agent, self.env)
 
         if use_tensorboard:
             self.tb_writer = create_tb_writer(outdir)
 
     def evaluate_and_update_max_score(self, t, episodes):
+        self.env_clear_stats()
         eval_stats = eval_performance(
             self.env,
             self.agent,
@@ -415,17 +423,23 @@ class Evaluator(object):
         elapsed = time.time() - self.start_time
         agent_stats = self.agent.get_statistics()
         custom_values = tuple(tup[1] for tup in agent_stats)
+        env_stats = self.env_get_stats()
+        custom_env_values = tuple(tup[1] for tup in env_stats)
         mean = eval_stats["mean"]
         values = (
-            t,
-            episodes,
-            elapsed,
-            mean,
-            eval_stats["median"],
-            eval_stats["stdev"],
-            eval_stats["max"],
-            eval_stats["min"],
-        ) + custom_values
+            (
+                t,
+                episodes,
+                elapsed,
+                mean,
+                eval_stats["median"],
+                eval_stats["stdev"],
+                eval_stats["max"],
+                eval_stats["min"],
+            )
+            + custom_values
+            + custom_env_values
+        )
         record_stats(self.outdir, values)
 
         if self.use_tensorboard:
@@ -511,6 +525,11 @@ class AsyncEvaluator(object):
         return v
 
     def evaluate_and_update_max_score(self, t, episodes, env, agent):
+        env_get_stats = getattr(env, "get_statistics", lambda: [])
+        env_clear_stats = getattr(env, "clear_statistics", lambda: None)
+        assert callable(env_get_stats)
+        assert callable(env_clear_stats)
+        env_clear_stats()
         eval_stats = eval_performance(
             env,
             agent,
@@ -522,17 +541,23 @@ class AsyncEvaluator(object):
         elapsed = time.time() - self.start_time
         agent_stats = agent.get_statistics()
         custom_values = tuple(tup[1] for tup in agent_stats)
+        env_stats = env_get_stats()
+        custom_env_values = tuple(tup[1] for tup in env_stats)
         mean = eval_stats["mean"]
         values = (
-            t,
-            episodes,
-            elapsed,
-            mean,
-            eval_stats["median"],
-            eval_stats["stdev"],
-            eval_stats["max"],
-            eval_stats["min"],
-        ) + custom_values
+            (
+                t,
+                episodes,
+                elapsed,
+                mean,
+                eval_stats["median"],
+                eval_stats["stdev"],
+                eval_stats["max"],
+                eval_stats["min"],
+            )
+            + custom_values
+            + custom_env_values
+        )
         record_stats(self.outdir, values)
 
         if self.use_tensorboard:
@@ -557,7 +582,7 @@ class AsyncEvaluator(object):
         if necessary:
             with self.wrote_header.get_lock():
                 if not self.wrote_header.value:
-                    write_header(self.outdir, agent)
+                    write_header(self.outdir, agent, env)
                     self.wrote_header.value = True
             return self.evaluate_and_update_max_score(t, episodes, env, agent)
         return None
