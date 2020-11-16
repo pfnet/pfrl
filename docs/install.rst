@@ -5,7 +5,7 @@ Installation
 How to install PFRL
 ========================
 
-PFRL is tested with 3.5.1+. For other requirements, see ``requirements.txt``.
+PFRL is tested with 3.7.7. For other requirements, see ``requirements.txt``.
 
 .. literalinclude:: ../requirements.txt
   :caption: requirements.txt
