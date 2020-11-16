@@ -166,7 +166,7 @@ class HRLControllerBase():
                 explorer=explorer,
                 update_interval=1,
                 policy_update_delay=policy_freq,
-                replay_start_size=replay_start_size/buffer_freq,
+                replay_start_size=replay_start_size/buffer_freq - 5,
                 buffer_freq=buffer_freq,
                 minibatch_size=minibatch_size,
                 gpu=gpu,

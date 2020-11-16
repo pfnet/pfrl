@@ -148,7 +148,6 @@ class HIROHighLevelGoalConditionedTD3(GoalConditionedTD3):
         Compute loss for a given Q-function, or critics
         for the high level controller
         """
-
         batch_next_state = batch["next_state"]
         batch_rewards = batch["reward"]
         batch_terminal = batch["is_state_terminal"]

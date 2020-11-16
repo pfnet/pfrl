@@ -252,9 +252,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         loss.backward()
 
         # get policy gradients
-        gradients = self.get_and_flatten_policy_gradients()
-        gradient_variance = torch.var(gradients)
-        gradient_mean = torch.mean(gradients)
+        # gradients = self.get_and_flatten_policy_gradients()
+        # gradient_variance = torch.var(gradients)
+        # gradient_mean = torch.mean(gradients)
+        gradient_variance = 0
+        gradient_mean = 0
         self.policy_gradients_variance_record.append(float(gradient_variance))
         self.policy_gradients_mean_record.append(float(gradient_mean))
 
