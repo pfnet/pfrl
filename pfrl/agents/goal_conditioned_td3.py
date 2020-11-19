@@ -20,8 +20,6 @@ def default_target_policy_smoothing_func(batch_action):
     return torch.clamp(batch_action + noise, -1, 1)
 
 
-
-
 class TemperatureHolder(nn.Module):
     """Module that holds a temperature as a learnable value.
 
@@ -254,9 +252,11 @@ class GoalConditionedTD3(TD3, GoalConditionedBatchAgent):
         loss.backward()
 
         # get policy gradients
-        gradients = self.get_and_flatten_policy_gradients()
-        gradient_variance = torch.var(gradients)
-        gradient_mean = torch.mean(gradients)
+        # gradients = self.get_and_flatten_policy_gradients()
+        # gradient_variance = torch.var(gradients)
+        # gradient_mean = torch.mean(gradients)
+        gradient_variance = 0
+        gradient_mean = 0
         self.policy_gradients_variance_record.append(float(gradient_variance))
         self.policy_gradients_mean_record.append(float(gradient_mean))
 
