@@ -117,6 +117,7 @@ def main():
     # Set a random seed used in PFRL.
     utils.set_random_seed(args.seed)
 
+
     # Set different random seeds for different subprocesses.
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
@@ -131,7 +132,7 @@ def main():
         # use different seeds for train vs test envs
         process_seed = int(process_seeds[idx])
         env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
-        # env_seed = np.random.randint(0, 2**32 - 1) if test else process_seed
+        # env_seed = np.random.randint(0, 2**32 - 1) if not test else process_seed
         utils.set_random_seed(env_seed)
         # create the anv environment with goal
         env = AntEnvWithGoal(create_maze_env(args.env), args.env, env_subgoal_dim=15)
