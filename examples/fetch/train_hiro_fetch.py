@@ -1,24 +1,27 @@
 """
 Training:
-    python examples/ant/train_hiro_ant.py
+    python examples/ant/train_hiro_fetch.py
 Render Trained:
-    python examples/ant/train_hiro_ant.py --render --demo --load <dir>
+    python examples/ant/train_hiro_fetch.py --render --demo --load <dir>
 Example:
-    python examples/ant/train_hiro_ant.py --render --demo --load results/6900d36edd696e65e1d2ae72dd58796a2d7c19ef-34c626fd-4418a6b0/best
+    python examples/ant/train_hiro_fetch.py --render --demo --load results/6900d36edd696e65e1d2ae72dd58796a2d7c19ef-34c626fd-4418a6b0/best
 """
 import argparse
 import functools
+import os
 import logging
 
+import gym
+import gym.spaces
 import numpy as np
 import torch
-
-from hiro_robot_envs.envs import create_maze_env, AntEnvWithGoal
 
 import pfrl
 from pfrl import utils
 from pfrl import experiments
 from pfrl.agents.hrl.hiro_agent import HIROAgent
+
+FETCH_ENVS = ['FetchReach-v1', 'FetchSlide-v1', 'FetchPush-v1', 'FetchPickAndPlace-v1']
 
 
 def parse_rl_args():
@@ -63,6 +66,7 @@ def parse_rl_args():
         default=0.2,
         help="Final value of epsilon during training.",
     )
+
     parser.add_argument(
         "--add-entropy",
         type=bool,
@@ -87,17 +91,21 @@ def parse_rl_args():
         default=20,
         help="Logging level. 10:DEBUG, 20:INFO etc.",
     )
-    parser.add_argument(
-        "--record",
-        action="store_true",
-        default=False,
-        help="Record videos of evaluation envs. --render should also be specified.",
-    )
+    """
+    possible envs for fetch robot:
+
+    FetchReach-v1
+    FetchSlide-v1
+    FetchPush-v1
+    FetchPickAndPlace-v1
+
+    """
     parser.add_argument(
         "--env",
-        default="AntMaze",
-        help="Type of Ant Env to use. Options are AntMaze, AntFall, and AntPush.",
-        type=str)
+        type=str,
+        default="FetchReach-v1",
+        help="OpenAI Gym Fetch robotic env env to perform algorithm on.",
+    )
     parser.add_argument(
         "--render",
         action="store_true",
@@ -105,6 +113,15 @@ def parse_rl_args():
         help="Render env states in a GUI window.",
     )
     parser.add_argument("--num-envs", type=int, default=1, help="Number of envs run in parallel.")
+    parser.add_argument(
+        "--record",
+        action="store_true",
+        default=False,
+        help="Record videos of evaluation envs. --render should also be specified.",
+    )
+    parser.add_argument(
+        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
+    )
     args = parser.parse_args()
     return args
 
@@ -114,9 +131,11 @@ def main():
 
     logging.basicConfig(level=args.log_level)
 
+    if args.env not in FETCH_ENVS:
+        raise Exception(f"Invalid environemt, please select from {FETCH_ENVS}")
+
     # Set a random seed used in PFRL.
     utils.set_random_seed(args.seed)
-
 
     # Set different random seeds for different subprocesses.
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
@@ -127,42 +146,44 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
 
-    def make_ant_env(idx, test):
-
-        # use different seeds for train vs test envs
-        process_seed = int(process_seeds[idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
-        # env_seed = np.random.randint(0, 2**32 - 1) if not test else process_seed
-        utils.set_random_seed(env_seed)
-        # create the anv environment with goal
-        env = AntEnvWithGoal(create_maze_env(args.env), args.env, env_subgoal_dim=15)
-        env.seed(int(env_seed))
-
-        if args.render:
-            env = pfrl.wrappers.GymLikeEnvRender(env)
-
+    def make_env(test):
+        env = gym.make(args.env)
+        # Unwrap TimeLimit wrapper
+        # fetch env is unique - it's conditioned on a goal
+        assert isinstance(env, gym.wrappers.TimeLimit)
+        env = env.env
+        # Use different random seeds for train and test envs
+        env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        env.seed(env_seed)
+        # Cast observations to float32 because our model uses float32
+        if args.monitor:
+            env = pfrl.wrappers.Monitor(env, args.outdir)
+        if args.render and not test:
+            env = pfrl.wrappers.Render(env)
         return env
 
-    def make_batch_ant__env(test):
+    def make_batch_env(test):
         return pfrl.envs.MultiprocessVectorEnv(
-            [functools.partial(make_ant_env, idx, test) for idx in range(args.num_envs)]
+            [functools.partial(make_env, idx, test) for idx in range(args.num_envs)]
         )
 
-    eval_env = make_ant_env(0, test=True)
+    env = make_env(test=False)
+    timestep_limit = env.spec.max_episode_steps
+    obs_space_dict = env.observation_space
+    action_space = env.action_space
+    print("Observation space dictionary:", obs_space_dict)
+    print("Action space:", action_space)
 
-    env_state_dim = eval_env.state_dim
-    env_action_dim = eval_env.action_dim
+    # size of the subgoal is a hyperparameter
+    env_subgoal_dim = 3
+    # TODO - change the limits, they are completely wrong
+    limits = np.array([0.2, 0.2, 0.2])
+    subgoal_space = gym.spaces.Box(low=limits*-1, high=limits)
 
-    env_subgoal_dim = eval_env.subgoal_dim
+    env_state_dim = obs_space_dict.spaces['observation'].low.size
+    env_goal_dim = obs_space_dict.spaces['desired_goal'].low.size
+    env_action_dim = action_space.low.size
 
-    # determined from the ant env
-    if args.env == 'AntMaze' or args.env == 'AntPush':
-        env_goal_dim = 2
-    else:
-        env_goal_dim = 3
-
-    action_space = eval_env.action_space
-    subgoal_space = eval_env.subgoal_space
     scale_low = action_space.high * np.ones(env_action_dim)
     scale_high = subgoal_space.high * np.ones(env_subgoal_dim)
 
@@ -187,7 +208,7 @@ def main():
                       subgoal_freq=10,
                       train_freq=10,
                       reward_scaling=0.1,
-                      goal_threshold=5,
+                      goal_threshold=0.1,
                       gpu=gpu,
                       add_entropy=args.add_entropy)
 
@@ -195,13 +216,9 @@ def main():
         # load weights from a file if arg supplied
         agent.load(args.load)
 
-    if args.record:
-        from mujoco_py import GlfwContext
-        GlfwContext(offscreen=True)
-
     if args.demo:
         eval_stats = experiments.eval_performance(
-            env=eval_env, agent=agent, n_steps=None, n_episodes=args.eval_n_runs
+            env=env, agent=agent, n_steps=None, n_episodes=args.eval_n_runs
         )
         print(
             "n_runs: {} mean: {} median: {} stdev {}".format(
@@ -216,14 +233,14 @@ def main():
 
         experiments.train_hrl_agent_with_evaluation(
             agent=agent,
-            env=make_ant_env(0, test=False),
+            env=make_env(test=False),
             steps=args.steps,
             outdir=args.outdir,
             eval_n_steps=None,
             eval_interval=5000,
             eval_n_episodes=10,
             use_tensorboard=True,
-            record=args.record
+            train_max_episode_len=timestep_limit,
         )
 
 

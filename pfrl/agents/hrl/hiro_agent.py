@@ -31,6 +31,7 @@ class HIROAgent(HRLAgent):
                  reward_scaling,
                  gpu,
                  add_entropy,
+                 goal_threshold,
                  start_training_steps=2500):
         """
         Constructor for the HIRO agent.
@@ -72,6 +73,7 @@ class HIROAgent(HRLAgent):
         self.train_freq = train_freq
         self.reward_scaling = reward_scaling
         self.start_training_steps = start_training_steps
+        self.goal_threshold = goal_threshold
         self.sr = 0
         self.state_arr = []
         self.action_arr = []
@@ -234,7 +236,7 @@ class HIROAgent(HRLAgent):
             print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], obs[0], obs[1], error))
         elif goal_size == 3:
             print('Goal, Curr: (%02.2f, %02.2f, %02.2f, %02.2f, %02.2f, %02.2f)     Error:%.2f'%(fg[0], fg[1], fg[2], obs[0], obs[1], obs[2], error))
-        success = error <= 5
+        success = error <= self.goal_threshold
         return success
 
     def get_statistics(self):
