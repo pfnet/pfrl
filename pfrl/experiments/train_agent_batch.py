@@ -1,12 +1,10 @@
-from collections import deque
 import logging
 import os
+from collections import deque
 
 import numpy as np
 
-
-from pfrl.experiments.evaluator import Evaluator
-from pfrl.experiments.evaluator import save_agent
+from pfrl.experiments.evaluator import Evaluator, save_agent
 
 
 def train_agent_batch(
@@ -17,11 +15,11 @@ def train_agent_batch(
     checkpoint_freq=None,
     log_interval=None,
     max_episode_len=None,
-    eval_interval=None,
     step_offset=0,
     evaluator=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     return_window_size=100,
     logger=None,
 ):
@@ -31,7 +29,6 @@ def train_agent_batch(
         agent: Agent to train.
         env: Environment to train the agent against.
         steps (int): Number of total time steps for training.
-        eval_interval (int): Interval of evaluation.
         outdir (str): Path to the directory to output things.
         checkpoint_freq (int): frequency at which agents are stored.
         log_interval (int): Interval of logging.
@@ -44,7 +41,12 @@ def train_agent_batch(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Sequence of callable objects that accepts
+            (env, agent, evaluator, step, eval_score) as arguments. They are
+            called every evaluation. See pfrl.experiments.evaluation_hooks.
         logger (logging.Logger): Logger used in this function.
+    Returns:
+        List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -62,6 +64,7 @@ def train_agent_batch(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
+    eval_stats_history = []  # List of evaluation episode stats dict
     try:
         while True:
             # a_t
@@ -120,7 +123,15 @@ def train_agent_batch(
                 )
                 logger.info("statistics: {}".format(agent.get_statistics()))
             if evaluator:
-                if evaluator.evaluate_if_necessary(t=t, episodes=np.sum(episode_idx)):
+                eval_score = evaluator.evaluate_if_necessary(
+                    t=t, episodes=np.sum(episode_idx)
+                )
+                if eval_score is not None:
+                    eval_stats = dict(agent.get_statistics())
+                    eval_stats["eval_score"] = eval_score
+                    eval_stats_history.append(eval_stats)
+                    for hook in evaluation_hooks:
+                        hook(env, agent, evaluator, t, eval_score)
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
@@ -146,6 +157,8 @@ def train_agent_batch(
         # Save the final model
         save_agent(agent, t, outdir, logger, suffix="_finish")
 
+    return eval_stats_history
+
 
 def train_agent_batch_with_evaluation(
     agent,
@@ -164,6 +177,7 @@ def train_agent_batch_with_evaluation(
     log_interval=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     save_best_so_far_agent=True,
     logger=None,
 ):
@@ -191,10 +205,16 @@ def train_agent_batch_with_evaluation(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Sequence of callable objects that accepts
+            (env, agent, evaluator, step, eval_score) as arguments. They are
+            called every evaluation. See pfrl.experiments.evaluation_hooks.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
         logger (logging.Logger): Logger used in this function.
+    Returns:
+        agent: Trained agent.
+        eval_stats_history: List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -220,7 +240,7 @@ def train_agent_batch_with_evaluation(
         logger=logger,
     )
 
-    train_agent_batch(
+    eval_stats_history = train_agent_batch(
         agent,
         env,
         steps,
@@ -228,11 +248,13 @@ def train_agent_batch_with_evaluation(
         checkpoint_freq=checkpoint_freq,
         max_episode_len=max_episode_len,
         step_offset=step_offset,
-        eval_interval=eval_interval,
         evaluator=evaluator,
         successful_score=successful_score,
         return_window_size=return_window_size,
         log_interval=log_interval,
         step_hooks=step_hooks,
+        evaluation_hooks=evaluation_hooks,
         logger=logger,
     )
+
+    return agent, eval_stats_history

@@ -1,17 +1,16 @@
 import logging
-import torch.multiprocessing as mp
 import os
-import torch
-from torch import nn
-
-import numpy as np
-
-from pfrl.experiments.evaluator import AsyncEvaluator
-from pfrl.utils import async_
-from pfrl.utils import random_seed
 import signal
 import subprocess
 import sys
+
+import numpy as np
+import torch
+import torch.multiprocessing as mp
+from torch import nn
+
+from pfrl.experiments.evaluator import AsyncEvaluator
+from pfrl.utils import async_, random_seed
 
 
 def kill_all():

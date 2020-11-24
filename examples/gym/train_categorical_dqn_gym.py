@@ -10,15 +10,11 @@ To solve CartPole-v0, run:
 import argparse
 import sys
 
-import torch
 import gym
+import torch
 
 import pfrl
-from pfrl import experiments
-from pfrl import explorers
-from pfrl import utils
-from pfrl import q_functions
-from pfrl import replay_buffers
+from pfrl import experiments, explorers, q_functions, replay_buffers, utils
 
 
 def main():

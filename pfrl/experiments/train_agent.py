@@ -1,8 +1,7 @@
 import logging
 import os
 
-from pfrl.experiments.evaluator import Evaluator
-from pfrl.experiments.evaluator import save_agent
+from pfrl.experiments.evaluator import Evaluator, save_agent
 from pfrl.utils.ask_yes_no import ask_yes_no
 
 
@@ -33,6 +32,7 @@ def train_agent(
     evaluator=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     logger=None,
 ):
 
@@ -48,6 +48,7 @@ def train_agent(
     if hasattr(agent, "t"):
         agent.t = step_offset
 
+    eval_stats_history = []  # List of evaluation episode stats dict
     episode_len = 0
     try:
         while t < steps:
@@ -73,9 +74,18 @@ def train_agent(
                     episode_idx,
                     episode_r,
                 )
-                logger.info("statistics:%s", agent.get_statistics())
+                stats = agent.get_statistics()
+                logger.info("statistics:%s", stats)
                 if evaluator is not None:
-                    evaluator.evaluate_if_necessary(t=t, episodes=episode_idx + 1)
+                    eval_score = evaluator.evaluate_if_necessary(
+                        t=t, episodes=episode_idx + 1
+                    )
+                    if eval_score is not None:
+                        eval_stats = dict(stats)
+                        eval_stats["eval_score"] = eval_score
+                        eval_stats_history.append(eval_stats)
+                        for hook in evaluation_hooks:
+                            hook(env, agent, evaluator, t, eval_score)
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
@@ -99,6 +109,8 @@ def train_agent(
     # Save the final model
     save_agent(agent, t, outdir, logger, suffix="_finish")
 
+    return eval_stats_history
+
 
 def train_agent_with_evaluation(
     agent,
@@ -115,6 +127,7 @@ def train_agent_with_evaluation(
     eval_env=None,
     successful_score=None,
     step_hooks=(),
+    evaluation_hooks=(),
     save_best_so_far_agent=True,
     use_tensorboard=False,
     logger=None,
@@ -140,11 +153,17 @@ def train_agent_with_evaluation(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
+        evaluation_hooks (Sequence): Sequence of callable objects that accepts
+            (env, agent, evaluator, step, eval_score) as arguments. They are
+            called every evaluation. See pfrl.experiments.evaluation_hooks.
         save_best_so_far_agent (bool): If set to True, after each evaluation
             phase, if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
         use_tensorboard (bool): Additionally log eval stats to tensorboard
         logger (logging.Logger): Logger used in this function.
+    Returns:
+        agent: Trained agent.
+        eval_stats_history: List of evaluation episode stats dict.
     """
 
     logger = logger or logging.getLogger(__name__)
@@ -171,7 +190,7 @@ def train_agent_with_evaluation(
         logger=logger,
     )
 
-    train_agent(
+    eval_stats_history = train_agent(
         agent,
         env,
         steps,
@@ -182,5 +201,8 @@ def train_agent_with_evaluation(
         evaluator=evaluator,
         successful_score=successful_score,
         step_hooks=step_hooks,
+        evaluation_hooks=evaluation_hooks,
         logger=logger,
     )
+
+    return agent, eval_stats_history

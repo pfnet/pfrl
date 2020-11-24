@@ -1,9 +1,10 @@
 import random
 import unittest
 
-import pfrl
-import torch
 import pytest
+import torch
+
+import pfrl
 
 
 class TestSetRandomSeed(unittest.TestCase):

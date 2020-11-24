@@ -3,8 +3,8 @@ import shutil
 import tempfile
 
 import gym
-from gym.wrappers import TimeLimit
 import pytest
+from gym.wrappers import TimeLimit
 
 import pfrl
 

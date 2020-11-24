@@ -1,6 +1,6 @@
 import collections
-from logging import getLogger
 import random
+from logging import getLogger
 
 import numpy as np
 import torch
@@ -9,22 +9,24 @@ from torch import nn
 
 import pfrl
 from pfrl import agent
-from pfrl.agents.ppo import _compute_explained_variance
-from pfrl.agents.ppo import _make_dataset
-from pfrl.agents.ppo import _make_dataset_recurrent
-from pfrl.agents.ppo import _yield_minibatches
-from pfrl.agents.ppo import (
+from pfrl.agents.ppo import (  # NOQA
+    _compute_explained_variance,
+    _make_dataset,
+    _make_dataset_recurrent,
+    _yield_minibatches,
     _yield_subset_of_sequences_with_fixed_number_of_items,
-)  # NOQA
-from pfrl.utils.mode_of_distribution import mode_of_distribution
-from pfrl.utils.batch_states import batch_states
-from pfrl.utils.recurrent import flatten_sequences_time_first
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import pack_and_forward
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import mask_recurrent_state_at
-from pfrl.utils.recurrent import concatenate_recurrent_states
+)
 from pfrl.utils import clip_l2_grad_norm_
+from pfrl.utils.batch_states import batch_states
+from pfrl.utils.mode_of_distribution import mode_of_distribution
+from pfrl.utils.recurrent import (
+    concatenate_recurrent_states,
+    flatten_sequences_time_first,
+    get_recurrent_state_at,
+    mask_recurrent_state_at,
+    one_step_forward,
+    pack_and_forward,
+)
 
 
 def _flatten_and_concat_variables(vs):

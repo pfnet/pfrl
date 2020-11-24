@@ -8,10 +8,8 @@ import numpy as np
 import pytest
 
 import pfrl
-from pfrl.wrappers.atari_wrappers import FrameStack
-from pfrl.wrappers.atari_wrappers import LazyFrames
-from pfrl.wrappers.vector_frame_stack import VectorEnvWrapper
-from pfrl.wrappers.vector_frame_stack import VectorFrameStack
+from pfrl.wrappers.atari_wrappers import FrameStack, LazyFrames
+from pfrl.wrappers.vector_frame_stack import VectorEnvWrapper, VectorFrameStack
 
 
 class TestVectorEnvWrapper(unittest.TestCase):

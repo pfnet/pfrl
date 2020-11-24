@@ -1,39 +1,37 @@
-import copy
 import collections
-import time
+import copy
 import ctypes
 import multiprocessing as mp
 import multiprocessing.synchronize
-from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
-from logging import Logger
-from logging import getLogger
+import time
+from logging import Logger, getLogger
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
+import numpy as np
 import torch
 import torch.nn.functional as F
-import numpy as np
 
 import pfrl
 from pfrl import agent
 from pfrl.action_value import ActionValue
 from pfrl.explorer import Explorer
+from pfrl.replay_buffer import (
+    AbstractEpisodicReplayBuffer,
+    ReplayUpdater,
+    batch_experiences,
+    batch_recurrent_experiences,
+)
+from pfrl.replay_buffers import PrioritizedReplayBuffer
 from pfrl.utils.batch_states import batch_states
 from pfrl.utils.contexts import evaluating
 from pfrl.utils.copy_param import synchronize_parameters
-from pfrl.replay_buffer import AbstractEpisodicReplayBuffer, batch_experiences
-from pfrl.replay_buffer import batch_recurrent_experiences
-from pfrl.replay_buffer import ReplayUpdater
-from pfrl.replay_buffers import PrioritizedReplayBuffer
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import mask_recurrent_state_at
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import pack_and_forward
-from pfrl.utils.recurrent import recurrent_state_as_numpy
+from pfrl.utils.recurrent import (
+    get_recurrent_state_at,
+    mask_recurrent_state_at,
+    one_step_forward,
+    pack_and_forward,
+    recurrent_state_as_numpy,
+)
 
 
 def _mean_or_nan(xs: Sequence[float]) -> float:
@@ -641,6 +639,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         stop_event: mp.synchronize.Event,
         exception_event: mp.synchronize.Event,
         n_updates: Optional[int] = None,
+        step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
+        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
     ) -> None:
         try:
             update_counter = 0
@@ -665,6 +665,7 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 else:
                     with replay_buffer_lock:
                         transitions = self.replay_buffer.sample(self.minibatch_size)
+
                     self.update(transitions)
 
                 # Update the shared model. This can be expensive if GPU is used
@@ -683,6 +684,13 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 # We can safely assign self.t since in the learner
                 # it isn't updated by any other method
                 self.t = effective_timestep
+
+                for hook in optimizer_step_hooks:
+                    hook(None, self, self.optim_t)
+
+                for hook in step_hooks:
+                    hook(None, self, effective_timestep)
+
                 if effective_timestep % self.target_update_interval == 0:
                     self.sync_target_network()
         except Exception:
@@ -710,6 +718,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         update_counter: Optional[Any] = None,
         n_updates: Optional[int] = None,
         actor_update_interval: int = 8,
+        step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
+        optimizer_step_hooks: List[Callable[[None, agent.Agent, int], Any]] = [],
     ):
         if update_counter is None:
             update_counter = mp.Value(ctypes.c_ulong)
@@ -755,6 +765,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                 stop_event=learner_stop_event,
                 n_updates=n_updates,
                 exception_event=exception_event,
+                step_hooks=step_hooks,
+                optimizer_step_hooks=optimizer_step_hooks,
             ),
             stop_event=learner_stop_event,
         )

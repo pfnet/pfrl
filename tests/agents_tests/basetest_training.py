@@ -1,16 +1,21 @@
 import logging
 import os
 import tempfile
-import pytest
+from unittest import mock
 
 import numpy as np
+import pytest
 
 import pfrl
-from pfrl.experiments.evaluator import batch_run_evaluation_episodes
-from pfrl.experiments.evaluator import run_evaluation_episodes
-from pfrl.experiments import train_agent_async
-from pfrl.experiments import train_agent_batch_with_evaluation
-from pfrl.experiments import train_agent_with_evaluation
+from pfrl.experiments import (
+    train_agent_async,
+    train_agent_batch_with_evaluation,
+    train_agent_with_evaluation,
+)
+from pfrl.experiments.evaluator import (
+    batch_run_evaluation_episodes,
+    run_evaluation_episodes,
+)
 from pfrl.utils import random_seed
 
 
@@ -185,6 +190,9 @@ class _TestActorLearnerTrainingMixin(object):
             env, _ = self.make_env_and_successful_return(test=test)
             return env
 
+        step_hook = mock.Mock()
+        optimizer_step_hook = mock.Mock()
+
         # Train
         if steps > 0:
             (
@@ -192,7 +200,11 @@ class _TestActorLearnerTrainingMixin(object):
                 learner,
                 poller,
                 exception_event,
-            ) = agent.setup_actor_learner_training(n_actors=2)
+            ) = agent.setup_actor_learner_training(
+                n_actors=2,
+                step_hooks=[step_hook],
+                optimizer_step_hooks=[optimizer_step_hook],
+            )
 
             poller.start()
             learner.start()
@@ -225,6 +237,26 @@ class _TestActorLearnerTrainingMixin(object):
         # we can only test the range
         assert agent.cumulative_steps > 0
         assert agent.cumulative_steps <= steps + 1
+
+        # Unlike the non-actor-learner cases, the step_hooks and
+        # optimizer_step_hooks are only called when the update happens
+        # when we do a fast test, the update may not be triggered due to
+        # limited amount of experience, the call_count can be 0 in such case
+        assert step_hook.call_count >= 0
+        assert step_hook.call_count <= steps / agent.update_interval
+        assert optimizer_step_hook.call_count == step_hook.call_count
+
+        for i, call in enumerate(step_hook.call_args_list):
+            args, kwargs = call
+            assert args[0] is None
+            assert args[1] is agent
+            assert args[2] == (i + 1) * agent.update_interval
+
+        for i, call in enumerate(optimizer_step_hook.call_args_list):
+            args, kwargs = call
+            assert args[0] is None
+            assert args[1] is agent
+            assert args[2] == i + 1
 
         successful_path = os.path.join(self.tmpdir, "successful")
         finished_path = os.path.join(self.tmpdir, "{}_finish".format(steps))

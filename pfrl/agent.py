@@ -1,13 +1,7 @@
-from abc import ABCMeta
-from abc import abstractmethod
-from abc import abstractproperty
 import contextlib
 import os
-from typing import Any
-from typing import List
-from typing import Optional
-from typing import Sequence
-from typing import Tuple
+from abc import ABCMeta, abstractmethod, abstractproperty
+from typing import Any, List, Optional, Sequence, Tuple
 
 import torch
 
@@ -62,7 +56,7 @@ class Agent(object, metaclass=ABCMeta):
             represents the name of item, while the second item is a value to be
             recorded.
 
-            Example: [('average_loss': 0), ('average_value': 1), ...]
+            Example: [('average_loss', 0), ('average_value', 1), ...]
         """
         pass
 

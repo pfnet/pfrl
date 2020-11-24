@@ -3,11 +3,13 @@ from logging import getLogger
 import torch
 
 from pfrl import agent
-from pfrl.utils.batch_states import batch_states
 from pfrl.utils import evaluating
-from pfrl.utils.recurrent import one_step_forward
-from pfrl.utils.recurrent import get_recurrent_state_at
-from pfrl.utils.recurrent import recurrent_state_as_numpy
+from pfrl.utils.batch_states import batch_states
+from pfrl.utils.recurrent import (
+    get_recurrent_state_at,
+    one_step_forward,
+    recurrent_state_as_numpy,
+)
 
 
 class StateQFunctionActor(agent.AsyncAgent):

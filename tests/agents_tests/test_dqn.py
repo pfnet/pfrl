@@ -1,14 +1,12 @@
 import unittest
 
+import basetest_dqn_like as base
 import pytest
 import torch
-import basetest_dqn_like as base
+from basetest_training import _TestActorLearnerTrainingMixin, _TestBatchTrainingMixin
+
 import pfrl
-from pfrl.agents.dqn import compute_value_loss
-from pfrl.agents.dqn import compute_weighted_value_loss
-from pfrl.agents.dqn import DQN
-from basetest_training import _TestActorLearnerTrainingMixin
-from basetest_training import _TestBatchTrainingMixin
+from pfrl.agents.dqn import DQN, compute_value_loss, compute_weighted_value_loss
 
 assertions = unittest.TestCase("__init__")
 

@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 
 
 def set_batch_non_diagonal(array, non_diag_val):
