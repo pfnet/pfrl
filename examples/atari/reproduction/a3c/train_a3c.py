@@ -2,17 +2,17 @@ import argparse
 import os
 
 # Prevent numpy from using multiple threads
-os.environ["OMP_NUM_THREADS"] = "1"  # NOQA
+os.environ["OMP_NUM_THREADS"] = "1"
 
-import numpy as np
-from torch import nn
+import numpy as np  # NOQA:E402
+from torch import nn  # NOQA:E402
 
-import pfrl
-from pfrl import experiments, utils
-from pfrl.agents import a3c
-from pfrl.optimizers import SharedRMSpropEpsInsideSqrt
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.wrappers import atari_wrappers
+import pfrl  # NOQA:E402
+from pfrl import experiments, utils  # NOQA:E402
+from pfrl.agents import a3c  # NOQA:E402
+from pfrl.optimizers import SharedRMSpropEpsInsideSqrt  # NOQA:E402
+from pfrl.policies import SoftmaxCategoricalHead  # NOQA:E402
+from pfrl.wrappers import atari_wrappers  # NOQA:E402
 
 
 def main():

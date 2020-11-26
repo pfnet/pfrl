@@ -31,6 +31,6 @@ class MLP(nn.Module):
     def forward(self, x):
         h = x
         if self.hidden_sizes:
-            for l in self.hidden_layers:
-                h = self.nonlinearity(l(h))
+            for layer in self.hidden_layers:
+                h = self.nonlinearity(layer(h))
         return self.output(h)

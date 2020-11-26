@@ -45,8 +45,8 @@ class DuelingDQN(nn.Module, StateQFunction):
 
     def forward(self, x):
         h = x
-        for l in self.conv_layers:
-            h = self.activation(l(h))
+        for layer in self.conv_layers:
+            h = self.activation(layer(h))
 
         # Advantage
         batch_size = x.shape[0]
@@ -105,8 +105,8 @@ class DistributionalDuelingDQN(nn.Module, StateQFunction):
 
     def forward(self, x):
         h = x
-        for l in self.conv_layers:
-            h = self.activation(l(h))
+        for layer in self.conv_layers:
+            h = self.activation(layer(h))
 
         # Advantage
         batch_size = x.shape[0]
