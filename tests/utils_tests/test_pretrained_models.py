@@ -7,11 +7,9 @@ from torch import nn
 
 import pfrl
 import pfrl.nn as pnn
-from pfrl import agents
-from pfrl import explorers
-from pfrl import replay_buffers
-from pfrl.utils import download_model
+from pfrl import agents, explorers, replay_buffers
 from pfrl.initializers import init_chainer_default
+from pfrl.utils import download_model
 
 
 @pytest.mark.parametrize("pretrained_type", ["final", "best"])
