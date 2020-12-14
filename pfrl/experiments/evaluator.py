@@ -300,11 +300,14 @@ def create_tb_writer(outdir):
     return tb_writer
 
 
-def record_tb_stats(summary_writer, agent_stats, eval_stats, t):
+def record_tb_stats(summary_writer, agent_stats, eval_stats, env_stats, t):
     cur_time = time.time()
 
     for stat, value in agent_stats:
         summary_writer.add_scalar("agent/" + stat, value, t, cur_time)
+
+    for stat, value in env_stats:
+        summary_writer.add_scalar("env/" + stat, value, t, cur_time)
 
     for stat in ("mean", "median", "max", "min", "stdev"):
         value = eval_stats[stat]
@@ -326,8 +329,8 @@ def record_tb_stats_loop(outdir, queue, stop_event):
 
     while not (stop_event.wait(1e-6) and queue.empty()):
         if not queue.empty():
-            agent_stats, eval_stats, t = queue.get()
-            record_tb_stats(tb_writer, agent_stats, eval_stats, t)
+            agent_stats, eval_stats, env_stats, t = queue.get()
+            record_tb_stats(tb_writer, agent_stats, eval_stats, env_stats, t)
 
 
 def save_agent(agent, t, outdir, logger, suffix=""):
@@ -452,7 +455,7 @@ class Evaluator(object):
         record_stats(self.outdir, values)
 
         if self.use_tensorboard:
-            record_tb_stats(self.tb_writer, agent_stats, eval_stats, t)
+            record_tb_stats(self.tb_writer, agent_stats, eval_stats, env_stats, t)
 
         if mean > self.max_score:
             self.logger.info("The best score is updated %s -> %s", self.max_score, mean)
@@ -567,7 +570,7 @@ class AsyncEvaluator(object):
         record_stats(self.outdir, values)
 
         if self.record_tb_stats_queue is not None:
-            self.record_tb_stats_queue.put([agent_stats, eval_stats, t])
+            self.record_tb_stats_queue.put([agent_stats, eval_stats, env_stats, t])
 
         with self._max_score.get_lock():
             if mean > self._max_score.value:
