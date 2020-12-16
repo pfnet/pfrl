@@ -102,7 +102,6 @@ def cached_download(url):
         string: Path to the downloaded file.
     """
     cache_root = os.path.join(_models_root, "_dl_cache")
-    # cache_root = os.path.join(_models_root, '_dl_cache')
     try:
         os.makedirs(cache_root)
     except OSError:
