@@ -144,7 +144,7 @@ def download_and_store_model(alg, url, env, model_type):
         string: Path to the downloaded file.
         bool: whether the model was already cached.
     """
-    lock = os.path.join(_get_model_directory(os.path.join(".lock")), "models.lock")
+    lock = os.path.join(_get_model_directory(".lock"), "models.lock")
     with filelock.FileLock(lock):
         root = _get_model_directory(os.path.join(alg, env))
         url_basepath = posixpath.join(url, alg, env)
