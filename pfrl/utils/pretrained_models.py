@@ -33,17 +33,13 @@ MODELS = {
 
 download_url = "https://chainer-assets.preferred.jp/pfrl/"
 
-"""
-This function forked from Chainer, an MIT-licensed project,
-https://github.com/chainer/chainer/blob/v7.4.0/chainer/dataset/download.py#L70
-"""
-
 
 def _get_model_directory(model_name, create_directory=True):
     """Gets the path to the directory of given model.
 
     The generated path is just a concatenation of the global root directory
-    and the model name.
+    and the model name. This function forked from Chainer, an MIT-licensed project,
+    https://github.com/chainer/chainer/blob/v7.4.0/chainer/dataset/download.py#L43
     Args:
         model_name (str): Name of the model.
         create_directory (bool): If True (default), this function also creates
@@ -96,6 +92,8 @@ def cached_download(url):
     It downloads a file from the URL if there is no corresponding cache.
     If there is already a cache for the given URL, it just returns the
     path to the cache without downloading the same file.
+    This function forked from Chainer, an MIT-licensed project,
+    https://github.com/chainer/chainer/blob/v7.4.0/chainer/dataset/download.py#L70
     Args:
         url (string): URL to download from.
     Returns:
