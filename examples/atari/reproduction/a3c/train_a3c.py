@@ -45,6 +45,9 @@ def main():
     parser.add_argument("--eval-n-steps", type=int, default=125000)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load-pretrained", action="store_true", default=False)
+    parser.add_argument(
+        "--pretrained-type", type=str, default="best", choices=["best", "final"]
+    )
     parser.add_argument("--load", type=str, default="")
     parser.add_argument(
         "--log-level",
@@ -144,11 +147,17 @@ def main():
         max_grad_norm=40.0,
     )
 
-    if args.load_pretrained:
-        raise Exception("Pretrained models are currently unsupported.")
-
-    if args.load:
-        agent.load(args.load)
+    if args.load or args.load_pretrained:
+        # either load or load_pretrained must be false
+        assert not args.load or not args.load_pretrained
+        if args.load:
+            agent.load(args.load)
+        else:
+            agent.load(
+                utils.download_model("A3C", args.env, model_type=args.pretrained_type)[
+                    0
+                ]
+            )
 
     if args.demo:
         env = make_env(0, True)

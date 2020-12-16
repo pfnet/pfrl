@@ -14,6 +14,11 @@ To run the training example:
 ```
 python train_ddpg.py [options]
 ```
+We have already pretrained models from this script for all the domains listed in the [results](#Results) section. To load a pretrained model:
+
+```
+python train_ddpg.py --demo --load-pretrained --env HalfCheetah-v2 --pretrained-type best --gpu -1
+```
 
 ### Useful Options
 
@@ -23,7 +28,7 @@ python train_ddpg.py [options]
 - `--seed`. This option specifies the random seed used.
 - `--outdir` This option specifies the output directory to which the results are written.
 - `--demo`. Runs an evaluation, instead of training the agent.
-- (Currently unsupported) `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
+- `--load-pretrained` Loads the pretrained model. Both `--load` and `--load-pretrained` cannot be used together.
 - `--pretrained-type`. Either `best` (the best intermediate network during training) or `final` (the final network after training).
 
 
