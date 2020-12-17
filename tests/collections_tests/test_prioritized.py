@@ -1,5 +1,4 @@
 import random
-import unittest
 
 import numpy as np
 import pytest
@@ -73,17 +72,3 @@ def test_prioritized_buffer_flood(
             buf.sample(n, uniform_ratio=uniform_ratio)
             if wait_priority_after_sampling:
                 buf.set_last_priority([1.0] * n)
-
-
-class TestSumTree(unittest.TestCase):
-    def test_read_write(self):
-        t = prioritized.SumTree()
-        d = dict()
-        for _ in range(200):
-            k = random.randint(-10, 10)
-            v = random.uniform(1e-6, 1e6)
-            t[k] = v
-            d[k] = v
-
-            k = random.choice(list(d.keys()))
-            self.assertEqual(t[k], d[k])
