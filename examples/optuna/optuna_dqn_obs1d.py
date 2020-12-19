@@ -222,7 +222,9 @@ def suggest(trial, steps):
         max(1e3, hyperparams["decay_steps"] // 2), rbuf_capacity
     )
     hyperparams["replay_start_size"] = trial.suggest_int(
-        "replay_start_size", min_replay_start_size, max_replay_start_size,
+        "replay_start_size",
+        min_replay_start_size,
+        max_replay_start_size,
     )
     # target_update_interval should be a multiple of update_interval
     hyperparams["update_interval"] = trial.suggest_int("update_interval", 1, 8)
@@ -239,7 +241,10 @@ def main():
 
     # training parameters
     parser.add_argument(
-        "--env", type=str, default="LunarLander-v2", help="OpenAI Gym Environment ID.",
+        "--env",
+        type=str,
+        default="LunarLander-v2",
+        help="OpenAI Gym Environment ID.",
     )
     parser.add_argument(
         "--outdir",
@@ -251,7 +256,10 @@ def main():
         ),
     )
     parser.add_argument(
-        "--seed", type=int, default=0, help="Random seed for randomizer.",
+        "--seed",
+        type=int,
+        default=0,
+        help="Random seed for randomizer.",
     )
     parser.add_argument(
         "--monitor",
@@ -289,7 +297,10 @@ def main():
         help="Frequency (in timesteps) of evaluation phase.",
     )
     parser.add_argument(
-        "--batch-size", type=int, default=64, help="Training batch size.",
+        "--batch-size",
+        type=int,
+        default=64,
+        help="Training batch size.",
     )
 
     # Optuna related args
@@ -361,7 +372,9 @@ def main():
             help="Setting percentile == 50.0 is equivalent to the MedianPruner.",
         )
         parser.add_argument(
-            "--n-startup-trials", type=int, default=5,
+            "--n-startup-trials",
+            type=int,
+            default=5,
         )
         parser.add_argument(
             "--n-warmup-steps",
@@ -417,7 +430,8 @@ def main():
         pruner = optuna.pruners.NopPruner()
     elif args.optuna_pruner == "ThresholdPruner":
         pruner = optuna.pruners.ThresholdPruner(
-            lower=args.lower, n_warmup_steps=args.n_warmup_steps,
+            lower=args.lower,
+            n_warmup_steps=args.n_warmup_steps,
         )
     elif args.optuna_pruner == "PercentilePruner":
         pruner = optuna.pruners.PercentilePruner(

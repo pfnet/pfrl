@@ -210,7 +210,11 @@ class TestTD3:
         return agent
 
     def make_env_and_successful_return(self, test):
-        env = ABC(discrete=False, episodic=self.episodic or test, deterministic=test,)
+        env = ABC(
+            discrete=False,
+            episodic=self.episodic or test,
+            deterministic=test,
+        )
         return env, 1
 
     def make_vec_env_and_successful_return(self, test, num_envs=3):

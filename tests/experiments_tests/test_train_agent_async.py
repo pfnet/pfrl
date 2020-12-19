@@ -35,7 +35,9 @@ def test_train_agent_async(num_envs, max_episode_len):
             ] * 1000
         else:
             # Continuing env
-            env.step.side_effect = [(("state", 1), 0, False, {}),] * 1000
+            env.step.side_effect = [
+                (("state", 1), 0, False, {}),
+            ] * 1000
         return env
 
     # Keep references to mock envs to check their states later

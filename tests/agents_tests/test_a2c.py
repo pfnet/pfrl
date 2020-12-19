@@ -77,7 +77,10 @@ class TestA2C:
         # Test
         n_test_runs = 100
         eval_returns = batch_run_evaluation_episodes(
-            test_env, agent, n_steps=None, n_episodes=n_test_runs,
+            test_env,
+            agent,
+            n_steps=None,
+            n_episodes=n_test_runs,
         )
         test_env.close()
         n_succeeded = np.sum(np.asarray(eval_returns) >= successful_return)
@@ -109,7 +112,9 @@ class TestA2C:
 
         obs_size = env.observation_space.low.size
         v = nn.Sequential(
-            nn.Linear(obs_size, hidden_size), nn.Tanh(), nn.Linear(hidden_size, 1),
+            nn.Linear(obs_size, hidden_size),
+            nn.Tanh(),
+            nn.Linear(hidden_size, 1),
         )
 
         if self.discrete:

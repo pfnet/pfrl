@@ -35,7 +35,10 @@ class GaussianHeadWithStateIndependentCovariance(nn.Module):
         var_size = {"spherical": 1, "diagonal": action_size}[var_type]
 
         self.var_param = nn.Parameter(
-            torch.tensor(np.broadcast_to(var_param_init, var_size), dtype=torch.float,)
+            torch.tensor(
+                np.broadcast_to(var_param_init, var_size),
+                dtype=torch.float,
+            )
         )
 
     def forward(self, mean):

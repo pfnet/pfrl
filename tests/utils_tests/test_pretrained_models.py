@@ -96,9 +96,14 @@ class TestLoadIQN:
                 nn.ReLU(),
                 nn.Flatten(),
             ),
-            phi=nn.Sequential(pfrl.agents.iqn.CosineBasisLinear(64, 3136), nn.ReLU(),),
+            phi=nn.Sequential(
+                pfrl.agents.iqn.CosineBasisLinear(64, 3136),
+                nn.ReLU(),
+            ),
             f=nn.Sequential(
-                nn.Linear(3136, 512), nn.ReLU(), nn.Linear(512, n_actions),
+                nn.Linear(3136, 512),
+                nn.ReLU(),
+                nn.Linear(512, n_actions),
             ),
         )
 
@@ -210,7 +215,10 @@ class TestLoadA3C:
             nn.Linear(2592, 256),
             nn.ReLU(),
             pfrl.nn.Branched(
-                nn.Sequential(nn.Linear(256, n_actions), SoftmaxCategoricalHead(),),
+                nn.Sequential(
+                    nn.Linear(256, n_actions),
+                    SoftmaxCategoricalHead(),
+                ),
                 nn.Linear(256, 1),
             ),
         )

@@ -17,7 +17,15 @@ def is_recurrent(layer):
     # Import here to avoid circular import
     from pfrl.nn import Recurrent
 
-    return isinstance(layer, (nn.LSTM, nn.RNN, nn.GRU, Recurrent,))
+    return isinstance(
+        layer,
+        (
+            nn.LSTM,
+            nn.RNN,
+            nn.GRU,
+            Recurrent,
+        ),
+    )
 
 
 def mask_recurrent_state_at(recurrent_state, indices):

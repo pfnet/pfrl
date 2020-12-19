@@ -27,7 +27,9 @@ class AL(dqn.DQN):
 
         if self.recurrent:
             qout, _ = pack_and_forward(
-                self.model, batch_state, exp_batch["recurrent_state"],
+                self.model,
+                batch_state,
+                exp_batch["recurrent_state"],
             )
         else:
             qout = self.model(batch_state)
@@ -42,7 +44,9 @@ class AL(dqn.DQN):
         with torch.no_grad():
             if self.recurrent:
                 target_qout, _ = pack_and_forward(
-                    self.target_model, batch_state, exp_batch["recurrent_state"],
+                    self.target_model,
+                    batch_state,
+                    exp_batch["recurrent_state"],
                 )
                 target_next_qout, _ = pack_and_forward(
                     self.target_model,
@@ -53,7 +57,9 @@ class AL(dqn.DQN):
                 target_qout = self.target_model(batch_state)
                 target_next_qout = self.target_model(batch_next_state)
 
-            next_q_max = target_next_qout.max.reshape(batch_size,)
+            next_q_max = target_next_qout.max.reshape(
+                batch_size,
+            )
 
             batch_rewards = exp_batch["reward"]
             batch_terminal = exp_batch["is_state_terminal"]

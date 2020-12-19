@@ -33,7 +33,9 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
             ] * 1000
         else:
             # Continuing env
-            env.step.side_effect = [(("state", 1), 0, False, {}),] * 1000
+            env.step.side_effect = [
+                (("state", 1), 0, False, {}),
+            ] * 1000
         return env
 
     vec_env = pfrl.envs.SerialVectorEnv([make_env() for _ in range(num_envs)])
@@ -195,7 +197,10 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
         vec_env = pfrl.envs.SerialVectorEnv([make_env(i) for i in range(2)])
 
         eval_stats_history = pfrl.experiments.train_agent_batch(
-            agent=agent, env=vec_env, steps=steps, outdir=outdir,
+            agent=agent,
+            env=vec_env,
+            steps=steps,
+            outdir=outdir,
         )
 
         # No evaluation invoked when evaluator=None (default) is passed to

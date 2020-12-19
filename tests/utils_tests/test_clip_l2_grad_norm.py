@@ -20,7 +20,11 @@ def _test_clip_l2_grad_norm_(gpu):
         device = torch.device("cuda:{}".format(gpu))
     else:
         device = torch.device("cpu")
-    model = nn.Sequential(nn.Linear(2, 10), nn.ReLU(), nn.Linear(10, 3),).to(device)
+    model = nn.Sequential(
+        nn.Linear(2, 10),
+        nn.ReLU(),
+        nn.Linear(10, 3),
+    ).to(device)
     x = torch.rand(7, 2).to(device)
 
     def backward():

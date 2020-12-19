@@ -10,7 +10,12 @@ import pfrl
 
 
 def _run_episodes(
-    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    env,
+    agent,
+    n_steps,
+    n_episodes,
+    max_episode_len=None,
+    logger=None,
 ):
     """Run multiple episodes and return returns."""
     assert (n_steps is None) != (n_episodes is None)
@@ -56,7 +61,12 @@ def _run_episodes(
 
 
 def run_evaluation_episodes(
-    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    env,
+    agent,
+    n_steps,
+    n_episodes,
+    max_episode_len=None,
+    logger=None,
 ):
     """Run multiple evaluation episodes and return returns.
 
@@ -85,7 +95,12 @@ def run_evaluation_episodes(
 
 
 def _batch_run_episodes(
-    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    env,
+    agent,
+    n_steps,
+    n_episodes,
+    max_episode_len=None,
+    logger=None,
 ):
     """Run multiple episodes and return returns in a batch manner."""
     assert (n_steps is None) != (n_episodes is None)
@@ -196,7 +211,12 @@ def _batch_run_episodes(
 
 
 def batch_run_evaluation_episodes(
-    env, agent, n_steps, n_episodes, max_episode_len=None, logger=None,
+    env,
+    agent,
+    n_steps,
+    n_episodes,
+    max_episode_len=None,
+    logger=None,
 ):
     """Run multiple evaluation episodes and return returns in a batch manner.
 
@@ -289,7 +309,10 @@ def create_tb_writer(outdir):
     tb_writer = SummaryWriter(log_dir=outdir)
     layout = {
         "Aggregate Charts": {
-            "mean w/ min-max": ["Margin", ["eval/mean", "eval/min", "eval/max"],],
+            "mean w/ min-max": [
+                "Margin",
+                ["eval/mean", "eval/min", "eval/max"],
+            ],
             "mean +/- std": [
                 "Margin",
                 ["eval/mean", "extras/meanplusstdev", "extras/meanminusstdev"],

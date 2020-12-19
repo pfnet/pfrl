@@ -59,7 +59,8 @@ def test_prioritized_buffer_flood(
     capacity, wait_priority_after_sampling, initial_priority, uniform_ratio
 ):
     buf = prioritized.PrioritizedBuffer(
-        capacity=capacity, wait_priority_after_sampling=wait_priority_after_sampling,
+        capacity=capacity,
+        wait_priority_after_sampling=wait_priority_after_sampling,
     )
     for _ in range(100):
         for x in range(capacity + 1):

@@ -403,7 +403,9 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
             if self.obs_normalizer:
                 states = self.obs_normalizer(states, update=False)
             vs_teacher = torch.as_tensor(
-                [b["v_teacher"] for b in batch], device=self.device, dtype=torch.float,
+                [b["v_teacher"] for b in batch],
+                device=self.device,
+                dtype=torch.float,
             )
             vs_pred = self.vf(states)
             vf_loss = F.mse_loss(vs_pred, vs_teacher[..., None])
@@ -492,7 +494,9 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         seqs_states = []
         for ep in dataset:
             states = self.batch_states(
-                [transition["state"] for transition in ep], self.device, self.phi,
+                [transition["state"] for transition in ep],
+                self.device,
+                self.phi,
             )
             if self.obs_normalizer:
                 states = self.obs_normalizer(states, update=False)
@@ -649,7 +653,9 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
             self.logger.info("Line search iteration: %s step size: %s", i, step_size)
             new_flat_params = flat_params + step_size * full_step
             new_params = _split_and_reshape_to_ndarrays(
-                new_flat_params, sizes=policy_params_sizes, shapes=policy_params_shapes,
+                new_flat_params,
+                sizes=policy_params_sizes,
+                shapes=policy_params_shapes,
             )
             _replace_params_data(policy_params, new_params)
             with torch.no_grad(), pfrl.utils.evaluating(self.policy):
