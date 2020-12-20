@@ -9,6 +9,7 @@ import functools
 import gym
 import gym.spaces
 import numpy as np
+import pybulletgym
 import torch
 from torch import nn
 
