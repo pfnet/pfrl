@@ -1,4 +1,5 @@
 import collections
+from numbers import Number
 from typing import (
     Any,
     Callable,
@@ -242,7 +243,7 @@ class TreeQueue(Generic[V]):
         return ret
 
 
-def _find(index_left: int, index_right: int, node: Node, pos: V) -> int:
+def _find(index_left: int, index_right: int, node: Node, pos: Number) -> int:
     if index_right - index_left == 1:
         return index_left
     else:
