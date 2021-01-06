@@ -28,10 +28,24 @@ class TestBatchStates(unittest.TestCase):
         self.assertIsInstance(batch, tuple)
         batch_a, batch_b, batch_c = batch
         np.testing.assert_allclose(
-            batch_a, np.asarray([[[0, 2], [4, 6]], [[2, 4], [6, 8]],])
+            batch_a,
+            np.asarray(
+                [
+                    [[0, 2], [4, 6]],
+                    [[2, 4], [6, 8]],
+                ]
+            ),
         )
         np.testing.assert_allclose(batch_b, np.asarray([0, 1]))
-        np.testing.assert_allclose(batch_c, np.asarray([[0], [3],]))
+        np.testing.assert_allclose(
+            batch_c,
+            np.asarray(
+                [
+                    [0],
+                    [3],
+                ]
+            ),
+        )
 
     def test_cpu(self):
         self._test(gpu=-1)

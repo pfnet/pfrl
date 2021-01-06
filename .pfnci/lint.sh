@@ -2,8 +2,7 @@
 
 set -eux
 
-# Use latest black to apply https://github.com/psf/black/issues/1288
-pip3 install git+git://github.com/psf/black.git@88d12f88a97e5e4c8fd0d245df0a311e932fd1e1 flake8 mypy isort
+pip3 install black flake8 mypy isort
 
 black --diff --check pfrl tests examples
 isort --diff --check pfrl tests examples

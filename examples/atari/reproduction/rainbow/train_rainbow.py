@@ -110,7 +110,12 @@ def main():
     n_atoms = 51
     v_max = 10
     v_min = -10
-    q_func = DistributionalDuelingDQN(n_actions, n_atoms, v_min, v_max,)
+    q_func = DistributionalDuelingDQN(
+        n_actions,
+        n_atoms,
+        v_min,
+        v_max,
+    )
 
     # Noisy nets
     pnn.to_factorized_noisy(q_func, sigma_scale=args.noisy_net_sigma)

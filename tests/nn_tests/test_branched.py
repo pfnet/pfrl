@@ -10,7 +10,10 @@ from pfrl.testing import torch_assert_allclose
 def test_branched(batch_size):
     link1 = nn.Linear(2, 3)
     link2 = nn.Linear(2, 5)
-    link3 = nn.Sequential(nn.Linear(2, 7), nn.Tanh(),)
+    link3 = nn.Sequential(
+        nn.Linear(2, 7),
+        nn.Tanh(),
+    )
     plink = Branched(link1, link2, link3)
     x = torch.zeros(batch_size, 2, dtype=torch.float)
     pout = plink(x)

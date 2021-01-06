@@ -136,12 +136,18 @@ def main():
         nn.Linear(2592, 256),
         nn.ReLU(),
         pfrl.nn.Branched(
-            nn.Sequential(nn.Linear(256, n_actions), SoftmaxCategoricalHead(),),
+            nn.Sequential(
+                nn.Linear(256, n_actions),
+                SoftmaxCategoricalHead(),
+            ),
             nn.Linear(256, 1),
         ),
     )
     optimizer = pfrl.optimizers.RMSpropEpsInsideSqrt(
-        model.parameters(), lr=args.lr, eps=args.rmsprop_epsilon, alpha=args.alpha,
+        model.parameters(),
+        lr=args.lr,
+        eps=args.rmsprop_epsilon,
+        alpha=args.alpha,
     )
 
     agent = a2c.A2C(

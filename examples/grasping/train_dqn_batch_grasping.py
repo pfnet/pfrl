@@ -53,7 +53,10 @@ class ObserveElapsedSteps(gym.Wrapper):
         self._max_steps = max_steps
         self._elapsed_steps = 0
         self.observation_space = gym.spaces.Tuple(
-            (env.observation_space, gym.spaces.Discrete(self._max_steps + 1),)
+            (
+                env.observation_space,
+                gym.spaces.Discrete(self._max_steps + 1),
+            )
         )
 
     def reset(self):

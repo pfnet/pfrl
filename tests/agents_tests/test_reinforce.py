@@ -82,7 +82,11 @@ class TestREINFORCE:
             )
         if use_lstm:
             model = pfrl.nn.RecurrentSequential(
-                nn.LSTM(num_layers=1, input_size=obs_size, hidden_size=hidden_size,),
+                nn.LSTM(
+                    num_layers=1,
+                    input_size=obs_size,
+                    hidden_size=hidden_size,
+                ),
                 nn.Linear(hidden_size, hidden_size),
                 nn.LeakyReLU(),
                 nn.Linear(hidden_size, output_size),
@@ -125,7 +129,10 @@ class TestREINFORCE:
         env = make_env(0, True)
         n_test_runs = 5
         eval_returns = run_evaluation_episodes(
-            env, agent, n_steps=None, n_episodes=n_test_runs,
+            env,
+            agent,
+            n_steps=None,
+            n_episodes=n_test_runs,
         )
         if require_success:
             successful_return = 1

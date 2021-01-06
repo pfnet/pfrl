@@ -188,13 +188,17 @@ def deepcopy_distribution(distrib):
     """
     if isinstance(distrib, torch.distributions.Independent):
         return torch.distributions.Independent(
-            deepcopy_distribution(distrib.base_dist), distrib.reinterpreted_batch_ndims,
+            deepcopy_distribution(distrib.base_dist),
+            distrib.reinterpreted_batch_ndims,
         )
     elif isinstance(distrib, torch.distributions.Categorical):
-        return torch.distributions.Categorical(logits=distrib.logits.clone().detach(),)
+        return torch.distributions.Categorical(
+            logits=distrib.logits.clone().detach(),
+        )
     elif isinstance(distrib, torch.distributions.Normal):
         return torch.distributions.Normal(
-            loc=distrib.loc.clone().detach(), scale=distrib.scale.clone().detach(),
+            loc=distrib.loc.clone().detach(),
+            scale=distrib.scale.clone().detach(),
         )
     else:
         raise NotImplementedError("{} is not supported by ACER".format(type(distrib)))
@@ -624,7 +628,9 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
                         (avg_action_distrib, _, _),
                         shared_recurrent_state,
                     ) = one_step_forward(
-                        self.shared_average_model, bs, shared_recurrent_state,
+                        self.shared_average_model,
+                        bs,
+                        shared_recurrent_state,
                     )
                 else:
                     avg_action_distrib, _, _ = self.shared_average_model(bs)
@@ -731,7 +737,9 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
                     (avg_action_distrib, _, _),
                     self.shared_recurrent_states,
                 ) = one_step_forward(
-                    self.shared_average_model, statevar, self.shared_recurrent_states,
+                    self.shared_average_model,
+                    statevar,
+                    self.shared_recurrent_states,
                 )
             else:
                 avg_action_distrib, _, _ = self.shared_average_model(statevar)
@@ -789,7 +797,10 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         self.past_rewards[self.t - 1] = reward
         if self.process_idx == 0:
             self.logger.debug(
-                "t:%s r:%s a:%s", self.t, reward, self.last_action,
+                "t:%s r:%s a:%s",
+                self.t,
+                reward,
+                self.last_action,
             )
 
         if self.t - self.t_start == self.t_max or done or reset:

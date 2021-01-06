@@ -105,8 +105,14 @@ def main():
     )
 
     head = acer.ACERDiscreteActionHead(
-        pi=nn.Sequential(nn.Linear(256, n_actions), SoftmaxCategoricalHead(),),
-        q=nn.Sequential(nn.Linear(256, n_actions), DiscreteActionValueHead(),),
+        pi=nn.Sequential(
+            nn.Linear(256, n_actions),
+            SoftmaxCategoricalHead(),
+        ),
+        q=nn.Sequential(
+            nn.Linear(256, n_actions),
+            DiscreteActionValueHead(),
+        ),
     )
 
     if args.use_lstm:
