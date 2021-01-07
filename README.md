@@ -36,19 +36,19 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 
 ## Algorithms
 
-| Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training |
-|:----------|:---------------:|:----------------:|:---------------:|:--------------:|:------------------:|
-| DQN (including DoubleDQN etc.) | ✓ | ✓ (NAF) | ✓ | ✓ | x |
-| Categorical DQN | ✓ | x | ✓ | ✓ | x |
-| Rainbow | ✓ | x | ✓ | ✓ | x |
-| IQN | ✓ | x | ✓ | ✓ | x |
-| DDPG | x | ✓ | x | ✓ | x |
-| A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ |
-| ACER | ✓ | ✓ | ✓ | x | ✓ |
-| PPO  | ✓ | ✓ | ✓ | ✓ | x |
-| TRPO | ✓ | ✓ | ✓ | ✓ | x |
-| TD3 | x | ✓ | x | ✓ | x |
-| SAC | x | ✓ | x | ✓ | x |
+| Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training | Pretrained models |
+|:----------|:---------------:|:----------------:|:---------------:|:--------------:|:------------------:|:------------------:|
+| DQN (including DoubleDQN etc.) | ✓ | ✓ (NAF) | ✓ | ✓ | x | ✓ |
+| Categorical DQN | ✓ | x | ✓ | ✓ | x | x |
+| Rainbow | ✓ | x | ✓ | ✓ | x | ✓ |
+| IQN | ✓ | x | ✓ | ✓ | x | ✓ |
+| DDPG | x | ✓ | x | ✓ | x | ✓ |
+| A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ | ✓ |
+| ACER | ✓ | ✓ | ✓ | x | ✓ | x |
+| PPO  | ✓ | ✓ | ✓ | ✓ | x | ✓ |
+| TRPO | ✓ | ✓ | ✓ | ✓ | x | ✓ |
+| TD3 | x | ✓ | x | ✓ | x | ✓ |
+| SAC | x | ✓ | x | ✓ | x | ✓ |
 
 Following algorithms have been implemented in PFRL:
 - [A2C (Synchronous variant of A3C)](https://openai.com/blog/baselines-acktr-a2c/)
