@@ -2,17 +2,17 @@ import argparse
 import os
 
 # Prevent numpy from using multiple threads
-os.environ["OMP_NUM_THREADS"] = "1"  # NOQA
+os.environ["OMP_NUM_THREADS"] = "1"
 
-import numpy as np
-from torch import nn
+import numpy as np  # NOQA:E402
+from torch import nn  # NOQA:E402
 
-import pfrl
-from pfrl import experiments, utils
-from pfrl.agents import a3c
-from pfrl.optimizers import SharedRMSpropEpsInsideSqrt
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.wrappers import atari_wrappers
+import pfrl  # NOQA:E402
+from pfrl import experiments, utils  # NOQA:E402
+from pfrl.agents import a3c  # NOQA:E402
+from pfrl.optimizers import SharedRMSpropEpsInsideSqrt  # NOQA:E402
+from pfrl.policies import SoftmaxCategoricalHead  # NOQA:E402
+from pfrl.wrappers import atari_wrappers  # NOQA:E402
 
 
 def main():
@@ -45,6 +45,9 @@ def main():
     parser.add_argument("--eval-n-steps", type=int, default=125000)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load-pretrained", action="store_true", default=False)
+    parser.add_argument(
+        "--pretrained-type", type=str, default="best", choices=["best", "final"]
+    )
     parser.add_argument("--load", type=str, default="")
     parser.add_argument(
         "--log-level",
@@ -117,7 +120,10 @@ def main():
         nn.Linear(2592, 256),
         nn.ReLU(),
         pfrl.nn.Branched(
-            nn.Sequential(nn.Linear(256, n_actions), SoftmaxCategoricalHead(),),
+            nn.Sequential(
+                nn.Linear(256, n_actions),
+                SoftmaxCategoricalHead(),
+            ),
             nn.Linear(256, 1),
         ),
     )
@@ -144,11 +150,17 @@ def main():
         max_grad_norm=40.0,
     )
 
-    if args.load_pretrained:
-        raise Exception("Pretrained models are currently unsupported.")
-
-    if args.load:
-        agent.load(args.load)
+    if args.load or args.load_pretrained:
+        # either load or load_pretrained must be false
+        assert not args.load or not args.load_pretrained
+        if args.load:
+            agent.load(args.load)
+        else:
+            agent.load(
+                utils.download_model("A3C", args.env, model_type=args.pretrained_type)[
+                    0
+                ]
+            )
 
     if args.demo:
         env = make_env(0, True)

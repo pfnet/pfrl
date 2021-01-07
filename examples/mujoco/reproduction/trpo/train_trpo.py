@@ -181,8 +181,6 @@ def main():
     )
 
     if args.load or args.load_pretrained:
-        if args.load_pretrained:
-            raise Exception("Pretrained models are currently unsupported.")
         # either load or load_pretrained must be false
         assert not args.load or not args.load_pretrained
         if args.load:
@@ -211,6 +209,11 @@ def main():
                 eval_stats["stdev"],
             )
         )
+        import json
+        import os
+
+        with open(os.path.join(args.outdir, "demo_scores.json"), "w") as f:
+            json.dump(eval_stats, f)
     else:
 
         pfrl.experiments.train_agent_with_evaluation(

@@ -90,13 +90,19 @@ class ABC(env.Env):
         # (s_0, ..., s_N) + terminal state + offset
         self.n_dim_obs = self.size + 1 + self.n_max_offset
         self.observation_space = spaces.Box(
-            low=-np.inf, high=np.inf, shape=(self.n_dim_obs,), dtype=np.float32,
+            low=-np.inf,
+            high=np.inf,
+            shape=(self.n_dim_obs,),
+            dtype=np.float32,
         )
         if discrete:
             self.action_space = spaces.Discrete(self.size)
         else:
             self.action_space = spaces.Box(
-                low=-1.0, high=1.0, shape=(self.size,), dtype=np.float32,
+                low=-1.0,
+                high=1.0,
+                shape=(self.size,),
+                dtype=np.float32,
             )
 
     def observe(self):

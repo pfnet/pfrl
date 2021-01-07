@@ -45,13 +45,16 @@ def _apply_categorical_projection_naive(y, y_probs, z):
 
 
 @pytest.mark.parametrize(
-    "batch_size", [1, 7],
+    "batch_size",
+    [1, 7],
 )
 @pytest.mark.parametrize(
-    "n_atoms", [2, 5],
+    "n_atoms",
+    [2, 5],
 )
 @pytest.mark.parametrize(
-    "v_range", [(-3, -1), (-2, 0), (-2, 1), (0, 1), (1, 5)],
+    "v_range",
+    [(-3, -1), (-2, 0), (-2, 1), (0, 1), (1, 5)],
 )
 class TestApplyCategoricalProjectionToRandomCases:
     @pytest.fixture(autouse=True)
@@ -164,12 +167,26 @@ class TestApplyCategoricalProjectionToManualCases(unittest.TestCase):
         n_atoms = 4
         # delta_z=2/3=0.66666... is not exact
         z = np.linspace(v_min, v_max, num=n_atoms, dtype=np.float32)
-        y = np.asarray([[-1, -1, 1, 1], [-1, 0, 1, 1],], dtype=np.float32)
+        y = np.asarray(
+            [
+                [-1, -1, 1, 1],
+                [-1, 0, 1, 1],
+            ],
+            dtype=np.float32,
+        )
         y_probs = np.asarray(
-            [[0.5, 0.1, 0.1, 0.3], [0.5, 0.2, 0.0, 0.3],], dtype=np.float32
+            [
+                [0.5, 0.1, 0.1, 0.3],
+                [0.5, 0.2, 0.0, 0.3],
+            ],
+            dtype=np.float32,
         )
         proj_gt = np.asarray(
-            [[0.6, 0.0, 0.0, 0.4], [0.5, 0.1, 0.1, 0.3],], dtype=np.float32
+            [
+                [0.6, 0.0, 0.0, 0.4],
+                [0.5, 0.1, 0.1, 0.3],
+            ],
+            dtype=np.float32,
         )
 
         proj = (

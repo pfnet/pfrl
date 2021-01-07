@@ -62,7 +62,10 @@ class _TestTraining:
         # Test
         n_test_runs = 5
         eval_returns = run_evaluation_episodes(
-            test_env, agent, n_steps=None, n_episodes=n_test_runs,
+            test_env,
+            agent,
+            n_steps=None,
+            n_episodes=n_test_runs,
         )
         n_succeeded = np.sum(np.asarray(eval_returns) >= successful_return)
         if require_success:
@@ -139,7 +142,10 @@ class _TestBatchTrainingMixin(object):
         # Test
         n_test_runs = 5
         eval_returns = batch_run_evaluation_episodes(
-            test_env, agent, n_steps=None, n_episodes=n_test_runs,
+            test_env,
+            agent,
+            n_steps=None,
+            n_episodes=n_test_runs,
         )
         test_env.close()
         n_succeeded = np.sum(np.asarray(eval_returns) >= successful_return)

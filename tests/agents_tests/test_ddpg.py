@@ -9,7 +9,15 @@ from pfrl.agents.ddpg import DDPG
 # Batch training with recurrent models is currently not supported
 class TestDDPGOnContinuousPOABC(base._TestDDPGOnContinuousPOABC):
     def make_ddpg_agent(
-        self, env, policy, q_func, actor_opt, critic_opt, explorer, rbuf, gpu,
+        self,
+        env,
+        policy,
+        q_func,
+        actor_opt,
+        critic_opt,
+        explorer,
+        rbuf,
+        gpu,
     ):
         return DDPG(
             policy,
@@ -30,7 +38,15 @@ class TestDDPGOnContinuousPOABC(base._TestDDPGOnContinuousPOABC):
 
 class TestDDPGOnContinuousABC(_TestBatchTrainingMixin, base._TestDDPGOnContinuousABC):
     def make_ddpg_agent(
-        self, env, policy, q_func, actor_opt, critic_opt, explorer, rbuf, gpu,
+        self,
+        env,
+        policy,
+        q_func,
+        actor_opt,
+        critic_opt,
+        explorer,
+        rbuf,
+        gpu,
     ):
         return DDPG(
             policy,

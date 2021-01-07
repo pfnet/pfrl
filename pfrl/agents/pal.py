@@ -27,7 +27,9 @@ class PAL(dqn.DQN):
 
         if self.recurrent:
             qout, _ = pack_and_forward(
-                self.model, batch_state, exp_batch["recurrent_state"],
+                self.model,
+                batch_state,
+                exp_batch["recurrent_state"],
             )
         else:
             qout = self.model(batch_state)
@@ -40,7 +42,9 @@ class PAL(dqn.DQN):
         with torch.no_grad():
             if self.recurrent:
                 target_qout, _ = pack_and_forward(
-                    self.target_model, batch_state, exp_batch["recurrent_state"],
+                    self.target_model,
+                    batch_state,
+                    exp_batch["recurrent_state"],
                 )
                 target_next_qout, _ = pack_and_forward(
                     self.target_model,

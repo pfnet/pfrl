@@ -6,7 +6,12 @@ import pfrl
 
 
 @pytest.mark.parametrize(
-    "render_kwargs", [{}, {"mode": "human"}, {"mode": "rgb_array"},]
+    "render_kwargs",
+    [
+        {},
+        {"mode": "human"},
+        {"mode": "rgb_array"},
+    ],
 )
 def test_render(render_kwargs):
     orig_env = mock.Mock()

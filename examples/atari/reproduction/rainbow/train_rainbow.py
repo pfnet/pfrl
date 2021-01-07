@@ -110,7 +110,12 @@ def main():
     n_atoms = 51
     v_max = 10
     v_min = -10
-    q_func = DistributionalDuelingDQN(n_actions, n_atoms, v_min, v_max,)
+    q_func = DistributionalDuelingDQN(
+        n_actions,
+        n_atoms,
+        v_min,
+        v_max,
+    )
 
     # Noisy nets
     pnn.to_factorized_noisy(q_func, sigma_scale=args.noisy_net_sigma)
@@ -154,8 +159,6 @@ def main():
     )
 
     if args.load or args.load_pretrained:
-        if args.load_pretrained:
-            raise Exception("Pretrained models are currently unsupported.")
         # either load_ or load_pretrained must be false
         assert not args.load or not args.load_pretrained
         if args.load:

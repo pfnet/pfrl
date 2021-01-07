@@ -16,7 +16,7 @@ def is_under_git_control():
     return pfrl.utils.is_return_code_zero(["git", "rev-parse"])
 
 
-def generate_exp_id(prefix=None) -> str:
+def generate_exp_id(prefix=None, argv=sys.argv) -> str:
     """Generate reproducible, unique and deterministic experiment id
 
     The generated id will be string generated from prefix, Git
@@ -39,7 +39,7 @@ def generate_exp_id(prefix=None) -> str:
     names.append(head.decode())
 
     # Caveat: does not work with new files that are not yet cached
-    sources = [subprocess.check_output("git diff HEAD".split()), pickle.dumps(sys.argv)]
+    sources = [subprocess.check_output("git diff HEAD".split()), pickle.dumps(argv)]
 
     for source in sources:
         names.append("%08x" % crc32(source))

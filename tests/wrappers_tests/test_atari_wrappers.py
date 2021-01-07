@@ -38,7 +38,12 @@ def test_frame_stack(dtype, k):
             assert False
         env.reset.side_effect = [dtyped_rand() for _ in range(steps)]
         env.step.side_effect = [
-            (dtyped_rand(), np_random.rand(), bool(np_random.randint(2)), {},)
+            (
+                dtyped_rand(),
+                np_random.rand(),
+                bool(np_random.randint(2)),
+                {},
+            )
             for _ in range(steps)
         ]
         env.action_space = gym.spaces.Discrete(2)
@@ -105,7 +110,12 @@ def test_scaled_float_frame(dtype):
             assert False
         env.reset.side_effect = [dtyped_rand() for _ in range(steps)]
         env.step.side_effect = [
-            (dtyped_rand(), np_random.rand(), bool(np_random.randint(2)), {},)
+            (
+                dtyped_rand(),
+                np_random.rand(),
+                bool(np_random.randint(2)),
+                {},
+            )
             for _ in range(steps)
         ]
         env.action_space = gym.spaces.Discrete(2)

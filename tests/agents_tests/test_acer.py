@@ -117,10 +117,12 @@ class TestDegenerateDistribution:
 @pytest.mark.parametrize("action_size", [1, 2])
 def test_bias_correction_gaussian(action_size):
     base_policy = nn.Sequential(
-        nn.Linear(1, action_size * 2), GaussianHeadWithDiagonalCovariance(),
+        nn.Linear(1, action_size * 2),
+        GaussianHeadWithDiagonalCovariance(),
     )
     another_policy = nn.Sequential(
-        nn.Linear(1, action_size * 2), GaussianHeadWithDiagonalCovariance(),
+        nn.Linear(1, action_size * 2),
+        GaussianHeadWithDiagonalCovariance(),
     )
     W = torch.rand(1, action_size)
     action_value = pfrl.action_value.SingleActionValue(
@@ -131,8 +133,14 @@ def test_bias_correction_gaussian(action_size):
 
 @pytest.mark.parametrize("n_actions", [2, 3])
 def test_bias_correction_softmax(n_actions):
-    base_policy = nn.Sequential(nn.Linear(1, n_actions), SoftmaxCategoricalHead(),)
-    another_policy = nn.Sequential(nn.Linear(1, n_actions), SoftmaxCategoricalHead(),)
+    base_policy = nn.Sequential(
+        nn.Linear(1, n_actions),
+        SoftmaxCategoricalHead(),
+    )
+    another_policy = nn.Sequential(
+        nn.Linear(1, n_actions),
+        SoftmaxCategoricalHead(),
+    )
     q_values = torch.rand(1, n_actions)
     action_value = pfrl.action_value.DiscreteActionValue(q_values)
     _test_bias_correction(base_policy, another_policy, action_value)
@@ -249,14 +257,18 @@ def _test_bias_correction(base_policy, another_policy, action_value):
 def test_compute_loss_with_kl_constraint_gaussian():
     action_size = 3
     policy = nn.Sequential(
-        nn.Linear(1, action_size * 2), GaussianHeadWithDiagonalCovariance(),
+        nn.Linear(1, action_size * 2),
+        GaussianHeadWithDiagonalCovariance(),
     )
     _test_compute_loss_with_kl_constraint(policy)
 
 
 def test_compute_loss_with_kl_constraint_softmax():
     n_actions = 3
-    policy = nn.Sequential(nn.Linear(1, n_actions), SoftmaxCategoricalHead(),)
+    policy = nn.Sequential(
+        nn.Linear(1, n_actions),
+        SoftmaxCategoricalHead(),
+    )
     _test_compute_loss_with_kl_constraint(policy)
 
 
@@ -363,10 +375,12 @@ class _TestACER:
             n_actions = action_space.n
             head = acer.ACERDiscreteActionHead(
                 pi=nn.Sequential(
-                    nn.Linear(hidden_size, n_actions), SoftmaxCategoricalHead(),
+                    nn.Linear(hidden_size, n_actions),
+                    SoftmaxCategoricalHead(),
                 ),
                 q=nn.Sequential(
-                    nn.Linear(hidden_size, n_actions), DiscreteActionValueHead(),
+                    nn.Linear(hidden_size, n_actions),
+                    DiscreteActionValueHead(),
                 ),
             )
         else:
@@ -376,9 +390,12 @@ class _TestACER:
                     nn.Linear(hidden_size, action_size * 2),
                     GaussianHeadWithDiagonalCovariance(),
                 ),
-                v=nn.Sequential(nn.Linear(hidden_size, 1),),
+                v=nn.Sequential(
+                    nn.Linear(hidden_size, 1),
+                ),
                 adv=nn.Sequential(
-                    ConcatObsAndAction(), nn.Linear(hidden_size + action_size, 1),
+                    ConcatObsAndAction(),
+                    nn.Linear(hidden_size + action_size, 1),
                 ),
             )
         if use_lstm:
@@ -390,7 +407,9 @@ class _TestACER:
             )
         else:
             model = nn.Sequential(
-                nn.Linear(obs_size, hidden_size), nn.LeakyReLU(), head,
+                nn.Linear(obs_size, hidden_size),
+                nn.LeakyReLU(),
+                head,
             )
         eps = 1e-8
         opt = pfrl.optimizers.SharedRMSpropEpsInsideSqrt(

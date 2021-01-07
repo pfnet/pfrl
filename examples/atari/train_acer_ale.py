@@ -2,20 +2,20 @@ import argparse
 import os
 
 # Prevent numpy from using multiple threads
-os.environ["OMP_NUM_THREADS"] = "1"  # NOQA
+os.environ["OMP_NUM_THREADS"] = "1"
 
-import gym
-import gym.wrappers
-import numpy as np
-from torch import nn
+import gym  # NOQA:E402
+import gym.wrappers  # NOQA:E402
+import numpy as np  # NOQA:E402
+from torch import nn  # NOQA:E402
 
-import pfrl
-from pfrl import experiments, utils
-from pfrl.agents import acer
-from pfrl.policies import SoftmaxCategoricalHead
-from pfrl.q_functions import DiscreteActionValueHead
-from pfrl.replay_buffers import EpisodicReplayBuffer
-from pfrl.wrappers import atari_wrappers
+import pfrl  # NOQA:E402
+from pfrl import experiments, utils  # NOQA:E402
+from pfrl.agents import acer  # NOQA:E402
+from pfrl.policies import SoftmaxCategoricalHead  # NOQA:E402
+from pfrl.q_functions import DiscreteActionValueHead  # NOQA:E402
+from pfrl.replay_buffers import EpisodicReplayBuffer  # NOQA:E402
+from pfrl.wrappers import atari_wrappers  # NOQA:E402
 
 
 def main():
@@ -105,8 +105,14 @@ def main():
     )
 
     head = acer.ACERDiscreteActionHead(
-        pi=nn.Sequential(nn.Linear(256, n_actions), SoftmaxCategoricalHead(),),
-        q=nn.Sequential(nn.Linear(256, n_actions), DiscreteActionValueHead(),),
+        pi=nn.Sequential(
+            nn.Linear(256, n_actions),
+            SoftmaxCategoricalHead(),
+        ),
+        q=nn.Sequential(
+            nn.Linear(256, n_actions),
+            DiscreteActionValueHead(),
+        ),
     )
 
     if args.use_lstm:

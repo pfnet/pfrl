@@ -1,26 +1,43 @@
 import collections
+from numbers import Number
+from typing import (
+    Any,
+    Callable,
+    Deque,
+    Generic,
+    List,
+    Optional,
+    Sequence,
+    Tuple,
+    TypeVar,
+)
 
 import numpy as np
 
 from pfrl.utils.random import sample_n_k
 
+T = TypeVar("T")
 
-class PrioritizedBuffer(object):
+
+class PrioritizedBuffer(Generic[T]):
     def __init__(
-        self, capacity=None, wait_priority_after_sampling=True, initial_max_priority=1.0
+        self,
+        capacity: Optional[int] = None,
+        wait_priority_after_sampling: bool = True,
+        initial_max_priority: float = 1.0,
     ):
         self.capacity = capacity
-        self.data = collections.deque()
+        self.data: Deque = collections.deque()
         self.priority_sums = SumTreeQueue()
         self.priority_mins = MinTreeQueue()
         self.max_priority = initial_max_priority
         self.wait_priority_after_sampling = wait_priority_after_sampling
         self.flag_wait_priority = False
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.data)
 
-    def append(self, value, priority=None):
+    def append(self, value: T, priority: Optional[float] = None) -> None:
         if self.capacity is not None and len(self) == self.capacity:
             self.popleft()
         if priority is None:
@@ -31,14 +48,16 @@ class PrioritizedBuffer(object):
         self.priority_sums.append(priority)
         self.priority_mins.append(priority)
 
-    def popleft(self):
+    def popleft(self) -> T:
         assert len(self) > 0
         self.priority_sums.popleft()
         self.priority_mins.popleft()
         return self.data.popleft()
 
-    def _sample_indices_and_probabilities(self, n, uniform_ratio):
-        total_priority = self.priority_sums.sum()
+    def _sample_indices_and_probabilities(
+        self, n: int, uniform_ratio: float
+    ) -> Tuple[List[int], List[float], float]:
+        total_priority: float = self.priority_sums.sum()
         min_prob = self.priority_mins.min() / total_priority
         indices = []
         priorities = []
@@ -65,7 +84,9 @@ class PrioritizedBuffer(object):
         ]
         return indices, probs, min_prob
 
-    def sample(self, n, uniform_ratio=0):
+    def sample(
+        self, n: int, uniform_ratio: float = 0
+    ) -> Tuple[List[T], List[float], float]:
         """Sample data along with their corresponding probabilities.
 
         Args:
@@ -84,7 +105,7 @@ class PrioritizedBuffer(object):
         self.flag_wait_priority = True
         return sampled, probabilities, min_prob
 
-    def set_last_priority(self, priority):
+    def set_last_priority(self, priority: Sequence[float]) -> None:
         assert not self.wait_priority_after_sampling or self.flag_wait_priority
         assert all([p > 0.0 for p in priority])
         assert len(self.sampled_indices) == len(priority)
@@ -95,7 +116,9 @@ class PrioritizedBuffer(object):
         self.flag_wait_priority = False
         self.sampled_indices = []
 
-    def _uniform_sample_indices_and_probabilities(self, n):
+    def _uniform_sample_indices_and_probabilities(
+        self, n: int
+    ) -> Tuple[List[int], List[float]]:
         indices = list(sample_n_k(len(self.data), n))
         probabilities = [1 / len(self)] * len(indices)
         return indices, probabilities
@@ -104,12 +127,18 @@ class PrioritizedBuffer(object):
 # Implement operations on nodes of SumTreeQueue
 
 
-def _expand(node):
+# node = left_child, right_child, value
+Node = List[Any]
+V = TypeVar("V")
+Aggregator = Callable[[Sequence[V]], V]
+
+
+def _expand(node: Node) -> None:
     if not node:
         node[:] = [], [], None
 
 
-def _reduce(node, op):
+def _reduce(node: Node, op: Aggregator) -> None:
     assert node
     left_node, right_node, _ = node
     parent_value = []
@@ -123,7 +152,14 @@ def _reduce(node, op):
         del node[:]
 
 
-def _write(index_left, index_right, node, key, value, op):
+def _write(
+    index_left: int,
+    index_right: int,
+    node: Node,
+    key: int,
+    value: Optional[V],
+    op: Aggregator,
+) -> Optional[V]:
     if index_right - index_left == 1:
         if node:
             ret = node[2]
@@ -145,7 +181,7 @@ def _write(index_left, index_right, node, key, value, op):
     return ret
 
 
-class TreeQueue(object):
+class TreeQueue(Generic[V]):
     """Queue with Binary Indexed Tree cache
 
     queue-like data structure
@@ -153,22 +189,23 @@ class TreeQueue(object):
     reduction over an interval is O(log n) per query
     """
 
-    # node = left_child, right_child, value
+    root: Node
+    bounds: Tuple[int, int]
 
-    def __init__(self, op):
+    def __init__(self, op: Aggregator):
         self.length = 0
         self.op = op
 
-    def __setitem__(self, ix, val):
+    def __setitem__(self, ix: int, val: V) -> None:
         assert 0 <= ix < self.length
         assert val is not None
         self._write(ix, val)
 
-    def _write(self, ix, val):
+    def _write(self, ix: int, val: Optional[V]) -> Optional[V]:
         ixl, ixr = self.bounds
         return _write(ixl, ixr, self.root, ix, val, self.op)
 
-    def append(self, value):
+    def append(self, value: V) -> None:
         if self.length == 0:
             self.root = [None, None, value]
             self.bounds = 0, 1
@@ -186,7 +223,7 @@ class TreeQueue(object):
         assert ret is None
         self.length += 1
 
-    def popleft(self):
+    def popleft(self) -> Optional[V]:
         assert self.length > 0
         ret = self._write(0, None)
         ixl, ixr = self.bounds
@@ -206,7 +243,7 @@ class TreeQueue(object):
         return ret
 
 
-def _find(index_left, index_right, node, pos):
+def _find(index_left: int, index_right: int, node: Node, pos: Number) -> int:
     if index_right - index_left == 1:
         return index_left
     else:
@@ -222,7 +259,7 @@ def _find(index_left, index_right, node, pos):
             return _find(index_center, index_right, node_right, pos - left_value)
 
 
-class SumTreeQueue(TreeQueue):
+class SumTreeQueue(TreeQueue[float]):
     """Fast weighted sampling.
 
     queue-like data structure
@@ -233,19 +270,20 @@ class SumTreeQueue(TreeQueue):
     def __init__(self):
         super().__init__(op=sum)
 
-    def sum(self):
+    def sum(self) -> float:
         if self.length == 0:
             return 0.0
         else:
             return self.root[2]
 
-    def uniform_sample(self, n, remove):
+    def uniform_sample(self, n: int, remove: bool) -> Tuple[List[int], List[float]]:
         assert n >= 0
         ixs = list(sample_n_k(self.length, n))
-        vals = []
+        vals: List[float] = []
         if n > 0:
             for ix in ixs:
                 val = self._write(ix, 0.0)
+                assert val is not None
                 vals.append(val)
 
         if not remove:
@@ -254,16 +292,17 @@ class SumTreeQueue(TreeQueue):
 
         return ixs, vals
 
-    def prioritized_sample(self, n, remove):
+    def prioritized_sample(self, n: int, remove: bool) -> Tuple[List[int], List[float]]:
         assert n >= 0
-        ixs = []
-        vals = []
+        ixs: List[int] = []
+        vals: List[float] = []
         if n > 0:
             root = self.root
             ixl, ixr = self.bounds
             for _ in range(n):
                 ix = _find(ixl, ixr, root, np.random.uniform(0.0, root[2]))
                 val = self._write(ix, 0.0)
+                assert val is not None
                 ixs.append(ix)
                 vals.append(val)
 
@@ -274,136 +313,12 @@ class SumTreeQueue(TreeQueue):
         return ixs, vals
 
 
-class MinTreeQueue(TreeQueue):
+class MinTreeQueue(TreeQueue[float]):
     def __init__(self):
         super().__init__(op=min)
 
-    def min(self):
+    def min(self) -> float:
         if self.length == 0:
             return np.inf
         else:
             return self.root[2]
-
-
-# Deprecated
-class SumTree(object):
-    """Fast weighted sampling.
-
-    list-like data structure
-    append, update are O(log n)
-    summation over an interval is O(log n) per query
-    """
-
-    def __init__(self, bd=None, left=None, right=None, s=0.0):
-        # bounds, left child, right child, sum
-        self.bd = bd
-        self.left = left
-        self.right = right
-        self.s = s
-
-    def __str__(self):
-        return "SumTree({})".format(self._dict())
-
-    def _dict(self):
-        ret = dict()
-        if self.bd is not None and self._isleaf():
-            ret[self.bd[0]] = self.s
-        if self.left:
-            ret.update(self.left._dict())
-        if self.right:
-            ret.update(self.right._dict())
-        return ret
-
-    def _initdescendant(self):
-        if not self._isleaf():
-            c = self._center()
-            self.left = SumTree(bd=(self.bd[0], c))._initdescendant()
-            self.right = SumTree(bd=(c, self.bd[1]))._initdescendant()
-        return self
-
-    def _isleaf(self):
-        return self.bd[1] - self.bd[0] == 1
-
-    def _center(self):
-        return (self.bd[0] + self.bd[1]) // 2
-
-    def _allocindex(self, ix):
-        if self.bd is None:
-            self.bd = (ix, ix + 1)
-        while ix >= self.bd[1]:
-            r_bd = (self.bd[1], self.bd[1] * 2 - self.bd[0])
-            left = SumTree(self.bd, self.left, self.right, self.s)
-
-            right = SumTree(bd=r_bd)._initdescendant()
-            self.bd = (left.bd[0], right.bd[1])
-            self.left = left
-            self.right = right
-            # no need to update self.s because self.right.s == 0
-        while ix < self.bd[0]:
-            l_bd = (self.bd[0] * 2 - self.bd[1], self.bd[0])
-            left = SumTree(bd=l_bd)._initdescendant()
-            right = SumTree(self.bd, self.left, self.right, self.s)
-            self.bd = (left.bd[0], right.bd[1])
-            self.left = left
-            self.right = right
-            # no need to update self.s because self.left.s == 0
-
-    def __setitem__(self, ix, val):
-        self._allocindex(ix)
-        self._write(ix, val)
-
-    def _write(self, ix, val):
-        if self._isleaf():
-            self.s = val
-        else:
-            c = self._center()
-            if ix < c:
-                self.left._write(ix, val)
-            else:
-                self.right._write(ix, val)
-            self.s = self.left.s + self.right.s
-
-    def __delitem__(self, ix):
-        self.__setitem__(ix, 0.0)
-
-    def __getitem__(self, ix):
-        assert self.bd[0] <= ix < self.bd[1]
-        return self._read(ix)
-
-    def _read(self, ix):
-        if self._isleaf():
-            return self.s
-        else:
-            c = self._center()
-            if ix < c:
-                return self.left._read(ix)
-            else:
-                return self.right._read(ix)
-
-    def prioritized_sample(self, n, remove=False):
-        assert n >= 0
-        ixs = []
-        vals = []
-        total_val = self.s  # save this before it changes by removing
-        for _ in range(n):
-            ix, val = self._pick(np.random.uniform(0.0, self.s))
-            ixs.append(ix)
-            vals.append(val)
-            self._write(ix, 0.0)
-        if not remove:
-            for ix, val in zip(ixs, vals):
-                self._write(ix, val)
-        return ixs, [v / total_val for v in vals]
-
-    def prioritized_choice(self):
-        ix, s = self._pick(np.random.uniform(0.0, self.s))
-        return ix, s / self.s
-
-    def _pick(self, cum):
-        if self._isleaf():
-            return self.bd[0], self.s
-        else:
-            if cum < self.left.s:
-                return self.left._pick(cum)
-            else:
-                return self.right._pick(cum - self.left.s)

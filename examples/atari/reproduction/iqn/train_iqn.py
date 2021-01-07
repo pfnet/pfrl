@@ -124,8 +124,15 @@ def main():
             nn.ReLU(),
             nn.Flatten(),
         ),
-        phi=nn.Sequential(pfrl.agents.iqn.CosineBasisLinear(64, 3136), nn.ReLU(),),
-        f=nn.Sequential(nn.Linear(3136, 512), nn.ReLU(), nn.Linear(512, n_actions),),
+        phi=nn.Sequential(
+            pfrl.agents.iqn.CosineBasisLinear(64, 3136),
+            nn.ReLU(),
+        ),
+        f=nn.Sequential(
+            nn.Linear(3136, 512),
+            nn.ReLU(),
+            nn.Linear(512, n_actions),
+        ),
     )
 
     # Use the same hyper parameters as https://arxiv.org/abs/1710.10044
@@ -162,8 +169,6 @@ def main():
     )
 
     if args.load or args.load_pretrained:
-        if args.load_pretrained:
-            raise Exception("Pretrained models are currently unsupported.")
         # either load or load_pretrained must be false
         assert not args.load or not args.load_pretrained
         if args.load:
@@ -177,7 +182,10 @@ def main():
 
     if args.demo:
         eval_stats = experiments.eval_performance(
-            env=eval_env, agent=agent, n_steps=args.eval_n_steps, n_episodes=None,
+            env=eval_env,
+            agent=agent,
+            n_steps=args.eval_n_steps,
+            n_episodes=None,
         )
         print(
             "n_steps: {} mean: {} median: {} stdev {}".format(

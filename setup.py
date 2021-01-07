@@ -7,6 +7,7 @@ install_requires = [
     'gym>=0.9.7',
     'numpy>=1.10.4',
     'pillow',
+    'filelock',
 ]
 
 test_requires = [
@@ -15,7 +16,7 @@ test_requires = [
 ]
 
 setup(name='pfrl',
-      version='0.1.0',
+      version='0.2.1',
       description='PFRL, a deep reinforcement learning library',
       long_description=codecs.open('README.md', 'r', encoding='utf-8').read(),
       long_description_content_type='text/markdown',

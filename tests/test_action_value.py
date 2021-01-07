@@ -172,7 +172,10 @@ class TestQuantileDiscreteActionValue(unittest.TestCase):
         self.action_size = 3
         self.n_taus = 5
         self.quantiles = torch.randn(
-            self.batch_size, self.n_taus, self.action_size, dtype=torch.float,
+            self.batch_size,
+            self.n_taus,
+            self.action_size,
+            dtype=torch.float,
         )
         self.av = action_value.QuantileDiscreteActionValue(self.quantiles)
         self.q_values = self.quantiles.mean(axis=1)

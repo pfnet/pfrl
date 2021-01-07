@@ -176,7 +176,10 @@ class TestSoftActorCritic:
         policy = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.ReLU(),
-            nn.Linear(hidden_size, action_size * 2,),
+            nn.Linear(
+                hidden_size,
+                action_size * 2,
+            ),
             nn.Tanh(),
             Lambda(squashed_diagonal_gaussian_head),
         )
@@ -223,7 +226,11 @@ class TestSoftActorCritic:
         return agent
 
     def make_env_and_successful_return(self, test):
-        env = ABC(discrete=False, episodic=self.episodic or test, deterministic=test,)
+        env = ABC(
+            discrete=False,
+            episodic=self.episodic or test,
+            deterministic=test,
+        )
         return env, 1
 
     def make_vec_env_and_successful_return(self, test, num_envs=3):

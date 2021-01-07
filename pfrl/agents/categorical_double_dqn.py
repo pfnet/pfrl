@@ -24,7 +24,9 @@ class CategoricalDoubleDQN(categorical_dqn.CategoricalDQN):
                     exp_batch["next_recurrent_state"],
                 )
                 next_qout, _ = pack_and_forward(
-                    self.model, batch_next_state, exp_batch["next_recurrent_state"],
+                    self.model,
+                    batch_next_state,
+                    exp_batch["next_recurrent_state"],
                 )
             else:
                 target_next_qout = self.target_model(batch_next_state)

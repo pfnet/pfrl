@@ -90,7 +90,9 @@ def compute_weighted_value_loss(
         losses = F.smooth_l1_loss(y, t, reduction="none")
     else:
         losses = F.mse_loss(y, t, reduction="none") / 2
-    losses = losses.reshape(-1,)
+    losses = losses.reshape(
+        -1,
+    )
     weights = weights.to(losses.device)
     loss_sum = torch.sum(losses * weights)
     if batch_accumulator == "mean":
@@ -277,7 +279,10 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         return self._cumulative_steps
 
     def _setup_actor_learner_training(
-        self, n_actors: int, actor_update_interval: int, update_counter: Any,
+        self,
+        n_actors: int,
+        actor_update_interval: int,
+        update_counter: Any,
     ) -> Tuple[
         torch.nn.Module,
         Sequence[mp.connection.Connection],
@@ -383,7 +388,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
 
         if self.recurrent:
             target_next_qout, _ = pack_and_forward(
-                self.target_model, batch_next_state, exp_batch["next_recurrent_state"],
+                self.target_model,
+                batch_next_state,
+                exp_batch["next_recurrent_state"],
             )
         else:
             target_next_qout = self.target_model(batch_next_state)
@@ -485,7 +492,9 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         if self.training:
             batch_action = [
                 self.explorer.select_action(
-                    self.t, lambda: batch_argmax[i], action_value=batch_av[i : i + 1],
+                    self.t,
+                    lambda: batch_argmax[i],
+                    action_value=batch_av[i : i + 1],
                 )
                 for i in range(len(batch_obs))
             ]
@@ -541,10 +550,12 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         if self.recurrent:
             # Reset recurrent states when episodes end
             self.train_prev_recurrent_states = None
-            self.train_recurrent_states = _batch_reset_recurrent_states_when_episodes_end(  # NOQA
-                batch_done=batch_done,
-                batch_reset=batch_reset,
-                recurrent_states=self.train_recurrent_states,
+            self.train_recurrent_states = (
+                _batch_reset_recurrent_states_when_episodes_end(  # NOQA
+                    batch_done=batch_done,
+                    batch_reset=batch_reset,
+                    recurrent_states=self.train_recurrent_states,
+                )
             )
 
     def _batch_observe_eval(
@@ -556,10 +567,12 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
     ) -> None:
         if self.recurrent:
             # Reset recurrent states when episodes end
-            self.test_recurrent_states = _batch_reset_recurrent_states_when_episodes_end(  # NOQA
-                batch_done=batch_done,
-                batch_reset=batch_reset,
-                recurrent_states=self.test_recurrent_states,
+            self.test_recurrent_states = (
+                _batch_reset_recurrent_states_when_episodes_end(  # NOQA
+                    batch_done=batch_done,
+                    batch_reset=batch_reset,
+                    recurrent_states=self.test_recurrent_states,
+                )
             )
 
     def batch_observe(
