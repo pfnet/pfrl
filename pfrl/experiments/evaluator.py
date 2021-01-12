@@ -22,6 +22,7 @@ def _run_episodes(
 
     logger = logger or logging.getLogger(__name__)
     scores = []
+    lengths = []
     terminate = False
     timestep = 0
 
@@ -47,6 +48,7 @@ def _run_episodes(
             # As mixing float and numpy float causes errors in statistics
             # functions, here every score is cast to float.
             scores.append(float(test_r))
+            lengths.append(float(episode_len))
         if n_steps is None:
             terminate = len(scores) >= n_episodes
         else:
@@ -57,7 +59,7 @@ def _run_episodes(
         logger.info(
             "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
         )
-    return scores
+    return scores, lengths
 
 
 def run_evaluation_episodes(
@@ -207,7 +209,9 @@ def _batch_run_episodes(
         zip(eval_episode_lens, eval_episode_returns)
     ):
         logger.info("evaluation episode %s length: %s R: %s", i, epi_len, epi_ret)
-    return [float(r) for r in eval_episode_returns]
+    scores = [float(r) for r in eval_episode_returns]
+    lengths = [float(l) for l in eval_episode_lens]
+    return scores, lengths
 
 
 def batch_run_evaluation_episodes(
@@ -268,7 +272,7 @@ def eval_performance(
     assert (n_steps is None) != (n_episodes is None)
 
     if isinstance(env, pfrl.env.VectorEnv):
-        scores = batch_run_evaluation_episodes(
+        scores, lengths = batch_run_evaluation_episodes(
             env,
             agent,
             n_steps,
@@ -277,7 +281,7 @@ def eval_performance(
             logger=logger,
         )
     else:
-        scores = run_evaluation_episodes(
+        scores, lengths = run_evaluation_episodes(
             env,
             agent,
             n_steps,
@@ -292,6 +296,11 @@ def eval_performance(
         stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
         max=np.max(scores),
         min=np.min(scores),
+        length_mean=statistics.mean(lengths),
+        length_median=statistics.median(lengths),
+        length_stdev=statistics.stdev(lengths),
+        length_max=np.max(lengths),
+        length_min=np.min(lengths),
     )
     return stats
 
