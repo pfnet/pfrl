@@ -218,7 +218,7 @@ def train_agent_async(
     logger = logger or logging.getLogger(__name__)
 
     for hook in evaluation_hooks:
-        if not hook.support_train_agent:
+        if not hook.support_train_agent_async:
             raise ValueError(
                 "{} does not support train_agent_async().".format(hook)
             )

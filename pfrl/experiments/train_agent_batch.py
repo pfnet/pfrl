@@ -216,7 +216,7 @@ def train_agent_batch_with_evaluation(
     logger = logger or logging.getLogger(__name__)
 
     for hook in evaluation_hooks:
-        if not hook.support_train_agent:
+        if not hook.support_train_agent_batch:
             raise ValueError(
                 "{} does not support train_agent_batch_with_evaluation().".format(hook)
             )
