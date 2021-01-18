@@ -395,6 +395,9 @@ class Evaluator(object):
         outdir (str): Path to a directory to save things.
         max_episode_len (int): Maximum length of episodes used in evaluations.
         step_offset (int): Offset of steps used to schedule evaluations.
+        evaluation_hooks (Sequence): Sequence of
+            pfrl.experiments.evaluation_hooks.EvaluationHook objects. They are
+            called after each evaluation.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean of returns in evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
@@ -411,6 +414,7 @@ class Evaluator(object):
         outdir,
         max_episode_len=None,
         step_offset=0,
+        evaluation_hooks=(),
         save_best_so_far_agent=True,
         logger=None,
         use_tensorboard=False,
@@ -432,6 +436,7 @@ class Evaluator(object):
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
         self.prev_eval_t = self.step_offset - self.step_offset % self.eval_interval
+        self.evaluation_hooks = evaluation_hooks
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
         self.env_get_stats = getattr(self.env, "get_statistics", lambda: [])
@@ -480,6 +485,17 @@ class Evaluator(object):
         if self.use_tensorboard:
             record_tb_stats(self.tb_writer, agent_stats, eval_stats, env_stats, t)
 
+        for hook in self.evaluation_hooks:
+            hook(
+                env=self.env,
+                agent=self.agent,
+                evaluator=self,
+                step=t,
+                eval_stats=eval_stats,
+                agent_stats=agent_stats,
+                env_stats=env_stats
+            )
+
         if mean > self.max_score:
             self.logger.info("The best score is updated %s -> %s", self.max_score, mean)
             self.max_score = mean
@@ -505,6 +521,9 @@ class AsyncEvaluator(object):
         outdir (str): Path to a directory to save things.
         max_episode_len (int): Maximum length of episodes used in evaluations.
         step_offset (int): Offset of steps used to schedule evaluations.
+        evaluation_hooks (Sequence): Sequence of
+            pfrl.experiments.evaluation_hooks.EvaluationHook objects. They are
+            called after each evaluation.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
@@ -518,6 +537,7 @@ class AsyncEvaluator(object):
         outdir,
         max_episode_len=None,
         step_offset=0,
+        evaluation_hooks=(),
         save_best_so_far_agent=True,
         logger=None,
     ):
@@ -533,6 +553,7 @@ class AsyncEvaluator(object):
         self.outdir = outdir
         self.max_episode_len = max_episode_len
         self.step_offset = step_offset
+        self.evaluation_hooks = evaluation_hooks
         self.save_best_so_far_agent = save_best_so_far_agent
         self.logger = logger or logging.getLogger(__name__)
 
@@ -594,6 +615,17 @@ class AsyncEvaluator(object):
 
         if self.record_tb_stats_queue is not None:
             self.record_tb_stats_queue.put([agent_stats, eval_stats, env_stats, t])
+
+        for hook in self.evaluation_hooks:
+            hook(
+                env=env,
+                agent=agent,
+                evaluator=self,
+                step=t,
+                eval_stats=eval_stats,
+                agent_stats=agent_stats,
+                env_stats=env_stats
+            )
 
         with self._max_score.get_lock():
             if mean > self._max_score.value:
