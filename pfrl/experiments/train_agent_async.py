@@ -262,6 +262,7 @@ def train_agent_async(
             outdir=outdir,
             max_episode_len=max_episode_len,
             step_offset=step_offset,
+            evaluation_hooks=evaluation_hooks,
             save_best_so_far_agent=save_best_so_far_agent,
             logger=logger,
         )
