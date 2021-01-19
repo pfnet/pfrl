@@ -493,7 +493,7 @@ class Evaluator(object):
                 step=t,
                 eval_stats=eval_stats,
                 agent_stats=agent_stats,
-                env_stats=env_stats
+                env_stats=env_stats,
             )
 
         if mean > self.max_score:
@@ -624,7 +624,7 @@ class AsyncEvaluator(object):
                 step=t,
                 eval_stats=eval_stats,
                 agent_stats=agent_stats,
-                env_stats=env_stats
+                env_stats=env_stats,
             )
 
         with self._max_score.get_lock():
