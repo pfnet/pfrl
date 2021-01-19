@@ -219,9 +219,7 @@ def train_agent_async(
 
     for hook in evaluation_hooks:
         if not hook.support_train_agent_async:
-            raise ValueError(
-                "{} does not support train_agent_async().".format(hook)
-            )
+            raise ValueError("{} does not support train_agent_async().".format(hook))
 
     # Prevent numpy from using multiple threads
     os.environ["OMP_NUM_THREADS"] = "1"
