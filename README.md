@@ -50,7 +50,7 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 | TD3 | x | ✓ | x | ✓ | x | ✓ |
 | SAC | x | ✓ | x | ✓ | x | ✓ |
 
-**<sup>*</sup>Note on Pretrained models**: PFRL has pretrained models (sometimes called a 'model zoo') for our reproducibility scripts on [Atari environments](https://github.com/pfnet/pfrl/tree/master/examples/atari/reproduction) (DQN, IQN, Rainbow, and A3C) and [Mujoco environments](https://github.com/pfnet/pfrl/tree/master/examples/mujoco/reproduction) (DDPG, TRPO, PPO, TD3, SAC), for each benchmarked environment. 
+**<sup>*</sup>Note on Pretrained models**: PFRL provides pretrained models (sometimes called a 'model zoo') for our reproducibility scripts on [Atari environments](https://github.com/pfnet/pfrl/tree/master/examples/atari/reproduction) (DQN, IQN, Rainbow, and A3C) and [Mujoco environments](https://github.com/pfnet/pfrl/tree/master/examples/mujoco/reproduction) (DDPG, TRPO, PPO, TD3, SAC), for each benchmarked environment. 
 
 Following algorithms have been implemented in PFRL:
 - [A2C (Synchronous variant of A3C)](https://openai.com/blog/baselines-acktr-a2c/)
