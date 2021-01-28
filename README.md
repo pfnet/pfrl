@@ -36,19 +36,21 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 
 ## Algorithms
 
-| Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training |
-|:----------|:---------------:|:----------------:|:---------------:|:--------------:|:------------------:|
-| DQN (including DoubleDQN etc.) | ✓ | ✓ (NAF) | ✓ | ✓ | x |
-| Categorical DQN | ✓ | x | ✓ | ✓ | x |
-| Rainbow | ✓ | x | ✓ | ✓ | x |
-| IQN | ✓ | x | ✓ | ✓ | x |
-| DDPG | x | ✓ | x | ✓ | x |
-| A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ |
-| ACER | ✓ | ✓ | ✓ | x | ✓ |
-| PPO  | ✓ | ✓ | ✓ | ✓ | x |
-| TRPO | ✓ | ✓ | ✓ | ✓ | x |
-| TD3 | x | ✓ | x | ✓ | x |
-| SAC | x | ✓ | x | ✓ | x |
+| Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training | Pretrained models<sup>*</sup> |
+|:----------|:---------------:|:----------------:|:---------------:|:--------------:|:------------------:|:------------------:|
+| DQN (including DoubleDQN etc.) | ✓ | ✓ (NAF) | ✓ | ✓ | x | ✓ |
+| Categorical DQN | ✓ | x | ✓ | ✓ | x | x |
+| Rainbow | ✓ | x | ✓ | ✓ | x | ✓ |
+| IQN | ✓ | x | ✓ | ✓ | x | ✓ |
+| DDPG | x | ✓ | x | ✓ | x | ✓ |
+| A3C  | ✓ | ✓ | ✓ | ✓ (A2C) | ✓ | ✓ |
+| ACER | ✓ | ✓ | ✓ | x | ✓ | x |
+| PPO  | ✓ | ✓ | ✓ | ✓ | x | ✓ |
+| TRPO | ✓ | ✓ | ✓ | ✓ | x | ✓ |
+| TD3 | x | ✓ | x | ✓ | x | ✓ |
+| SAC | x | ✓ | x | ✓ | x | ✓ |
+
+**<sup>*</sup>Note on Pretrained models**: PFRL provides pretrained models (sometimes called a 'model zoo') for our reproducibility scripts on [Atari environments](https://github.com/pfnet/pfrl/tree/master/examples/atari/reproduction) (DQN, IQN, Rainbow, and A3C) and [Mujoco environments](https://github.com/pfnet/pfrl/tree/master/examples/mujoco/reproduction) (DDPG, TRPO, PPO, TD3, SAC), for each benchmarked environment. 
 
 Following algorithms have been implemented in PFRL:
 - [A2C (Synchronous variant of A3C)](https://openai.com/blog/baselines-acktr-a2c/)
