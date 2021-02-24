@@ -7,7 +7,6 @@ import torch
 import pfrl
 
 
-@pytest.mark.skip
 class TestBatchStates(unittest.TestCase):
     def _test(self, gpu):
 
