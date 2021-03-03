@@ -211,6 +211,12 @@ def main():
 
     elif not args.actor_learner:
 
+        print(
+            "WARNING: Since https://github.com/pfnet/pfrl/pull/112 we have started"
+            " setting `eval_during_episode=True` in this script, which affects the"
+            " timings of evaluation phases."
+        )
+
         experiments.train_agent_with_evaluation(
             agent=agent,
             env=env,
