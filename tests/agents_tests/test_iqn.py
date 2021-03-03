@@ -29,9 +29,13 @@ class TestIQNOnDiscreteABC(
         obs_size = env.observation_space.low.size
         hidden_size = 64
         return iqn.ImplicitQuantileQFunction(
-            psi=nn.Sequential(nn.Linear(obs_size, hidden_size), nn.ReLU(),),
+            psi=nn.Sequential(
+                nn.Linear(obs_size, hidden_size),
+                nn.ReLU(),
+            ),
             phi=nn.Sequential(
-                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size), nn.ReLU(),
+                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size),
+                nn.ReLU(),
             ),
             f=nn.Linear(hidden_size, env.action_space.n),
         )
@@ -64,10 +68,15 @@ class TestIQNOnDiscretePOABC(
             psi=pfrl.nn.RecurrentSequential(
                 nn.Linear(obs_size, hidden_size),
                 nn.ReLU(),
-                nn.RNN(num_layers=1, input_size=hidden_size, hidden_size=hidden_size,),
+                nn.RNN(
+                    num_layers=1,
+                    input_size=hidden_size,
+                    hidden_size=hidden_size,
+                ),
             ),
             phi=nn.Sequential(
-                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size), nn.ReLU(),
+                pfrl.agents.iqn.CosineBasisLinear(32, hidden_size),
+                nn.ReLU(),
             ),
             f=nn.Linear(hidden_size, env.action_space.n),
         )
@@ -101,7 +110,8 @@ def test_compute_eltwise_huber_quantile_loss(batch_size, N, N_prime):
 
     loss = iqn.compute_eltwise_huber_quantile_loss(y, t, tau)
     y_b, t_b = torch.broadcast_tensors(
-        y.reshape(batch_size, N, 1), t.reshape(batch_size, 1, N_prime),
+        y.reshape(batch_size, N, 1),
+        t.reshape(batch_size, 1, N_prime),
     )
     assert loss.shape == (batch_size, N, N_prime)
     huber_loss = nn.functional.smooth_l1_loss(y_b, t_b, reduction="none")
@@ -128,10 +138,14 @@ def test_compute_eltwise_huber_quantile_loss(batch_size, N, N_prime):
                     [correct_scalar_loss], [y], retain_graph=True
                 )[0][i, j]
                 torch_assert_allclose(
-                    scalar_loss, correct_scalar_loss, atol=1e-5,
+                    scalar_loss,
+                    correct_scalar_loss,
+                    atol=1e-5,
                 )
                 torch_assert_allclose(
-                    scalar_grad, correct_scalar_grad, atol=1e-5,
+                    scalar_grad,
+                    correct_scalar_grad,
+                    atol=1e-5,
                 )
 
 
@@ -147,5 +161,7 @@ def test_cosine_basis_functions(batch_size, m, n_basis_functions):
         for j in range(m):
             for k in range(n_basis_functions):
                 torch_assert_allclose(
-                    y[i, j, k], torch.cos(x[i, j] * (k + 1) * np.pi), atol=1e-5,
+                    y[i, j, k],
+                    torch.cos(x[i, j] * (k + 1) * np.pi),
+                    atol=1e-5,
                 )

@@ -23,8 +23,9 @@ To test examples, run `test_examples.sh [gpu device id]`. `-1` would run example
 
 We use PEP8. To check your code, use the `black`, `isort`, and `flake8` packages.
 ```
-$ pip install git+git://github.com/psf/black.git flake8 isort
+$ pip install git+git://github.com/psf/black.git flake8 mypy isort
 $ black path/to/your/code.py
 $ flake8 path/to/your/code.py
 $ isort path/to/your/code.py
+$ mypy path/to/your/code.py
 ```

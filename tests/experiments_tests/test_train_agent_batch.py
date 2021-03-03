@@ -33,7 +33,9 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
             ] * 1000
         else:
             # Continuing env
-            env.step.side_effect = [(("state", 1), 0, False, {}),] * 1000
+            env.step.side_effect = [
+                (("state", 1), 0, False, {}),
+            ] * 1000
         return env
 
     vec_env = pfrl.envs.SerialVectorEnv([make_env() for _ in range(num_envs)])
@@ -50,7 +52,6 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
         dummy_eval_score = 42
         side_effect = [None] * (n_evaluate_if_necessary_calls - 1) + [dummy_eval_score]
         evaluator.evaluate_if_necessary.side_effect = side_effect
-        evaluation_hooks = [mock.Mock()]
 
         n_logging = 1  # Since all envs will reach to done==True simultaneously.
         n_valid_eval_score_returned = 1  # Since we simulated eval_interval==steps.
@@ -66,7 +67,6 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
         agent.get_statistics.side_effect = [dummy_stats] * n_get_statistics_calls
     else:
         evaluator = None
-        evaluation_hooks = ()
 
     eval_stats_history = pfrl.experiments.train_agent_batch(
         agent=agent,
@@ -76,7 +76,6 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
         max_episode_len=max_episode_len,
         step_hooks=[hook],
         evaluator=evaluator,
-        evaluation_hooks=evaluation_hooks,
     )
 
     if enable_evaluation:
@@ -138,21 +137,45 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
         assert (
             evaluator.evaluate_if_necessary.call_count == n_evaluate_if_necessary_calls
         )
-        # evaluation_hook receives (env, agent, evaluator, t, eval_score)
-        assert evaluation_hooks[0].call_count == 1
-        args = evaluation_hooks[0].call_args[0]
-        assert args[0] is vec_env
-        assert args[1] is agent
-        assert args[2] is evaluator
-        if steps % num_envs == 0:
-            t = steps
-        else:
-            # `t` is always multiple of `num_envs`.
-            # In this case `t` exceeds `steps`, since each env of `vec_env` will be
-            # executed simultaneously.
-            t = math.ceil(steps / num_envs) * num_envs
-        assert args[3] == t
-        assert args[4] == dummy_eval_score
+
+
+def test_unsupported_evaluation_hook():
+    class UnsupportedEvaluationHook(pfrl.experiments.evaluation_hooks.EvaluationHook):
+        support_train_agent = True
+        support_train_agent_batch = False
+        support_train_agent_async = True
+
+        def __call__(
+            self,
+            env,
+            agent,
+            evaluator,
+            step,
+            eval_stats,
+            agent_stats,
+            env_stats,
+        ):
+            pass
+
+    unsupported_evaluation_hook = UnsupportedEvaluationHook()
+
+    with pytest.raises(ValueError) as exception:
+        pfrl.experiments.train_agent_batch_with_evaluation(
+            agent=mock.Mock(),
+            env=mock.Mock(),
+            steps=1,
+            eval_n_steps=1,
+            eval_n_episodes=None,
+            eval_interval=1,
+            outdir=mock.Mock(),
+            evaluation_hooks=[unsupported_evaluation_hook],
+        )
+
+    assert str(
+        exception.value
+    ) == "{} does not support train_agent_batch_with_evaluation().".format(
+        unsupported_evaluation_hook
+    )
 
 
 class TestTrainAgentBatchNeedsReset(unittest.TestCase):
@@ -195,7 +218,10 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
         vec_env = pfrl.envs.SerialVectorEnv([make_env(i) for i in range(2)])
 
         eval_stats_history = pfrl.experiments.train_agent_batch(
-            agent=agent, env=vec_env, steps=steps, outdir=outdir,
+            agent=agent,
+            env=vec_env,
+            steps=steps,
+            outdir=outdir,
         )
 
         # No evaluation invoked when evaluator=None (default) is passed to

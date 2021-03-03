@@ -168,7 +168,9 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
         )
         if self.recurrent:
             (batch_distrib, batch_v), _ = pack_and_forward(
-                self.model, [batch_obs], self.past_recurrent_state[self.t_start],
+                self.model,
+                [batch_obs],
+                self.past_recurrent_state[self.t_start],
             )
         else:
             batch_distrib, batch_v = self.model(batch_obs)

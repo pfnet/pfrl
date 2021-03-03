@@ -174,7 +174,9 @@ class DistributionalDiscreteActionValue(ActionValue):
 
     def __getitem__(self, i):
         return DistributionalDiscreteActionValue(
-            self.q_dist[i], self.z_values, q_values_formatter=self.q_values_formatter,
+            self.q_dist[i],
+            self.z_values,
+            q_values_formatter=self.q_values_formatter,
         )
 
 
@@ -209,9 +211,11 @@ class QuantileDiscreteActionValue(DiscreteActionValue):
         ]
 
     def __repr__(self):
-        return "QuantileDiscreteActionValue greedy_actions:{} q_values:{}".format(  # NOQA
-            self.greedy_actions.detach().cpu().numpy(),
-            self.q_values_formatter(self.q_values.detach().cpu().numpy()),
+        return (
+            "QuantileDiscreteActionValue greedy_actions:{} q_values:{}".format(  # NOQA
+                self.greedy_actions.detach().cpu().numpy(),
+                self.q_values_formatter(self.q_values.detach().cpu().numpy()),
+            )
         )
 
     @property
@@ -220,7 +224,8 @@ class QuantileDiscreteActionValue(DiscreteActionValue):
 
     def __getitem__(self, i):
         return QuantileDiscreteActionValue(
-            quantiles=self.quantiles[i], q_values_formatter=self.q_values_formatter,
+            quantiles=self.quantiles[i],
+            q_values_formatter=self.q_values_formatter,
         )
 
 
@@ -276,7 +281,9 @@ class QuadraticActionValue(ActionValue):
     @lazy_property
     def max(self):
         if self.min_action is None and self.max_action is None:
-            return self.v.reshape(self.batch_size,)
+            return self.v.reshape(
+                self.batch_size,
+            )
         else:
             return self.evaluate_actions(self.greedy_actions)
 
@@ -288,7 +295,9 @@ class QuadraticActionValue(ActionValue):
                 torch.matmul(u_minus_mu[:, None, :], self.mat), u_minus_mu[:, :, None]
             )[:, 0, 0]
         )
-        return a + self.v.reshape(self.batch_size,)
+        return a + self.v.reshape(
+            self.batch_size,
+        )
 
     def compute_advantage(self, actions):
         return self.evaluate_actions(actions) - self.max

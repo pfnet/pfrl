@@ -26,7 +26,9 @@ class TestRecurrentBranched(unittest.TestCase):
             RecurrentSequential(
                 nn.RNN(num_layers=1, input_size=in_size, hidden_size=out1_size),
             ),
-            RecurrentSequential(nn.Linear(in_size, out2_size),),
+            RecurrentSequential(
+                nn.Linear(in_size, out2_size),
+            ),
         )
 
         if gpu >= 0:

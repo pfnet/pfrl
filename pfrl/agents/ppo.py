@@ -54,7 +54,12 @@ def _add_advantage_and_value_target_to_episodes(episodes, gamma, lambd):
 
 
 def _add_log_prob_and_value_to_episodes_recurrent(
-    episodes, model, phi, batch_states, obs_normalizer, device,
+    episodes,
+    model,
+    phi,
+    batch_states,
+    obs_normalizer,
+    device,
 ):
     # Sort desc by lengths so that pack_sequence does not change the order
     episodes = sorted(episodes, key=len, reverse=True)
@@ -103,7 +108,12 @@ def _add_log_prob_and_value_to_episodes_recurrent(
 
 
 def _add_log_prob_and_value_to_episodes(
-    episodes, model, phi, batch_states, obs_normalizer, device,
+    episodes,
+    model,
+    phi,
+    batch_states,
+    obs_normalizer,
+    device,
 ):
 
     dataset = list(itertools.chain.from_iterable(episodes))
@@ -483,13 +493,19 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
                 advs = (advs - mean_advs) / (std_advs + 1e-8)
 
             log_probs_old = torch.tensor(
-                [b["log_prob"] for b in batch], dtype=torch.float, device=device,
+                [b["log_prob"] for b in batch],
+                dtype=torch.float,
+                device=device,
             )
             vs_pred_old = torch.tensor(
-                [b["v_pred"] for b in batch], dtype=torch.float, device=device,
+                [b["v_pred"] for b in batch],
+                dtype=torch.float,
+                device=device,
             )
             vs_teacher = torch.tensor(
-                [b["v_teacher"] for b in batch], dtype=torch.float, device=device,
+                [b["v_teacher"] for b in batch],
+                dtype=torch.float,
+                device=device,
             )
             # Same shape as vs_pred: (batch_size, 1)
             vs_pred_old = vs_pred_old[..., None]
@@ -528,14 +544,17 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
         seqs_states = []
         for ep in episodes:
             states = self.batch_states(
-                [transition["state"] for transition in ep], self.device, self.phi,
+                [transition["state"] for transition in ep],
+                self.device,
+                self.phi,
             )
             if self.obs_normalizer:
                 states = self.obs_normalizer(states, update=False)
             seqs_states.append(states)
 
         flat_actions = torch.tensor(
-            [transition["action"] for transition in flat_transitions], device=device,
+            [transition["action"] for transition in flat_transitions],
+            device=device,
         )
         flat_advs = torch.tensor(
             [transition["adv"] for transition in flat_transitions],
@@ -628,7 +647,9 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
             loss_value_func = F.mse_loss(vs_pred, vs_teacher)
         else:
             clipped_vs_pred = _elementwise_clip(
-                vs_pred, vs_pred_old - self.clip_eps_vf, vs_pred_old + self.clip_eps_vf,
+                vs_pred,
+                vs_pred_old - self.clip_eps_vf,
+                vs_pred_old + self.clip_eps_vf,
             )
             loss_value_func = torch.mean(
                 torch.max(

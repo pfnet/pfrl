@@ -31,7 +31,15 @@ class _TestDDPGOnABC(_TestTraining):
         )
 
     def make_ddpg_agent(
-        self, env, policy, q_func, actor_opt, critic_opt, explorer, rbuf, gpu,
+        self,
+        env,
+        policy,
+        q_func,
+        actor_opt,
+        critic_opt,
+        explorer,
+        rbuf,
+        gpu,
     ):
         raise NotImplementedError()
 

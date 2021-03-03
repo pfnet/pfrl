@@ -71,19 +71,35 @@ class TestYieldSubsetOfSequencesWithFixedNumberOfItems(unittest.TestCase):
             list(
                 ppo._yield_subset_of_sequences_with_fixed_number_of_items(episodes, 4)
             ),
-            [[[1, 2, 3], [4]], [[5], [6, 7, 8]], [[9], [10, 11, 12]],],
+            [
+                [[1, 2, 3], [4]],
+                [[5], [6, 7, 8]],
+                [[9], [10, 11, 12]],
+            ],
         )
         self.assertEqual(
             list(
                 ppo._yield_subset_of_sequences_with_fixed_number_of_items(episodes, 3)
             ),
-            [[[1, 2, 3]], [[4, 5], [6]], [[7, 8], [9]], [[10, 11, 12]],],
+            [
+                [[1, 2, 3]],
+                [[4, 5], [6]],
+                [[7, 8], [9]],
+                [[10, 11, 12]],
+            ],
         )
         self.assertEqual(
             list(
                 ppo._yield_subset_of_sequences_with_fixed_number_of_items(episodes, 2)
             ),
-            [[[1, 2]], [[3], [4]], [[5], [6]], [[7, 8]], [[9], [10]], [[11, 12]],],
+            [
+                [[1, 2]],
+                [[3], [4]],
+                [[5], [6]],
+                [[7, 8]],
+                [[9], [10]],
+                [[11, 12]],
+            ],
         )
 
 
@@ -101,13 +117,22 @@ class TestLimitSequenceLength(unittest.TestCase):
         )
         self.assertEqual(
             ppo._limit_sequence_length(episodes, 2),
-            [[1, 2], [3], [4, 5], [6, 7], [8], [9],],
+            [
+                [1, 2],
+                [3],
+                [4, 5],
+                [6, 7],
+                [8],
+                [9],
+            ],
         )
         self.assertEqual(
-            ppo._limit_sequence_length(episodes, 3), episodes,
+            ppo._limit_sequence_length(episodes, 3),
+            episodes,
         )
         self.assertEqual(
-            ppo._limit_sequence_length(episodes, 4), episodes,
+            ppo._limit_sequence_length(episodes, 4),
+            episodes,
         )
 
     def test_random(self):
@@ -151,10 +176,15 @@ def test_ppo_dataset_recurrent_and_non_recurrent_equivalence(
     n_actions = 3
 
     non_recurrent_model = pfrl.nn.Branched(
-        nn.Sequential(nn.Linear(obs_size, n_actions), SoftmaxCategoricalHead(),),
+        nn.Sequential(
+            nn.Linear(obs_size, n_actions),
+            SoftmaxCategoricalHead(),
+        ),
         nn.Linear(obs_size, 1),
     )
-    recurrent_model = RecurrentSequential(non_recurrent_model,)
+    recurrent_model = RecurrentSequential(
+        non_recurrent_model,
+    )
 
     dataset = pfrl.agents.ppo._make_dataset(
         episodes=copy.deepcopy(episodes),
@@ -482,7 +512,12 @@ class _TestPPO:
 class TestPPONonRecurrent(_TestPPO):
     @pytest.fixture(autouse=True)
     def set_params(
-        self, clip_eps_vf, lambd, discrete, standardize_advantages, episodic,
+        self,
+        clip_eps_vf,
+        lambd,
+        discrete,
+        standardize_advantages,
+        episodic,
     ):
         self.clip_eps_vf = clip_eps_vf
         self.lambd = lambd
@@ -500,7 +535,12 @@ class TestPPONonRecurrent(_TestPPO):
 class TestPPORecurrent(_TestPPO):
     @pytest.fixture(autouse=True)
     def set_params(
-        self, clip_eps_vf, lambd, discrete, standardize_advantages, episodic,
+        self,
+        clip_eps_vf,
+        lambd,
+        discrete,
+        standardize_advantages,
+        episodic,
     ):
         self.clip_eps_vf = clip_eps_vf
         self.lambd = lambd

@@ -16,14 +16,18 @@ class DoubleDQN(dqn.DQN):
         with evaluating(self.model):
             if self.recurrent:
                 next_qout, _ = pack_and_forward(
-                    self.model, batch_next_state, exp_batch["next_recurrent_state"],
+                    self.model,
+                    batch_next_state,
+                    exp_batch["next_recurrent_state"],
                 )
             else:
                 next_qout = self.model(batch_next_state)
 
         if self.recurrent:
             target_next_qout, _ = pack_and_forward(
-                self.target_model, batch_next_state, exp_batch["next_recurrent_state"],
+                self.target_model,
+                batch_next_state,
+                exp_batch["next_recurrent_state"],
             )
         else:
             target_next_qout = self.target_model(batch_next_state)

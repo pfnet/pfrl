@@ -117,7 +117,9 @@ class CategoricalDQN(dqn.DQN):
         batch_next_state = exp_batch["next_state"]
         if self.recurrent:
             target_next_qout, _ = pack_and_forward(
-                self.target_model, batch_next_state, exp_batch["next_recurrent_state"],
+                self.target_model,
+                batch_next_state,
+                exp_batch["next_recurrent_state"],
             )
         else:
             target_next_qout = self.target_model(batch_next_state)
