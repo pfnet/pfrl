@@ -27,7 +27,7 @@ class TestBatchStates(unittest.TestCase):
         self.assertIsInstance(batch, tuple)
         batch_a, batch_b, batch_c = batch
         np.testing.assert_allclose(
-            batch_a,
+            batch_a.cpu(),
             np.asarray(
                 [
                     [[0, 2], [4, 6]],
@@ -35,9 +35,9 @@ class TestBatchStates(unittest.TestCase):
                 ]
             ),
         )
-        np.testing.assert_allclose(batch_b, np.asarray([0, 1]))
+        np.testing.assert_allclose(batch_b.cpu(), np.asarray([0, 1]))
         np.testing.assert_allclose(
-            batch_c,
+            batch_c.cpu(),
             np.asarray(
                 [
                     [0],
