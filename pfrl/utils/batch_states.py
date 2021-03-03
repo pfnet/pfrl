@@ -30,4 +30,7 @@ def batch_states(
     """
     features = [phi(s) for s in states]
     # return concat_examples(features, device=device)
-    return _to_recursive(default_collate(features), device)
+    collated_features = default_collate(features)
+    if isinstance(features[0], tuple):
+        collated_features = tuple(collated_features)
+    return _to_recursive(collated_features, device)
