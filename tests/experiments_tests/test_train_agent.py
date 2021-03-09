@@ -132,3 +132,48 @@ class TestTrainAgent(unittest.TestCase):
         ) == "{} does not support train_agent_with_evaluation().".format(
             unsupported_evaluation_hook
         )
+
+
+@pytest.mark.parametrize("eval_during_episode", [False, True])
+def test_eval_during_episode(eval_during_episode):
+
+    outdir = tempfile.mkdtemp()
+
+    agent = mock.MagicMock()
+    env = mock.Mock()
+    # Two episodes
+    env.reset.side_effect = [("state", 0)] * 2
+    env.step.side_effect = [
+        (("state", 1), 0, False, {}),
+        (("state", 2), 0, False, {}),
+        (("state", 3), -0.5, True, {}),
+        (("state", 4), 0, False, {}),
+        (("state", 5), 1, True, {}),
+    ]
+
+    evaluator = mock.Mock()
+    pfrl.experiments.train_agent(
+        agent=agent,
+        env=env,
+        steps=5,
+        outdir=outdir,
+        evaluator=evaluator,
+        eval_during_episode=eval_during_episode,
+    )
+
+    if eval_during_episode:
+        # Must be called every timestep
+        assert evaluator.evaluate_if_necessary.call_count == 5
+        for i, call in enumerate(evaluator.evaluate_if_necessary.call_args_list):
+            kwargs = call[1]
+            assert i + 1 == kwargs["t"]
+            assert kwargs["episodes"] == int(i >= 2) + int(i >= 4)
+    else:
+        # Must be called after every episode
+        assert evaluator.evaluate_if_necessary.call_count == 2
+        first_kwargs = evaluator.evaluate_if_necessary.call_args_list[0][1]
+        second_kwargs = evaluator.evaluate_if_necessary.call_args_list[1][1]
+        assert first_kwargs["t"] == 3
+        assert first_kwargs["episodes"] == 1
+        assert second_kwargs["t"] == 5
+        assert second_kwargs["episodes"] == 2

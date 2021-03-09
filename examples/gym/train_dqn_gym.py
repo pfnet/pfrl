@@ -211,6 +211,12 @@ def main():
 
     elif not args.actor_learner:
 
+        print(
+            "WARNING: Since https://github.com/pfnet/pfrl/pull/112 we have started"
+            " setting `eval_during_episode=True` in this script, which affects the"
+            " timings of evaluation phases."
+        )
+
         experiments.train_agent_with_evaluation(
             agent=agent,
             env=env,
@@ -221,6 +227,7 @@ def main():
             outdir=args.outdir,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
+            eval_during_episode=True,
         )
     else:
         # using impala mode when given num of envs
