@@ -208,7 +208,7 @@ def train_agent_async(
             other thread raised an excpetion. The train will be terminated and
             the current agent will be saved.
             If set to None, a new Event object is created and used internally.
-        use_shared_memory (bool): Prevent using shared memory.
+        use_shared_memory (bool): Share memory amongst asynchronous agents.
 
     Returns:
         Trained agent.
