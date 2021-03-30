@@ -21,6 +21,7 @@ class ComputeSuccessRate(gym.Wrapper):
     Attributes:
         success_record: list of successes
     """
+
     def __init__(self, env):
         super().__init__(env)
         self.success_record = []
@@ -72,7 +73,7 @@ class ClipObservation(gym.ObservationWrapper):
 class EpsilonGreedyWithGaussianNoise(pfrl.explorer.Explorer):
     """Epsilon-Greedy with Gaussian noise.
 
-    This type of explorer was used in 
+    This type of explorer was used in
     https://github.com/openai/baselines/tree/master/baselines/her
     """
 
@@ -145,12 +146,18 @@ def main():
         default=5 * 10 ** 2,
         help="Minimum replay buffer size before performing gradient updates.",
     )
-    parser.add_argument("--replay-strategy",
-                        default="future",
-                        choices=["future", "final"],
-                        help="The replay strategy to use",)
-    parser.add_argument("--no-hindsight", action="store_true", default=False,
-                        help="Do not use Hindsight Replay")
+    parser.add_argument(
+        "--replay-strategy",
+        default="future",
+        choices=["future", "final"],
+        help="The replay strategy to use",
+    )
+    parser.add_argument(
+        "--no-hindsight",
+        action="store_true",
+        default=False,
+        help="Do not use Hindsight Replay",
+    )
     parser.add_argument("--eval-n-episodes", type=int, default=10)
     parser.add_argument("--eval-interval", type=int, default=500)
     parser.add_argument(
