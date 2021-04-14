@@ -107,7 +107,7 @@ Any kind of contribution to PFRL would be highly appreciated! If you are interes
 
 ## Citations
 
-To cite PFRL in publications, cite our predecessor library:
+To cite PFRL in publications, please cite our [paper](https://www.jmlr.org/papers/v22/20-376.html) on ChainerRL, the library on which PFRL is based:
 
 ```
 @article{JMLR:v22:20-376,
