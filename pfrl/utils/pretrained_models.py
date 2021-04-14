@@ -31,7 +31,7 @@ MODELS = {
     "SAC": ["best", "final"],
 }
 
-download_url = "https://chainer-assets.preferred.jp/pfrl/"
+download_url = "https://pfrl-assets.preferred.jp/"
 
 
 def _get_model_directory(model_name, create_directory=True):
