@@ -34,6 +34,10 @@ You can try [PFRL Quickstart Guide](examples/quickstart/quickstart.ipynb) first,
 
 For more information, you can refer to [PFRL's documentation](http://pfrl.readthedocs.io/en/latest/index.html).
 
+### External Blog Posts
+- [Introducing PFRL: A PyTorch-based Deep RL Library](https://t.co/VaT06nejSC?amp=1)
+- [PFRL’s Pretrained Model Zoo](https://bit.ly/3fNx5xH)
+
 ## Algorithms
 
 | Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training | Pretrained models<sup>*</sup> |
