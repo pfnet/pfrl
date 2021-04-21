@@ -169,6 +169,7 @@ def train_agent_async(
     random_seeds=None,
     stop_event=None,
     exception_event=None,
+    use_shared_memory=True,
 ):
     """Train agent asynchronously using multiprocessing.
 
@@ -210,11 +211,11 @@ def train_agent_async(
             other thread raised an excpetion. The train will be terminated and
             the current agent will be saved.
             If set to None, a new Event object is created and used internally.
+        use_shared_memory (bool): Share memory amongst asynchronous agents.
 
     Returns:
         Trained agent.
     """
-
     logger = logger or logging.getLogger(__name__)
 
     for hook in evaluation_hooks:
@@ -233,22 +234,23 @@ def train_agent_async(
     if exception_event is None:
         exception_event = mp.Event()
 
-    if agent is None:
-        assert make_agent is not None
-        agent = make_agent(0)
+    if use_shared_memory:
+        if agent is None:
+            assert make_agent is not None
+            agent = make_agent(0)
 
-    # Move model and optimizer states in shared memory
-    for attr in agent.shared_attributes:
-        attr_value = getattr(agent, attr)
-        if isinstance(attr_value, nn.Module):
-            for k, v in attr_value.state_dict().items():
-                v.share_memory_()
-        elif isinstance(attr_value, torch.optim.Optimizer):
-            for param, state in attr_value.state_dict()["state"].items():
-                assert isinstance(state, dict)
-                for k, v in state.items():
-                    if isinstance(v, torch.Tensor):
-                        v.share_memory_()
+        # Move model and optimizer states in shared memory
+        for attr in agent.shared_attributes:
+            attr_value = getattr(agent, attr)
+            if isinstance(attr_value, nn.Module):
+                for k, v in attr_value.state_dict().items():
+                    v.share_memory_()
+            elif isinstance(attr_value, torch.optim.Optimizer):
+                for param, state in attr_value.state_dict()["state"].items():
+                    assert isinstance(state, dict)
+                    for k, v in state.items():
+                        if isinstance(v, torch.Tensor):
+                            v.share_memory_()
 
     if eval_interval is None:
         evaluator = None
@@ -280,8 +282,9 @@ def train_agent_async(
             eval_env = make_env(process_idx, test=True)
         if make_agent is not None:
             local_agent = make_agent(process_idx)
-            for attr in agent.shared_attributes:
-                setattr(local_agent, attr, getattr(agent, attr))
+            if use_shared_memory:
+                for attr in agent.shared_attributes:
+                    setattr(local_agent, attr, getattr(agent, attr))
         else:
             local_agent = agent
         local_agent.process_idx = process_idx
