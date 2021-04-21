@@ -98,4 +98,3 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
 
     def clear(self):
         self.initialize_memory(self.capacity)
-
