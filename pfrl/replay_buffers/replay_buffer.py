@@ -25,7 +25,7 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
         self.capacity = capacity
         assert num_steps > 0
         self.num_steps = num_steps
-        self.memory = RandomAccessQueue(maxlen=capacity)
+        self.initialize_memory(capacity)
         self.last_n_transitions: collections.defaultdict = collections.defaultdict(
             lambda: collections.deque([], maxlen=num_steps)
         )
@@ -92,3 +92,10 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
         if isinstance(self.memory, collections.deque):
             # Load v0.2
             self.memory = RandomAccessQueue(self.memory, maxlen=self.memory.maxlen)
+
+    def initialize_memory(self, capacity):
+        self.memory = RandomAccessQueue(maxlen=capacity)
+
+    def clear(self):
+        self.initialize_memory(self.capacity)
+
