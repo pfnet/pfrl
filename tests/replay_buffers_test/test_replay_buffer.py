@@ -66,6 +66,30 @@ class TestReplayBuffer:
             assert s2[1] == list(correct_item)
             assert s2[0] == list(correct_item2)
 
+    def test_clear(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        assert len(rbuf) == 0
+
+        # Add one and sample one
+        correct_item = collections.deque([], maxlen=num_steps)
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            correct_item.append(trans1)
+            rbuf.append(**trans1)
+        assert len(rbuf) == 1
+        rbuf.clear()
+        assert len(rbuf) == 0
+
     def test_append_and_terminate(self):
         capacity = self.capacity
         num_steps = self.num_steps
