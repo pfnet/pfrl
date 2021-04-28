@@ -161,7 +161,7 @@ def _yield_subset_of_sequences_with_fixed_number_of_items(sequences, n_items):
     while stack:
         subset = []
         count = 0
-        while count < n_items:
+        while count < n_items and stack:
             sequence = stack.pop()
             subset.append(sequence)
             count += len(sequence)
@@ -172,8 +172,11 @@ def _yield_subset_of_sequences_with_fixed_number_of_items(sequences, n_items):
             assert n_exceeds > 0
             subset[-1] = sequence_to_split[:-n_exceeds]
             stack.append(sequence_to_split[-n_exceeds:])
-        assert sum(len(seq) for seq in subset) == n_items
-        yield subset
+        if sum(len(seq) for seq in subset) == n_items:
+            yield subset
+        else:
+            # This ends the while loop.
+            assert len(stack) == 0
 
 
 def _compute_explained_variance(transitions):
