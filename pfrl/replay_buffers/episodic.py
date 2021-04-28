@@ -12,9 +12,8 @@ class EpisodicReplayBuffer(AbstractEpisodicReplayBuffer):
     capacity: Optional[int] = None
 
     def __init__(self, capacity=None):
-        self.current_episode = collections.defaultdict(list)
-        self.episodic_memory = RandomAccessQueue()
-        self.memory = RandomAccessQueue()
+        # initialize data structures
+        self.clear()
         self.capacity = capacity
 
     def append(
@@ -97,3 +96,9 @@ class EpisodicReplayBuffer(AbstractEpisodicReplayBuffer):
                 for _ in range(len(discarded_episode)):
                     self.memory.popleft()
         assert not self.current_episode[env_id]
+
+    def clear(self):
+        self.current_episode = collections.defaultdict(list)
+        self.episodic_memory = RandomAccessQueue()
+        self.memory = RandomAccessQueue()
+

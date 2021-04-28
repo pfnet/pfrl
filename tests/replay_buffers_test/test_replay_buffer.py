@@ -272,6 +272,32 @@ class TestEpisodicReplayBuffer:
                     assert t0["next_state"] == t1["state"]
                     assert t0["next_action"] == t1["action"]
 
+    def test_clear(self):
+        capacity = self.capacity
+        rbuf = replay_buffers.EpisodicReplayBuffer(capacity)
+        assert len(rbuf) == 0
+        assert rbuf.n_episodes == 0
+        for n in [10, 15, 5] * 3:
+            transs = [
+                dict(
+                    state=i,
+                    action=100 + i,
+                    reward=200 + i,
+                    next_state=i + 1,
+                    next_action=101 + i,
+                    is_state_terminal=(i == n - 1),
+                )
+                for i in range(n)
+            ]
+            for trans in transs:
+                rbuf.append(**trans)
+
+        assert len(rbuf) == 90
+        assert rbuf.n_episodes == 9
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert rbuf.n_episodes == 0
+
     def test_save_and_load(self):
         capacity = self.capacity
 
