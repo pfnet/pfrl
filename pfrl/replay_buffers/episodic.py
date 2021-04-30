@@ -13,7 +13,7 @@ class EpisodicReplayBuffer(AbstractEpisodicReplayBuffer):
 
     def __init__(self, capacity=None):
         # initialize data structures
-        self.clear()
+        self.initialize_memory()
         self.capacity = capacity
 
     def append(
@@ -97,8 +97,11 @@ class EpisodicReplayBuffer(AbstractEpisodicReplayBuffer):
                     self.memory.popleft()
         assert not self.current_episode[env_id]
 
-    def clear(self):
+    def initialize_memory(self):
         self.current_episode = collections.defaultdict(list)
         self.episodic_memory = RandomAccessQueue()
         self.memory = RandomAccessQueue()
+
+    def clear(self):
+        self.initialize_memory()
 
