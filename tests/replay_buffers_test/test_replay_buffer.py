@@ -751,6 +751,9 @@ class TestReplayBufferWithEnvID:
 
         # Finally it should have 9 + 2 + 4 = 15 transitions
         assert len(rbuf) == 15
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert len(rbuf.last_n_transitions) == 0
 
 
 @pytest.mark.parametrize(
@@ -817,6 +820,9 @@ class TestEpisodicReplayBufferWithEnvID:
 
         # Finally it should have 4 + 2 + 9 = 15 transitions
         assert len(rbuf) == 15
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert len(rbuf.current_episode) == 0
 
 
 class TestReplayBufferFail(unittest.TestCase):

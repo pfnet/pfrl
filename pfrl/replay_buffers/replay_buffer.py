@@ -25,10 +25,7 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
         self.capacity = capacity
         assert num_steps > 0
         self.num_steps = num_steps
-        self.initialize_memory(capacity)
-        self.last_n_transitions: collections.defaultdict = collections.defaultdict(
-            lambda: collections.deque([], maxlen=num_steps)
-        )
+        self.initialize_memory(capacity, num_steps)
 
     def append(
         self,
@@ -93,8 +90,12 @@ class ReplayBuffer(replay_buffer.AbstractReplayBuffer):
             # Load v0.2
             self.memory = RandomAccessQueue(self.memory, maxlen=self.memory.maxlen)
 
-    def initialize_memory(self, capacity):
+    def initialize_memory(self, capacity, num_steps):
         self.memory = RandomAccessQueue(maxlen=capacity)
+        self.last_n_transitions: collections.defaultdict = collections.defaultdict(
+            lambda: collections.deque([], maxlen=num_steps)
+        )
 
     def clear(self):
-        self.initialize_memory(self.capacity)
+        self.initialize_memory(self.capacity, self.num_steps)
+
