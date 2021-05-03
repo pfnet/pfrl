@@ -99,6 +99,24 @@ class PrioritizedReplayBuffer(ReplayBuffer, PriorityWeightError):
         self.capacity = capacity
         assert num_steps > 0
         self.num_steps = num_steps
+        self.beta0 = beta0
+        self.betasteps = betasteps
+        self.initialize_memory(capacity, num_steps, alpha, beta0, betasteps,
+                               eps, normalize_by_max, error_min, error_max)
+
+    def sample(self, n):
+        assert len(self.memory) >= n
+        sampled, probabilities, min_prob = self.memory.sample(n)
+        weights = self.weights_from_probabilities(probabilities, min_prob)
+        for e, w in zip(sampled, weights):
+            e[0]["weight"] = w
+        return sampled
+
+    def update_errors(self, errors):
+        self.memory.set_last_priority(self.priority_from_errors(errors))
+
+    def initialize_memory(self, capacity, num_steps, alpha, beta0, betasteps,
+                          eps, normalize_by_max, error_min, error_max):
         self.memory = PrioritizedBuffer(capacity=capacity)
         self.last_n_transitions = collections.defaultdict(
             lambda: collections.deque([], maxlen=num_steps)
@@ -114,13 +132,6 @@ class PrioritizedReplayBuffer(ReplayBuffer, PriorityWeightError):
             error_max=error_max,
         )
 
-    def sample(self, n):
-        assert len(self.memory) >= n
-        sampled, probabilities, min_prob = self.memory.sample(n)
-        weights = self.weights_from_probabilities(probabilities, min_prob)
-        for e, w in zip(sampled, weights):
-            e[0]["weight"] = w
-        return sampled
-
-    def update_errors(self, errors):
-        self.memory.set_last_priority(self.priority_from_errors(errors))
+    def clear(self):
+        self.initialize_memory(self.capacity, self.num_steps, self.alpha, self.beta0, self.betasteps,
+                               self.eps, self.normalize_by_max, self.error_min, self.error_max)

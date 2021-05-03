@@ -66,6 +66,30 @@ class TestReplayBuffer:
             assert s2[1] == list(correct_item)
             assert s2[0] == list(correct_item2)
 
+    def test_clear(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        assert len(rbuf) == 0
+
+        # Add one and sample one
+        correct_item = collections.deque([], maxlen=num_steps)
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            correct_item.append(trans1)
+            rbuf.append(**trans1)
+        assert len(rbuf) == 1
+        rbuf.clear()
+        assert len(rbuf) == 0
+
     def test_append_and_terminate(self):
         capacity = self.capacity
         num_steps = self.num_steps
@@ -247,6 +271,32 @@ class TestEpisodicReplayBuffer:
                 for t0, t1 in zip(ep, ep[1:]):
                     assert t0["next_state"] == t1["state"]
                     assert t0["next_action"] == t1["action"]
+
+    def test_clear(self):
+        capacity = self.capacity
+        rbuf = replay_buffers.EpisodicReplayBuffer(capacity)
+        assert len(rbuf) == 0
+        assert rbuf.n_episodes == 0
+        for n in [10, 15, 5] * 3:
+            transs = [
+                dict(
+                    state=i,
+                    action=100 + i,
+                    reward=200 + i,
+                    next_state=i + 1,
+                    next_action=101 + i,
+                    is_state_terminal=(i == n - 1),
+                )
+                for i in range(n)
+            ]
+            for trans in transs:
+                rbuf.append(**trans)
+
+        assert len(rbuf) == 90
+        assert rbuf.n_episodes == 9
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert rbuf.n_episodes == 0
 
     def test_save_and_load(self):
         capacity = self.capacity
@@ -701,6 +751,9 @@ class TestReplayBufferWithEnvID:
 
         # Finally it should have 9 + 2 + 4 = 15 transitions
         assert len(rbuf) == 15
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert len(rbuf.last_n_transitions) == 0
 
 
 @pytest.mark.parametrize(
@@ -767,6 +820,9 @@ class TestEpisodicReplayBufferWithEnvID:
 
         # Finally it should have 4 + 2 + 9 = 15 transitions
         assert len(rbuf) == 15
+        rbuf.clear()
+        assert len(rbuf) == 0
+        assert len(rbuf.current_episode) == 0
 
 
 class TestReplayBufferFail(unittest.TestCase):
