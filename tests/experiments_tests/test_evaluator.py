@@ -190,25 +190,32 @@ def test_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
 
     if n_episodes:
         with pytest.raises(AssertionError):
-            scores = evaluator.run_evaluation_episodes(
+            scores, lengths = evaluator.run_evaluation_episodes(
                 env, agent, n_steps=n_steps, n_episodes=n_episodes
             )
     else:
-        scores = evaluator.run_evaluation_episodes(
+        scores, lengths = evaluator.run_evaluation_episodes(
             env, agent, n_steps=n_steps, n_episodes=n_episodes
         )
         assert agent.act.call_count == n_steps
         assert agent.observe.call_count == n_steps
         if n_steps == 2:
             assert len(scores) == 1
+            assert len(lengths) == 1
             np.testing.assert_allclose(scores[0], 0.3)
+            np.testing.assert_allclose(lengths[0], 2)
         elif n_steps == 5:
             assert len(scores) == 1
+            assert len(lengths) == 1
             np.testing.assert_allclose(scores[0], 0.6)
+            np.testing.assert_allclose(lengths[0], 3)
         else:
             assert len(scores) == 2
+            assert len(lengths) == 2
             np.testing.assert_allclose(scores[0], 0.6)
             np.testing.assert_allclose(scores[1], 0.5)
+            np.testing.assert_allclose(lengths[0], 3)
+            np.testing.assert_allclose(lengths[1], 3)
 
 
 class TestRunEvaluationEpisode(unittest.TestCase):
@@ -227,12 +234,16 @@ class TestRunEvaluationEpisode(unittest.TestCase):
             (("state", 6), 0, False, {}),
             (("state", 7), 1, True, {}),
         ]
-        scores = evaluator.run_evaluation_episodes(
+        scores, lengths = evaluator.run_evaluation_episodes(
             env, agent, n_steps=None, n_episodes=2
         )
         assert len(scores) == 2
+        assert len(lengths) == 2
+
         np.testing.assert_allclose(scores[0], 0)
         np.testing.assert_allclose(scores[1], 0.5)
+        np.testing.assert_allclose(lengths[0], 3)
+        np.testing.assert_allclose(lengths[1], 3)
         assert agent.act.call_count == 6
         assert agent.observe.call_count == 6
 

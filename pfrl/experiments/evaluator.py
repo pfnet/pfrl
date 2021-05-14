@@ -56,6 +56,7 @@ def _run_episodes(
     # If all steps were used for a single unfinished episode
     if len(scores) == 0:
         scores.append(float(test_r))
+        lengths.append(float(episode_len))
         logger.info(
             "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
         )
