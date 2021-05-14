@@ -57,7 +57,7 @@ def _run_episodes(
         logger.info(
             "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
         )
-    return scores
+    return scores, episode_len
 
 
 def run_evaluation_episodes(
@@ -207,7 +207,7 @@ def _batch_run_episodes(
         zip(eval_episode_lens, eval_episode_returns)
     ):
         logger.info("evaluation episode %s length: %s R: %s", i, epi_len, epi_ret)
-    return [float(r) for r in eval_episode_returns]
+    return [float(r) for r in eval_episode_returns], [int(t) for t in eval_episode_lens]
 
 
 def batch_run_evaluation_episodes(
@@ -268,7 +268,7 @@ def eval_performance(
     assert (n_steps is None) != (n_episodes is None)
 
     if isinstance(env, pfrl.env.VectorEnv):
-        scores = batch_run_evaluation_episodes(
+        scores, episode_length = batch_run_evaluation_episodes(
             env,
             agent,
             n_steps,
@@ -277,7 +277,7 @@ def eval_performance(
             logger=logger,
         )
     else:
-        scores = run_evaluation_episodes(
+        scores, episode_length = run_evaluation_episodes(
             env,
             agent,
             n_steps,
@@ -292,6 +292,9 @@ def eval_performance(
         stdev=statistics.stdev(scores) if len(scores) >= 2 else 0.0,
         max=np.max(scores),
         min=np.min(scores),
+        episode_length_max=np.max(episode_length),
+        episode_length_min=np.min(episode_length),
+        episode_length_mean=np.mean(episode_length),
     )
     return stats
 
