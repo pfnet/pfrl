@@ -26,6 +26,10 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
     env.step.return_value = ("obs", 0, True, {})
     env.get_statistics.return_value = []
 
+    evaluation_hook = mock.create_autospec(
+        spec=pfrl.experiments.evaluation_hooks.EvaluationHook
+    )
+
     either_none = (n_steps is None) != (n_episodes is None)
     if not either_none:
         with pytest.raises(AssertionError):
@@ -38,6 +42,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
                 outdir=outdir,
                 max_episode_len=None,
                 step_offset=0,
+                evaluation_hooks=[evaluation_hook],
                 save_best_so_far_agent=save_best_so_far_agent,
             )
     else:
@@ -51,19 +56,23 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
             outdir=outdir,
             max_episode_len=None,
             step_offset=0,
+            evaluation_hooks=[evaluation_hook],
             save_best_so_far_agent=save_best_so_far_agent,
         )
 
         agent_evaluator.evaluate_if_necessary(t=1, episodes=1)
         assert agent.act.call_count == 0
+        assert evaluation_hook.call_count == 0
 
         agent_evaluator.evaluate_if_necessary(t=2, episodes=2)
         assert agent.act.call_count == 0
+        assert evaluation_hook.call_count == 0
 
         # First evaluation
         agent_evaluator.evaluate_if_necessary(t=3, episodes=3)
         assert agent.act.call_count == value
         assert agent.observe.call_count == value
+        assert evaluation_hook.call_count == 1
         if save_best_so_far_agent:
             assert agent.save.call_count == 1
         else:
@@ -73,6 +82,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
         agent_evaluator.evaluate_if_necessary(t=6, episodes=6)
         assert agent.act.call_count == 2 * value
         assert agent.observe.call_count == 2 * value
+        assert evaluation_hook.call_count == 2
         if save_best_so_far_agent:
             assert agent.save.call_count == 1
         else:
@@ -83,6 +93,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
         agent_evaluator.evaluate_if_necessary(t=9, episodes=9)
         assert agent.act.call_count == 3 * value
         assert agent.observe.call_count == 3 * value
+        assert evaluation_hook.call_count == 3
         if save_best_so_far_agent:
             assert agent.save.call_count == 2
         else:
@@ -104,6 +115,10 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
     env.step.return_value = ("obs", 0, True, {})
     env.get_statistics.return_value = []
 
+    evaluation_hook = mock.create_autospec(
+        spec=pfrl.experiments.evaluation_hooks.EvaluationHook
+    )
+
     agent_evaluator = evaluator.AsyncEvaluator(
         n_steps=None,
         n_episodes=n_episodes,
@@ -111,19 +126,23 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
         outdir=outdir,
         max_episode_len=None,
         step_offset=0,
+        evaluation_hooks=[evaluation_hook],
         save_best_so_far_agent=save_best_so_far_agent,
     )
 
     agent_evaluator.evaluate_if_necessary(t=1, episodes=1, env=env, agent=agent)
     assert agent.act.call_count == 0
+    assert evaluation_hook.call_count == 0
 
     agent_evaluator.evaluate_if_necessary(t=2, episodes=2, env=env, agent=agent)
     assert agent.act.call_count == 0
+    assert evaluation_hook.call_count == 0
 
     # First evaluation
     agent_evaluator.evaluate_if_necessary(t=3, episodes=3, env=env, agent=agent)
     assert agent.act.call_count == n_episodes
     assert agent.observe.call_count == n_episodes
+    assert evaluation_hook.call_count == 1
     if save_best_so_far_agent:
         assert agent.save.call_count == 1
     else:
@@ -133,6 +152,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
     agent_evaluator.evaluate_if_necessary(t=6, episodes=6, env=env, agent=agent)
     assert agent.act.call_count == 2 * n_episodes
     assert agent.observe.call_count == 2 * n_episodes
+    assert evaluation_hook.call_count == 2
     if save_best_so_far_agent:
         assert agent.save.call_count == 1
     else:
@@ -143,6 +163,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
     agent_evaluator.evaluate_if_necessary(t=9, episodes=9, env=env, agent=agent)
     assert agent.act.call_count == 3 * n_episodes
     assert agent.observe.call_count == 3 * n_episodes
+    assert evaluation_hook.call_count == 3
     if save_best_so_far_agent:
         assert agent.save.call_count == 2
     else:
