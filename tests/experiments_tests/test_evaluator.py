@@ -286,24 +286,30 @@ def test_batch_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
     vec_env = pfrl.envs.SerialVectorEnv([make_env(i) for i in range(2)])
     if n_episodes:
         with pytest.raises(AssertionError):
-            scores = evaluator.batch_run_evaluation_episodes(
+            scores, lengths = evaluator.batch_run_evaluation_episodes(
                 vec_env, agent, n_steps=n_steps, n_episodes=n_episodes
             )
     else:
         # First Env:  [1   2   (3_a)  5  6   (7_a)]
         # Second Env: [(1)(3_b) 5     6 (7_b)]
-        scores = evaluator.batch_run_evaluation_episodes(
+        scores, lengths = evaluator.batch_run_evaluation_episodes(
             vec_env, agent, n_steps=n_steps, n_episodes=n_episodes
         )
         if n_steps == 2:
             assert len(scores) == 1
+            assert len(lengths) == 1
             np.testing.assert_allclose(scores[0], 0.1)
+            np.testing.assert_allclose(lengths[0], 2)
             assert agent.batch_observe.call_count == 2
         else:
             assert len(scores) == 3
+            assert len(lengths) == 3
             np.testing.assert_allclose(scores[0], 0.3)
             np.testing.assert_allclose(scores[1], 2.0)
             np.testing.assert_allclose(scores[2], 3.0)
+            np.testing.assert_allclose(lengths[0], 3)
+            np.testing.assert_allclose(lengths[1], 1)
+            np.testing.assert_allclose(lengths[2], 1)
         # batch_reset should be all True
         assert all(agent.batch_observe.call_args[0][3])
 
@@ -347,13 +353,18 @@ class TestBatchRunEvaluationEpisode(unittest.TestCase):
         # First Env: [1 2 (3_a) 5 6 (7_a)]
         # Second Env: [(1) (3_b) 5 6 (7_b)]
         # Results: (1), (3a), (3b), (7b)
-        scores = evaluator.batch_run_evaluation_episodes(
+        scores, lengths = evaluator.batch_run_evaluation_episodes(
             vec_env, agent, n_steps=None, n_episodes=4
         )
         assert len(scores) == 4
+        assert len(lengths) == 4
         np.testing.assert_allclose(scores[0], 0)
         np.testing.assert_allclose(scores[1], 2)
         np.testing.assert_allclose(scores[2], 3)
         np.testing.assert_allclose(scores[3], 0.4)
+        np.testing.assert_allclose(lengths[0], 3)
+        np.testing.assert_allclose(lengths[1], 1)
+        np.testing.assert_allclose(lengths[2], 1)
+        np.testing.assert_allclose(lengths[3], 3)
         # batch_reset should be all True
         assert all(agent.batch_observe.call_args[0][3])
