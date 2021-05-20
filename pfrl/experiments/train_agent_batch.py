@@ -19,7 +19,6 @@ def train_agent_batch(
     evaluator=None,
     successful_score=None,
     step_hooks=(),
-    evaluation_hooks=(),
     return_window_size=100,
     logger=None,
 ):
@@ -41,9 +40,6 @@ def train_agent_batch(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
-        evaluation_hooks (Sequence): Sequence of callable objects that accepts
-            (env, agent, evaluator, step, eval_score) as arguments. They are
-            called every evaluation. See pfrl.experiments.evaluation_hooks.
         logger (logging.Logger): Logger used in this function.
     Returns:
         List of evaluation episode stats dict.
@@ -130,8 +126,6 @@ def train_agent_batch(
                     eval_stats = dict(agent.get_statistics())
                     eval_stats["eval_score"] = eval_score
                     eval_stats_history.append(eval_stats)
-                    for hook in evaluation_hooks:
-                        hook(env, agent, evaluator, t, eval_score)
                     if (
                         successful_score is not None
                         and evaluator.max_score >= successful_score
@@ -179,6 +173,7 @@ def train_agent_batch_with_evaluation(
     step_hooks=(),
     evaluation_hooks=(),
     save_best_so_far_agent=True,
+    use_tensorboard=False,
     logger=None,
 ):
     """Train an agent while regularly evaluating it.
@@ -205,12 +200,13 @@ def train_agent_batch_with_evaluation(
         step_hooks (Sequence): Sequence of callable objects that accepts
             (env, agent, step) as arguments. They are called every step.
             See pfrl.experiments.hooks.
-        evaluation_hooks (Sequence): Sequence of callable objects that accepts
-            (env, agent, evaluator, step, eval_score) as arguments. They are
-            called every evaluation. See pfrl.experiments.evaluation_hooks.
+        evaluation_hooks (Sequence): Sequence of
+            pfrl.experiments.evaluation_hooks.EvaluationHook objects. They are
+            called after each evaluation.
         save_best_so_far_agent (bool): If set to True, after each evaluation,
             if the score (= mean return of evaluation episodes) exceeds
             the best-so-far score, the current agent is saved.
+        use_tensorboard (bool): Additionally log eval stats to tensorboard
         logger (logging.Logger): Logger used in this function.
     Returns:
         agent: Trained agent.
@@ -218,6 +214,12 @@ def train_agent_batch_with_evaluation(
     """
 
     logger = logger or logging.getLogger(__name__)
+
+    for hook in evaluation_hooks:
+        if not hook.support_train_agent_batch:
+            raise ValueError(
+                "{} does not support train_agent_batch_with_evaluation().".format(hook)
+            )
 
     os.makedirs(outdir, exist_ok=True)
 
@@ -236,7 +238,9 @@ def train_agent_batch_with_evaluation(
         max_episode_len=eval_max_episode_len,
         env=eval_env,
         step_offset=step_offset,
+        evaluation_hooks=evaluation_hooks,
         save_best_so_far_agent=save_best_so_far_agent,
+        use_tensorboard=use_tensorboard,
         logger=logger,
     )
 
@@ -253,7 +257,6 @@ def train_agent_batch_with_evaluation(
         return_window_size=return_window_size,
         log_interval=log_interval,
         step_hooks=step_hooks,
-        evaluation_hooks=evaluation_hooks,
         logger=logger,
     )
 

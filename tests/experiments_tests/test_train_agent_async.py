@@ -112,6 +112,39 @@ def test_train_agent_async(num_envs, max_episode_len):
     agent.save.assert_called_once_with(os.path.join(outdir, "{}_finish".format(steps)))
 
 
+def test_unsupported_evaluation_hook():
+    class UnsupportedEvaluationHook(pfrl.experiments.evaluation_hooks.EvaluationHook):
+        support_train_agent = True
+        support_train_agent_batch = True
+        support_train_agent_async = False
+
+        def __call__(
+            self,
+            env,
+            agent,
+            evaluator,
+            step,
+            eval_stats,
+            agent_stats,
+            env_stats,
+        ):
+            pass
+
+    unsupported_evaluation_hook = UnsupportedEvaluationHook()
+
+    with pytest.raises(ValueError) as exception:
+        pfrl.experiments.train_agent_async(
+            outdir=mock.Mock(),
+            processes=mock.Mock(),
+            make_env=mock.Mock(),
+            evaluation_hooks=[unsupported_evaluation_hook],
+        )
+
+    assert str(exception.value) == "{} does not support train_agent_async().".format(
+        unsupported_evaluation_hook
+    )
+
+
 class TestTrainLoop(unittest.TestCase):
     def test_needs_reset(self):
 
