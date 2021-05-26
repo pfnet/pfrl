@@ -448,6 +448,36 @@ class TestPrioritizedReplayBuffer:
         s4 = rbuf.sample(2)
         np.testing.assert_allclose(s4[0][0]["weight"], s4[1][0]["weight"])
 
+    def test_clear(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.PrioritizedReplayBuffer(
+            capacity,
+            normalize_by_max=self.normalize_by_max,
+            error_max=5,
+            num_steps=num_steps,
+        )
+
+        # assert len(rbuf) == 0
+
+        # Add one and sample one
+        correct_item = collections.deque([], maxlen=num_steps)
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            correct_item.append(trans1)
+            rbuf.append(**trans1)
+        # assert len(rbuf) == 1
+        rbuf.update_errors([3.14])
+        rbuf.clear()
+        # assert len(rbuf) == 0
+
     def test_normalize_by_max(self):
 
         rbuf = replay_buffers.PrioritizedReplayBuffer(
