@@ -15,7 +15,11 @@ from pfrl.envs.abc import ABC
 from pfrl.experiments.evaluator import run_evaluation_episodes
 from pfrl.experiments.train_agent_async import train_agent_async
 from pfrl.nn import ConcatObsAndAction
-from pfrl.policies import GaussianHeadWithDiagonalCovariance, SoftmaxCategoricalHead
+from pfrl.policies import (
+    GaussianHeadWithDiagonalCovariance,
+    GaussianHeadWithFixedCovariance,
+    SoftmaxCategoricalHead,
+)
 from pfrl.q_functions import DiscreteActionValueHead
 from pfrl.replay_buffers import EpisodicReplayBuffer
 
@@ -259,6 +263,15 @@ def test_compute_loss_with_kl_constraint_gaussian():
     policy = nn.Sequential(
         nn.Linear(1, action_size * 2),
         GaussianHeadWithDiagonalCovariance(),
+    )
+    _test_compute_loss_with_kl_constraint(policy)
+
+
+def test_compute_loss_with_kl_constraint_gaussian_with_fixed_covariance():
+    action_size = 3
+    policy = nn.Sequential(
+        nn.Linear(1, action_size),
+        GaussianHeadWithFixedCovariance(),
     )
     _test_compute_loss_with_kl_constraint(policy)
 
