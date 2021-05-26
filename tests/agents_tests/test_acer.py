@@ -301,7 +301,7 @@ def _test_compute_loss_with_kl_constraint(base_policy):
         # Any loss that tends to increase KL divergence should be ok.
         # Here I choose to minimize the log probability of some fixed action.
         # The loss is clipped to avoid NaN.
-        return torch.max(distrib.log_prob(some_action), torch.as_tensor(-20.))
+        return torch.max(distrib.log_prob(some_action), torch.as_tensor(-20.0))
 
     def compute_kl_after_update(loss_func, n=100):
         policy = copy.deepcopy(base_policy)
