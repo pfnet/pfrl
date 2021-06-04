@@ -299,7 +299,7 @@ def eval_performance(
         min=np.min(scores),
         length_mean=statistics.mean(lengths),
         length_median=statistics.median(lengths),
-        length_stdev=statistics.stdev(lengths) if len(lengths) >= 2 else 0, 
+        length_stdev=statistics.stdev(lengths) if len(lengths) >= 2 else 0,
         length_max=np.max(lengths),
         length_min=np.min(lengths),
     )
