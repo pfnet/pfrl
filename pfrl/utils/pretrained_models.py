@@ -9,10 +9,10 @@ import shutil
 import sys
 import tempfile
 import time
+import urllib
 import zipfile
 
 import filelock
-from six.moves.urllib import request
 
 _models_root = os.environ.get(
     "PFRL_MODELS_ROOT", os.path.join(os.path.expanduser("~"), ".pfrl", "models")
@@ -118,7 +118,7 @@ def cached_download(url):
         print("Downloading ...")
         print("From: {:s}".format(url))
         print("To: {:s}".format(cache_path))
-        request.urlretrieve(url, temp_path, _reporthook)
+        urllib.request.urlretrieve(url, temp_path, _reporthook)
         with filelock.FileLock(lock_path):
             shutil.move(temp_path, cache_path)
     finally:
