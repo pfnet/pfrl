@@ -211,7 +211,7 @@ def _batch_run_episodes(
     ):
         logger.info("evaluation episode %s length: %s R: %s", i, epi_len, epi_ret)
     scores = [float(r) for r in eval_episode_returns]
-    lengths = [float(l) for l in eval_episode_lens]
+    lengths = [float(ln) for ln in eval_episode_lens]
     return scores, lengths
 
 
