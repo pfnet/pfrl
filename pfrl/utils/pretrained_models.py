@@ -4,6 +4,7 @@ https://github.com/chainer/chainercv/blob/master/chainercv/utils/download.py
 
 import hashlib
 import os
+import posixpath
 import shutil
 import sys
 import tempfile
@@ -12,7 +13,6 @@ import urllib
 import zipfile
 
 import filelock
-import posixpath
 
 _models_root = os.environ.get(
     "PFRL_MODELS_ROOT", os.path.join(os.path.expanduser("~"), ".pfrl", "models")
