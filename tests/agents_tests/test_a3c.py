@@ -178,7 +178,7 @@ class _TestA3C:
         # Test
         env = make_env(0, True)
         n_test_runs = 5
-        eval_returns = run_evaluation_episodes(
+        eval_returns, _ = run_evaluation_episodes(
             env,
             agent,
             n_steps=None,
