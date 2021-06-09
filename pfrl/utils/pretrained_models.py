@@ -12,7 +12,7 @@ import time
 import zipfile
 
 import filelock
-from six.moves.urllib import request
+from urllib import request
 
 _models_root = os.environ.get(
     "PFRL_MODELS_ROOT", os.path.join(os.path.expanduser("~"), ".pfrl", "models")
