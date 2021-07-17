@@ -15,7 +15,7 @@ class NormalizeActionSpace(gym.ActionWrapper):
         )
 
     def action(self, action):
-        # action is in [0, 1]
+        # action is in [-1, 1]
         action = action.copy()
 
         # -> [0, 2]

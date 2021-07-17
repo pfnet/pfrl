@@ -16,7 +16,7 @@ test_requires = [
 ]
 
 setup(name='pfrl',
-      version='0.2.1',
+      version='0.3.0',
       description='PFRL, a deep reinforcement learning library',
       long_description=codecs.open('README.md', 'r', encoding='utf-8').read(),
       long_description_content_type='text/markdown',
