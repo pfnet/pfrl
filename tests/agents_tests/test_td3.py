@@ -91,7 +91,7 @@ class TestTD3:
 
         # Test
         n_test_runs = 5
-        eval_returns = run_evaluation_episodes(
+        eval_returns, _ = run_evaluation_episodes(
             test_env,
             agent,
             n_steps=None,
@@ -137,7 +137,7 @@ class TestTD3:
 
         # Test
         n_test_runs = 5
-        eval_returns = batch_run_evaluation_episodes(
+        eval_returns, _ = batch_run_evaluation_episodes(
             test_env,
             agent,
             n_steps=None,
