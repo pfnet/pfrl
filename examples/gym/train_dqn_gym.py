@@ -90,6 +90,9 @@ def main():
     utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
+    # TODO: fix output directory for now!!
+    args.outdir = "results/tmp"
+    os.makedirs(args.outdir, exist_ok=True)
     print("Output files are saved in {}".format(args.outdir))
 
     # Set different random seeds for different subprocesses.
