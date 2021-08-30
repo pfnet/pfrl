@@ -24,10 +24,14 @@ def ask_and_save_agent_replay_buffer(agent, t, outdir, suffix=""):
         save_agent_replay_buffer(agent, t, outdir, suffix=suffix)
 
 
-def snapshot(agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delete_old=True):
+def snapshot(
+    agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delete_old=True
+):
     tmp_suffix = f"{suffix}_"
     dirname = os.path.join(outdir, f"{t}{suffix}")
-    tmp_dirname = os.path.join(outdir, f"{t}{tmp_suffix}")  # temporary filename until files are saved
+    tmp_dirname = os.path.join(
+        outdir, f"{t}{tmp_suffix}"
+    )  # temporary filename until files are saved
     agent.save(tmp_dirname)
     if hasattr(agent, "replay_buffer"):
         agent.replay_buffer.save(os.path.join(tmp_dirname, "replay.pkl"))
@@ -37,7 +41,9 @@ def snapshot(agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delet
     if logger:
         logger.info(f"Saved the snapshot to {dirname}")
     if delete_old:
-        for old_dir in filter(lambda s: s.endswith(suffix) or s.endswith(tmp_suffix), os.listdir(outdir)):
+        for old_dir in filter(
+            lambda s: s.endswith(suffix) or s.endswith(tmp_suffix), os.listdir(outdir)
+        ):
             if old_dir != f"{t}{suffix}":
                 shutil.rmtree(os.path.join(outdir, old_dir))
 
@@ -58,7 +64,12 @@ def latest_snapshot_dir(search_dir, suffix="_snapshot"):
     candidates = list(filter(lambda s: s.endswith(suffix), os.listdir(search_dir)))
     if len(candidates) == 0:
         return 0, None
-    return max([(int(name.split("_")[0]), os.path.join(search_dir, name)) for name in candidates])
+    return max(
+        [
+            (int(name.split("_")[0]), os.path.join(search_dir, name))
+            for name in candidates
+        ]
+    )
 
 
 def train_agent(

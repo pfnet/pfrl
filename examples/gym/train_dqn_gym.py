@@ -69,7 +69,7 @@ def main():
     parser.add_argument("--render-eval", action="store_true")
     parser.add_argument("--monitor", action="store_true")
     parser.add_argument("--reward-scale-factor", type=float, default=1e-3)
-    parser.add_argument('--load_snapshot', action='store_true')
+    parser.add_argument("--load_snapshot", action="store_true")
     parser.add_argument(
         "--actor-learner",
         action="store_true",
