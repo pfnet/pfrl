@@ -1,5 +1,8 @@
 import logging
 import os
+import shutil
+
+import numpy as np
 
 from pfrl.experiments.evaluator import Evaluator, save_agent
 from pfrl.utils.ask_yes_no import ask_yes_no
@@ -21,6 +24,43 @@ def ask_and_save_agent_replay_buffer(agent, t, outdir, suffix=""):
         save_agent_replay_buffer(agent, t, outdir, suffix=suffix)
 
 
+def snapshot(agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delete_old=True):
+    tmp_suffix = f"{suffix}_"
+    dirname = os.path.join(outdir, f"{t}{suffix}")
+    tmp_dirname = os.path.join(outdir, f"{t}{tmp_suffix}")  # temporary filename until files are saved
+    agent.save(tmp_dirname)
+    if hasattr(agent, "replay_buffer"):
+        agent.replay_buffer.save(os.path.join(tmp_dirname, "replay.pkl"))
+    if evaluator:
+        np.save(os.path.join(tmp_dirname, "max_score"), evaluator.max_score)
+    os.rename(tmp_dirname, dirname)
+    if logger:
+        logger.info(f"Saved the snapshot to {dirname}")
+    if delete_old:
+        for old_dir in filter(lambda s: s.endswith(suffix) or s.endswith(tmp_suffix), os.listdir(outdir)):
+            if old_dir != f"{t}{suffix}":
+                shutil.rmtree(os.path.join(outdir, old_dir))
+
+
+def load_snapshot(agent, dirname, logger=None):
+    agent.load(dirname)
+    if hasattr(agent, "replay_buffer"):
+        agent.replay_buffer.load(os.path.join(dirname, "replay.pkl"))
+    if logger:
+        logger.info(f"Loaded the snapshot from {dirname}")
+
+
+def latest_snapshot_dir(search_dir, suffix="_snapshot"):
+    """
+    returns (dirname, steps)
+    (None, 0) if no snapshot exists
+    """
+    candidates = list(filter(lambda s: s.endswith(suffix), os.listdir(search_dir)))
+    if len(candidates) == 0:
+        return 0, None
+    return max([(int(name.split("_")[0]), os.path.join(search_dir, name)) for name in candidates])
+
+
 def train_agent(
     agent,
     env,
@@ -29,6 +69,7 @@ def train_agent(
     checkpoint_freq=None,
     max_episode_len=None,
     step_offset=0,
+    max_score=None,
     evaluator=None,
     successful_score=None,
     step_hooks=(),
@@ -37,6 +78,10 @@ def train_agent(
 ):
 
     logger = logger or logging.getLogger(__name__)
+
+    # restore max_score
+    if evaluator and max_score:
+        evaluator.max_score = max_score
 
     episode_r = 0
     episode_idx = 0
@@ -100,7 +145,7 @@ def train_agent(
                 episode_len = 0
                 obs = env.reset()
             if checkpoint_freq and t % checkpoint_freq == 0:
-                save_agent(agent, t, outdir, logger, suffix="_checkpoint")
+                snapshot(agent, evaluator, t, outdir, logger=logger)
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed
@@ -125,6 +170,7 @@ def train_agent_with_evaluation(
     train_max_episode_len=None,
     step_offset=0,
     eval_max_episode_len=None,
+    max_score=None,
     eval_env=None,
     successful_score=None,
     step_hooks=(),
@@ -144,11 +190,12 @@ def train_agent_with_evaluation(
         eval_n_episodes (int): Number of episodes at each evaluation phase.
         eval_interval (int): Interval of evaluation.
         outdir (str): Path to the directory to output data.
-        checkpoint_freq (int): frequency at which agents are stored.
+        checkpoint_freq (int): frequency in step at which agents are stored.
         train_max_episode_len (int): Maximum episode length during training.
         step_offset (int): Time step from which training starts.
         eval_max_episode_len (int or None): Maximum episode length of
             evaluation runs. If None, train_max_episode_len is used instead.
+        max_score (int): Current max socre.
         eval_env: Environment used for evaluation.
         successful_score (float): Finish training if the mean score is greater
             than or equal to this value if not None
@@ -213,6 +260,7 @@ def train_agent_with_evaluation(
         checkpoint_freq=checkpoint_freq,
         max_episode_len=train_max_episode_len,
         step_offset=step_offset,
+        max_score=max_score,
         evaluator=evaluator,
         successful_score=successful_score,
         step_hooks=step_hooks,
