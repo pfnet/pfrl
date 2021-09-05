@@ -9,6 +9,7 @@ To train PPO using a recurrent model on a flickering Atari env, run:
     python train_ppo_ale.py --recurrent --flicker --no-frame-stack
 """
 import argparse
+import functools
 
 import numpy as np
 import torch
@@ -196,7 +197,7 @@ def main():
     def make_batch_env(test):
         vec_env = pfrl.envs.MultiprocessVectorEnv(
             [
-                (lambda: make_env(idx, test))
+                functools.partial(make_env, idx, test)
                 for idx, env in enumerate(range(args.num_envs))
             ]
         )
