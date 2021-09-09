@@ -78,6 +78,7 @@ def train_agent(
     steps,
     outdir,
     checkpoint_freq=None,
+    take_resumable_snapshot=False,
     max_episode_len=None,
     step_offset=0,
     max_score=None,
@@ -156,7 +157,10 @@ def train_agent(
                 episode_len = 0
                 obs = env.reset()
             if checkpoint_freq and t % checkpoint_freq == 0:
-                snapshot(agent, evaluator, t, outdir, logger=logger)
+                if take_resumable_snapshot:
+                    snapshot(agent, evaluator, t, outdir, logger=logger)
+                else:
+                    save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed
@@ -178,6 +182,7 @@ def train_agent_with_evaluation(
     eval_interval,
     outdir,
     checkpoint_freq=None,
+    take_resumable_snapshot=False,
     train_max_episode_len=None,
     step_offset=0,
     eval_max_episode_len=None,
@@ -269,6 +274,7 @@ def train_agent_with_evaluation(
         steps,
         outdir,
         checkpoint_freq=checkpoint_freq,
+        take_resumable_snapshot=take_resumable_snapshot,
         max_episode_len=train_max_episode_len,
         step_offset=step_offset,
         max_score=max_score,
