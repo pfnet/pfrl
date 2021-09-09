@@ -60,7 +60,6 @@ def main():
     parser.add_argument("--update-interval", type=int, default=1)
     parser.add_argument("--eval-n-runs", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=10 ** 4)
-    parser.add_argument("--checkpoint-freq", type=int, default=10 ** 4)
     parser.add_argument("--n-hidden-channels", type=int, default=100)
     parser.add_argument("--n-hidden-layers", type=int, default=2)
     parser.add_argument("--gamma", type=float, default=0.99)
@@ -69,7 +68,6 @@ def main():
     parser.add_argument("--render-eval", action="store_true")
     parser.add_argument("--monitor", action="store_true")
     parser.add_argument("--reward-scale-factor", type=float, default=1e-3)
-    parser.add_argument("--load_snapshot", action="store_true")
     parser.add_argument(
         "--actor-learner",
         action="store_true",
@@ -90,9 +88,6 @@ def main():
     utils.set_random_seed(args.seed)
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir, argv=sys.argv)
-    # TODO: fix output directory for now!!
-    args.outdir = "results/tmp"
-    os.makedirs(args.outdir, exist_ok=True)
     print("Output files are saved in {}".format(args.outdir))
 
     # Set different random seeds for different subprocesses.
@@ -192,16 +187,6 @@ def main():
         soft_update_tau=args.soft_update_tau,
     )
 
-    # load snapshot
-    step_offset = 0
-    max_score = None
-    if args.load_snapshot:
-        step_offset, snapshot_dirname = experiments.latest_snapshot_dir(args.outdir)
-        if snapshot_dirname:
-            experiments.load_snapshot(agent, snapshot_dirname)
-            if os.path.exists(os.path.join(snapshot_dirname, "max_score.npy")):
-                max_score = np.load(os.path.join(snapshot_dirname, "max_score.npy"))
-
     if args.load:
         agent.load(args.load)
 
@@ -240,9 +225,6 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
-            step_offset=step_offset,
-            max_score=max_score,
-            checkpoint_freq=args.checkpoint_freq,
             eval_env=eval_env,
             train_max_episode_len=timestep_limit,
             eval_during_episode=True,
@@ -276,9 +258,6 @@ def main():
             eval_n_episodes=args.eval_n_runs,
             eval_interval=args.eval_interval,
             outdir=args.outdir,
-            step_offset=step_offset,
-            max_score=max_score,
-            checkpoint_freq=args.checkpoint_freq,
             stop_event=learner.stop_event,
             exception_event=exception_event,
         )
