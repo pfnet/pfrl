@@ -28,18 +28,16 @@ def snapshot(
     agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delete_old=True
 ):
     tmp_suffix = f"{suffix}_"
-    dirname = os.path.join(outdir, f"{t}{suffix}")
-    tmp_dirname = os.path.join(
-        outdir, f"{t}{tmp_suffix}"
-    )  # temporary filename until files are saved
+    tmp_dirname = os.path.join(outdir, f"{t}{tmp_suffix}")  # use until files are saved
     agent.save(tmp_dirname)
     if hasattr(agent, "replay_buffer"):
         agent.replay_buffer.save(os.path.join(tmp_dirname, "replay.pkl"))
     if evaluator:
         np.save(os.path.join(tmp_dirname, "max_score"), evaluator.max_score)
-    os.rename(tmp_dirname, dirname)
+    real_dirname = os.path.join(outdir, f"{t}{suffix}")
+    os.rename(tmp_dirname, real_dirname)
     if logger:
-        logger.info(f"Saved the snapshot to {dirname}")
+        logger.info(f"Saved the snapshot to {real_dirname}")
     if delete_old:
         for old_dir in filter(
             lambda s: s.endswith(suffix) or s.endswith(tmp_suffix), os.listdir(outdir)
