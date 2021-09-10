@@ -1,8 +1,8 @@
 import logging
 import os
 import shutil
-
-import numpy as np
+import csv
+import time
 
 from pfrl.experiments.evaluator import Evaluator, save_agent
 from pfrl.utils.ask_yes_no import ask_yes_no
@@ -25,15 +25,35 @@ def ask_and_save_agent_replay_buffer(agent, t, outdir, suffix=""):
 
 
 def snapshot(
-    agent, evaluator, t, outdir, suffix="_snapshot", logger=None, delete_old=True
+    agent,
+    t,
+    episode_idx,
+    outdir,
+    suffix="_snapshot",
+    logger=None,
+    delete_old=True,
 ):
+    start_time = time.time()
     tmp_suffix = f"{suffix}_"
     tmp_dirname = os.path.join(outdir, f"{t}{tmp_suffix}")  # use until files are saved
     agent.save(tmp_dirname)
     if hasattr(agent, "replay_buffer"):
         agent.replay_buffer.save(os.path.join(tmp_dirname, "replay.pkl"))
-    if evaluator:
-        np.save(os.path.join(tmp_dirname, "max_score"), evaluator.max_score)
+    if os.path.exists(os.path.join(outdir, "scores.txt")):
+        shutil.copyfile(
+            os.path.join(outdir, "scores.txt"), os.path.join(tmp_dirname, "scores.txt")
+        )
+
+    history_path = os.path.join(outdir, "snapshot_history.txt")
+    if not os.path.exists(history_path):  # write header
+        with open(history_path, "a") as f:
+            csv.writer(f, delimiter="\t").writerow(["step", "episode", "snapshot_time"])
+    with open(history_path, "a") as f:
+        csv.writer(f, delimiter="\t").writerow(
+            [t, episode_idx, time.time() - start_time]
+        )
+    shutil.copyfile(history_path, os.path.join(tmp_dirname, "snapshot_history.txt"))
+
     real_dirname = os.path.join(outdir, f"{t}{suffix}")
     os.rename(tmp_dirname, real_dirname)
     if logger:
@@ -52,21 +72,32 @@ def load_snapshot(agent, dirname, logger=None):
         agent.replay_buffer.load(os.path.join(dirname, "replay.pkl"))
     if logger:
         logger.info(f"Loaded the snapshot from {dirname}")
+    with open(os.path.join(dirname, "snapshot_history.txt")) as f:
+        step, episode = map(int, f.readlines()[-1].split()[:2])
+    max_score = None
+    if os.path.exists(os.path.join(dirname, "scores.txt")):
+        with open(os.path.join(dirname, "scores.txt")) as f:
+            max_score = float(f.readlines()[-1].split()[3])  # mean
+    shutil.copyfile(
+        os.path.join(dirname, "snapshot_history.txt"),
+        os.path.join(dirname, "..", "snapshot_history.txt"),
+    )
+    shutil.copyfile(
+        os.path.join(dirname, "scores.txt"),
+        os.path.join(dirname, "..", "scores.txt"),
+    )
+    return step, episode, max_score
 
 
 def latest_snapshot_dir(search_dir, suffix="_snapshot"):
     """
-    returns (dirname, steps)
-    (None, 0) if no snapshot exists
+    return None if no snapshot exists
     """
     candidates = list(filter(lambda s: s.endswith(suffix), os.listdir(search_dir)))
     if len(candidates) == 0:
-        return 0, None
-    return max(
-        [
-            (int(name.split("_")[0]), os.path.join(search_dir, name))
-            for name in candidates
-        ]
+        return None
+    return os.path.join(
+        search_dir, max(candidates, key=lambda name: int(name.split("_")[0]))
     )
 
 
@@ -157,7 +188,7 @@ def train_agent(
                 obs = env.reset()
             if checkpoint_freq and t % checkpoint_freq == 0:
                 if take_resumable_snapshot:
-                    snapshot(agent, evaluator, t, outdir, logger=logger)
+                    snapshot(agent, t, episode_idx, outdir, logger=logger)
                 else:
                     save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
