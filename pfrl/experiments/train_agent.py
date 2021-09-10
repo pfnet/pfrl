@@ -207,6 +207,7 @@ def train_agent_with_evaluation(
         eval_interval (int): Interval of evaluation.
         outdir (str): Path to the directory to output data.
         checkpoint_freq (int): frequency in step at which agents are stored.
+        take_resumable_snapshot (bool): If True, snapshot is saved in checkpoint.
         train_max_episode_len (int): Maximum episode length during training.
         step_offset (int): Time step from which training starts.
         episode_offset (int): Episode index from which training starts,
