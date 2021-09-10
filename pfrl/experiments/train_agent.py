@@ -79,6 +79,7 @@ def train_agent(
     take_resumable_snapshot=False,
     max_episode_len=None,
     step_offset=0,
+    episode_offset=0,
     max_score=None,
     evaluator=None,
     successful_score=None,
@@ -94,7 +95,7 @@ def train_agent(
         evaluator.max_score = max_score
 
     episode_r = 0
-    episode_idx = 0
+    episode_idx = episode_offset
 
     # o_0, r_0
     obs = env.reset()
@@ -183,6 +184,7 @@ def train_agent_with_evaluation(
     take_resumable_snapshot=False,
     train_max_episode_len=None,
     step_offset=0,
+    episode_offset=0,
     eval_max_episode_len=None,
     max_score=None,
     eval_env=None,
@@ -207,6 +209,7 @@ def train_agent_with_evaluation(
         checkpoint_freq (int): frequency in step at which agents are stored.
         train_max_episode_len (int): Maximum episode length during training.
         step_offset (int): Time step from which training starts.
+        episode_offset (int): Episode index from which training starts,
         eval_max_episode_len (int or None): Maximum episode length of
             evaluation runs. If None, train_max_episode_len is used instead.
         max_score (int): Current max socre.
@@ -275,6 +278,7 @@ def train_agent_with_evaluation(
         take_resumable_snapshot=take_resumable_snapshot,
         max_episode_len=train_max_episode_len,
         step_offset=step_offset,
+        episode_offset=episode_offset,
         max_score=max_score,
         evaluator=evaluator,
         successful_score=successful_score,
