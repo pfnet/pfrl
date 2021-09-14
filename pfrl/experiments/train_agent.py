@@ -77,7 +77,9 @@ def load_snapshot(agent, dirname, logger=None):
     max_score = None
     if os.path.exists(os.path.join(dirname, "scores.txt")):
         with open(os.path.join(dirname, "scores.txt")) as f:
-            max_score = float(f.readlines()[-1].split()[3])  # mean
+            lines = f.readlines()
+        if len(lines) > 1:
+            max_score = float(lines[-1].split()[3])  # mean
     shutil.copyfile(
         os.path.join(dirname, "snapshot_history.txt"),
         os.path.join(dirname, "..", "snapshot_history.txt"),
