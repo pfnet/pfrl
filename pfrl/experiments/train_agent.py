@@ -1,7 +1,7 @@
+import csv
 import logging
 import os
 import shutil
-import csv
 import time
 
 from pfrl.experiments.evaluator import Evaluator, save_agent
