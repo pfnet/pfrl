@@ -287,7 +287,7 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
             `pfrl.nn.Recurrent` and update in a recurrent
             manner.
         max_recurrent_sequence_len (int): Maximum length of consecutive
-            sequences of transitions in a minibatch for updatig the model.
+            sequences of transitions in a minibatch for updating the model.
             This value is used only when `recurrent` is True. A smaller value
             will encourage a minibatch to contain more and shorter sequences.
         act_deterministically (bool): If set to True, choose most probable
