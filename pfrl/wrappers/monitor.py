@@ -9,16 +9,14 @@ except ImportError:
         def __init__(self, *args, **kwargs):
             raise RuntimeError("Monitor is not available in this version of gym")
 
-    class _GymMonitor(_Stub):
+    class _GymMonitor(_Stub):  # type: ignore
         pass
 
     class _GymStatsRecorder(_Stub):
         pass
 
 else:
-    from gym.wrappers.monitoring.stats_recorder import (
-        StatsRecorder as _GymStatsRecorder,
-    )
+    from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder  # type: ignore
 
 
 class Monitor(_GymMonitor):
