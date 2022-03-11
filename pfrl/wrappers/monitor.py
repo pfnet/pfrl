@@ -1,8 +1,24 @@
 import time
 from logging import getLogger
 
-from gym.wrappers import Monitor as _GymMonitor
-from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder
+try:
+    from gym.wrappers import Monitor as _GymMonitor
+except ImportError:
+
+    class _Stub:
+        def __init__(self, *args, **kwargs):
+            raise RuntimeError("Monitor is not available in this version of gym")
+
+    class _GymMonitor(_Stub):
+        pass
+
+    class _GymStatsRecorder(_Stub):
+        pass
+
+else:
+    from gym.wrappers.monitoring.stats_recorder import (
+        StatsRecorder as _GymStatsRecorder,
+    )
 
 
 class Monitor(_GymMonitor):
