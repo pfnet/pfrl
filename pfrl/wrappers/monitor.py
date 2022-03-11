@@ -16,7 +16,7 @@ except ImportError:
         pass
 
 else:
-    from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder  # type: ignore
+    from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder  # type: ignore, isort: skip
 
 
 class Monitor(_GymMonitor):
