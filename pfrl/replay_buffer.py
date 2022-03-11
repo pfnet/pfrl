@@ -182,7 +182,7 @@ def batch_experiences(experiences, device, phi, gamma, batch_states=batch_states
         ),
         "reward": torch.as_tensor(
             [
-                sum((gamma ** i) * exp[i]["reward"] for i in range(len(exp)))
+                sum((gamma**i) * exp[i]["reward"] for i in range(len(exp)))
                 for exp in experiences
             ],
             dtype=torch.float32,

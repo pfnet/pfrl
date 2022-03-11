@@ -39,8 +39,8 @@ def main():
     )
     parser.add_argument("--beta", type=float, default=1e-4)
     parser.add_argument("--batchsize", type=int, default=10)
-    parser.add_argument("--steps", type=int, default=10 ** 5)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
+    parser.add_argument("--steps", type=int, default=10**5)
+    parser.add_argument("--eval-interval", type=int, default=10**4)
     parser.add_argument("--eval-n-runs", type=int, default=100)
     parser.add_argument("--reward-scale-factor", type=float, default=1e-2)
     parser.add_argument("--render", action="store_true", default=False)
@@ -61,7 +61,7 @@ def main():
     def make_env(test):
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
-        env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)

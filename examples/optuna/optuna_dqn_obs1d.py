@@ -51,7 +51,7 @@ def _objective_core(
 
     # Set different random seeds for train and test envs.
     train_seed = seed
-    test_seed = 2 ** 31 - 1 - seed
+    test_seed = 2**31 - 1 - seed
 
     def make_env(test=False):
         env = gym.make(env_id)
@@ -275,7 +275,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=4 * 10 ** 5,
+        default=4 * 10**5,
         help="Total number of timesteps to train the agent for each trial",
     )
     parser.add_argument(
@@ -293,7 +293,7 @@ def main():
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=10 ** 4,
+        default=10**4,
         help="Frequency (in timesteps) of evaluation phase.",
     )
     parser.add_argument(
@@ -322,7 +322,7 @@ def main():
     parser.add_argument(
         "--optuna-training-steps-budget",
         type=int,
-        default=4 * 10 ** 7,
+        default=4 * 10**7,
         help=(
             "Total training steps thoughout the optimization. If the pruner works "
             "well, this limited training steps can be allocated to promissing trials "
@@ -399,7 +399,7 @@ def main():
         hyperparams = suggest(trial, args.steps)
 
         # seed is generated for each objective
-        seed = randomizer.randint(0, 2 ** 31 - 1)
+        seed = randomizer.randint(0, 2**31 - 1)
         additional_args = dict(seed=seed, **hyperparams)
 
         outdir = experiments.prepare_output_dir(args=additional_args, basedir=rootdir)

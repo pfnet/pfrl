@@ -44,7 +44,7 @@ class TestLoadDQN:
         explorer = explorers.LinearDecayEpsilonGreedy(
             start_epsilon=1.0,
             end_epsilon=0.1,
-            decay_steps=10 ** 6,
+            decay_steps=10**6,
             random_action_func=lambda: np.random.randint(4),
         )
 
@@ -56,7 +56,7 @@ class TestLoadDQN:
             gamma=0.99,
             explorer=explorer,
             replay_start_size=50,
-            target_update_interval=10 ** 4,
+            target_update_interval=10**4,
             clip_delta=True,
             update_interval=4,
             batch_accumulator="sum",
@@ -115,7 +115,7 @@ class TestLoadIQN:
         explorer = explorers.LinearDecayEpsilonGreedy(
             start_epsilon=1.0,
             end_epsilon=0.1,
-            decay_steps=10 ** 6,
+            decay_steps=10**6,
             random_action_func=lambda: np.random.randint(4),
         )
 
@@ -127,7 +127,7 @@ class TestLoadIQN:
             gamma=0.99,
             explorer=explorer,
             replay_start_size=50,
-            target_update_interval=10 ** 4,
+            target_update_interval=10**4,
             update_interval=4,
             batch_accumulator="mean",
             phi=lambda x: x,
@@ -163,7 +163,7 @@ class TestLoadRainbow:
         q_func = DistributionalDuelingDQN(4, 51, -10, 10)
         pnn.to_factorized_noisy(q_func, sigma_scale=0.5)
         explorer = explorers.Greedy()
-        opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10 ** -4)
+        opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10**-4)
         rbuf = replay_buffers.ReplayBuffer(100)
         agent = agents.CategoricalDoubleDQN(
             q_func,

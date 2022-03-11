@@ -368,7 +368,7 @@ class _TestACER:
         action_space = sample_env.action_space
         obs_space = sample_env.observation_space
 
-        replay_buffer = EpisodicReplayBuffer(10 ** 4)
+        replay_buffer = EpisodicReplayBuffer(10**4)
         obs_size = obs_space.low.size
         hidden_size = 20
         if discrete:

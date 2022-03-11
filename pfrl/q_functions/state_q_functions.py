@@ -209,7 +209,7 @@ class FCQuadraticStateQFunction(nn.Module, StateQFunction):
             tril = lower_triangular_matrix(mat_diag, mat_non_diag)
             mat = torch.matmul(tril, torch.transpose(tril, 1, 2))
         else:
-            mat = torch.unsqueeze(mat_diag ** 2, dim=2)
+            mat = torch.unsqueeze(mat_diag**2, dim=2)
         return QuadraticActionValue(
             mu,
             mat,

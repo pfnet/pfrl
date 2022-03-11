@@ -28,7 +28,7 @@ def main():
         default=30 * 60 * 60,  # 30 minutes with 60 fps
         help="Maximum number of frames for each episode.",
     )
-    parser.add_argument("--steps", type=int, default=8 * 10 ** 7)
+    parser.add_argument("--steps", type=int, default=8 * 10**7)
     parser.add_argument("--update-steps", type=int, default=5)
     parser.add_argument("--lr", type=float, default=7e-4)
     parser.add_argument("--gamma", type=float, default=0.99, help="discount factor")
@@ -43,7 +43,7 @@ def main():
     parser.add_argument(
         "--alpha", type=float, default=0.99, help="RMSprop optimizer alpha"
     )
-    parser.add_argument("--eval-interval", type=int, default=10 ** 6)
+    parser.add_argument("--eval-interval", type=int, default=10**6)
     parser.add_argument("--eval-n-runs", type=int, default=10)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default="")
@@ -92,7 +92,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 31
+    assert process_seeds.max() < 2**31
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -100,7 +100,7 @@ def main():
     def make_env(process_idx, test):
         # Use different random seeds for train and test envs
         process_seed = process_seeds[process_idx]
-        env_seed = 2 ** 31 - 1 - process_seed if test else process_seed
+        env_seed = 2**31 - 1 - process_seed if test else process_seed
         env = atari_wrappers.wrap_deepmind(
             atari_wrappers.make_atari(args.env, max_frames=args.max_frames),
             episode_life=not test,

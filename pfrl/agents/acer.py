@@ -321,7 +321,7 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         truncation_threshold=10,
         disable_online_update=False,
         n_times_replay=8,
-        replay_start_size=10 ** 4,
+        replay_start_size=10**4,
         normalize_loss_by_steps=True,
         act_deterministically=False,
         max_grad_norm=None,

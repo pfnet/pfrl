@@ -86,7 +86,7 @@ def main():
     parser.add_argument(
         "--final-exploration-frames",
         type=int,
-        default=10 ** 6,
+        default=10**6,
         help="Timesteps after which we stop " + "annealing exploration rate",
     )
     parser.add_argument(
@@ -112,7 +112,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=5 * 10 ** 7,
+        default=5 * 10**7,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -124,19 +124,19 @@ def main():
     parser.add_argument(
         "--replay-start-size",
         type=int,
-        default=5 * 10 ** 4,
+        default=5 * 10**4,
         help="Minimum replay buffer size before " + "performing gradient updates.",
     )
     parser.add_argument(
         "--target-update-interval",
         type=int,
-        default=3 * 10 ** 4,
+        default=3 * 10**4,
         help="Frequency (in timesteps) at which " + "the target network is updated.",
     )
     parser.add_argument(
         "--eval-interval",
         type=int,
-        default=10 ** 5,
+        default=10**5,
         help="Frequency (in timesteps) of evaluation phase.",
     )
     parser.add_argument(
@@ -196,7 +196,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -254,14 +254,14 @@ def main():
         # Anneal beta from beta0 to 1 throughout training
         betasteps = args.steps / args.update_interval
         rbuf = replay_buffers.PrioritizedReplayBuffer(
-            10 ** 6,
+            10**6,
             alpha=0.6,
             beta0=0.4,
             betasteps=betasteps,
             num_steps=args.num_step_return,
         )
     else:
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6, args.num_step_return)
+        rbuf = replay_buffers.ReplayBuffer(10**6, args.num_step_return)
 
     def phi(x):
         # Feature extractor

@@ -118,7 +118,7 @@ class ExponentialDecayEpsilonGreedy(explorer.Explorer):
         self.epsilon = start_epsilon
 
     def compute_epsilon(self, t):
-        epsilon = self.start_epsilon * (self.decay ** t)
+        epsilon = self.start_epsilon * (self.decay**t)
         return max(epsilon, self.end_epsilon)
 
     def select_action(self, t, greedy_action_func, action_value=None):

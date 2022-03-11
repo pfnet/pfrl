@@ -288,7 +288,7 @@ class TestSingleActionValue:
 
         def evaluator(actions):
             # negative square norm of actions
-            return -torch.sum(actions ** 2, dim=1)
+            return -torch.sum(actions**2, dim=1)
 
         self.evaluator = evaluator
 

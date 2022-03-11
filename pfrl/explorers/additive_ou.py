@@ -44,7 +44,7 @@ class AdditiveOU(explorer.Explorer):
             if self.start_with_mu:
                 self.ou_state = np.full(a.shape, self.mu, dtype=np.float32)
             else:
-                sigma_stable = self.sigma / np.sqrt(2 * self.theta - self.theta ** 2)
+                sigma_stable = self.sigma / np.sqrt(2 * self.theta - self.theta**2)
                 self.ou_state = np.random.normal(
                     size=a.shape, loc=self.mu, scale=sigma_stable
                 ).astype(np.float32)

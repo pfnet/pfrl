@@ -64,13 +64,13 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=5 * 10 ** 7,
+        default=5 * 10**7,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
         "--replay-start-size",
         type=int,
-        default=5 * 10 ** 4,
+        default=5 * 10**4,
         help="Minimum replay buffer size before " + "performing gradient updates.",
     )
     parser.add_argument("--eval-n-steps", type=int, default=125000)
@@ -87,7 +87,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -133,12 +133,12 @@ def main():
         centered=True,
     )
 
-    rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+    rbuf = replay_buffers.ReplayBuffer(10**6)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         start_epsilon=1.0,
         end_epsilon=0.1,
-        decay_steps=10 ** 6,
+        decay_steps=10**6,
         random_action_func=lambda: np.random.randint(n_actions),
     )
 
@@ -155,7 +155,7 @@ def main():
         gamma=0.99,
         explorer=explorer,
         replay_start_size=args.replay_start_size,
-        target_update_interval=10 ** 4,
+        target_update_interval=10**4,
         clip_delta=True,
         update_interval=4,
         batch_accumulator="sum",

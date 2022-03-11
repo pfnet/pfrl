@@ -49,7 +49,7 @@ def main():
     parser.add_argument(
         "--final-exploration-frames",
         type=int,
-        default=10 ** 6,
+        default=10**6,
         help="Timesteps after which we stop " + "annealing exploration rate",
     )
     parser.add_argument(
@@ -67,7 +67,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=5 * 10 ** 7,
+        default=5 * 10**7,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -79,13 +79,13 @@ def main():
     parser.add_argument(
         "--replay-start-size",
         type=int,
-        default=5 * 10 ** 4,
+        default=5 * 10**4,
         help="Minimum replay buffer size before " + "performing gradient updates.",
     )
     parser.add_argument(
         "--target-update-interval",
         type=int,
-        default=3 * 10 ** 4,
+        default=3 * 10**4,
         help="Frequency (in timesteps) at which " + "the target network is updated.",
     )
     parser.add_argument("--demo-n-episodes", type=int, default=30)
@@ -173,7 +173,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -222,7 +222,7 @@ def main():
             DiscreteActionValueHead(),
         )
         # Replay buffer that stores whole episodes
-        rbuf = replay_buffers.EpisodicReplayBuffer(10 ** 6)
+        rbuf = replay_buffers.EpisodicReplayBuffer(10**6)
     else:
         # Q-network without LSTM
         q_func = nn.Sequential(
@@ -238,7 +238,7 @@ def main():
             DiscreteActionValueHead(),
         )
         # Replay buffer that stores transitions separately
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+        rbuf = replay_buffers.ReplayBuffer(10**6)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         1.0,
