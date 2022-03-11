@@ -74,7 +74,7 @@ main() {
   # TODO(pfrl): Prepare test target instead.
   "${PYTHON}" -m pip install \
       'pytest==7.0.1' 'pytest-xdist==2.5.0' \
-      'gym[atari,classic_control]==0.19.0' 'optuna' 'zipp==1.0.0' 'pybullet==2.8.1' 'jupyterlab==2.1.5'
+      'gym[atari,classic_control]==0.19.0' 'optuna' 'zipp==1.0.0' 'pybullet==2.8.1' 'jupyterlab==3.3.1'
 
   git config --global user.email "you@example.com"
   git config --global user.name "Your Name"
