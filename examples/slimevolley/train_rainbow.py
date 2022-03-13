@@ -27,7 +27,7 @@ class MultiBinaryAsDiscreteAction(gym.ActionWrapper):
         super().__init__(env)
         assert isinstance(env.action_space, gym.spaces.MultiBinary)
         self.orig_action_space = env.action_space
-        self.action_space = gym.spaces.Discrete(2 ** env.action_space.n)
+        self.action_space = gym.spaces.Discrete(2**env.action_space.n)
 
     def action(self, action):
         return [(action >> i) % 2 for i in range(self.orig_action_space.n)]
@@ -84,7 +84,7 @@ def main():
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--noisy-net-sigma", type=float, default=0.1)
-    parser.add_argument("--steps", type=int, default=2 * 10 ** 6)
+    parser.add_argument("--steps", type=int, default=2 * 10**6)
     parser.add_argument("--replay-start-size", type=int, default=1600)
     parser.add_argument("--eval-n-episodes", type=int, default=1000)
     parser.add_argument("--eval-interval", type=int, default=250000)
@@ -122,7 +122,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -181,7 +181,7 @@ def main():
     update_interval = 1
     betasteps = args.steps / update_interval
     rbuf = replay_buffers.PrioritizedReplayBuffer(
-        10 ** 6,
+        10**6,
         alpha=0.5,
         beta0=0.4,
         betasteps=betasteps,

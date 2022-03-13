@@ -24,19 +24,19 @@ def main():
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--final-exploration-frames", type=int, default=10 ** 6)
+    parser.add_argument("--final-exploration-frames", type=int, default=10**6)
     parser.add_argument("--final-epsilon", type=float, default=0.1)
     parser.add_argument("--eval-epsilon", type=float, default=0.05)
-    parser.add_argument("--steps", type=int, default=10 ** 7)
+    parser.add_argument("--steps", type=int, default=10**7)
     parser.add_argument(
         "--max-frames",
         type=int,
         default=30 * 60 * 60,  # 30 minutes with 60 fps
         help="Maximum number of frames for each episode.",
     )
-    parser.add_argument("--replay-start-size", type=int, default=5 * 10 ** 4)
-    parser.add_argument("--target-update-interval", type=int, default=10 ** 4)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 5)
+    parser.add_argument("--replay-start-size", type=int, default=5 * 10**4)
+    parser.add_argument("--target-update-interval", type=int, default=10**4)
+    parser.add_argument("--eval-interval", type=int, default=10**5)
     parser.add_argument("--update-interval", type=int, default=4)
     parser.add_argument("--eval-n-runs", type=int, default=10)
     parser.add_argument("--batch-size", type=int, default=32)
@@ -71,7 +71,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -120,7 +120,7 @@ def main():
     # Use the same hyper parameters as https://arxiv.org/abs/1707.06887
     opt = torch.optim.Adam(q_func.parameters(), 2.5e-4, eps=1e-2 / args.batch_size)
 
-    rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+    rbuf = replay_buffers.ReplayBuffer(10**6)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         1.0,

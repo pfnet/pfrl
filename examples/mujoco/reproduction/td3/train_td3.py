@@ -46,7 +46,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=10 ** 6,
+        default=10**6,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -100,7 +100,7 @@ def main():
         assert isinstance(env, gym.wrappers.TimeLimit)
         env = env.env
         # Use different random seeds for train and test envs
-        env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -146,7 +146,7 @@ def main():
     q_func1, q_func1_optimizer = make_q_func_with_optimizer()
     q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
-    rbuf = replay_buffers.ReplayBuffer(10 ** 6)
+    rbuf = replay_buffers.ReplayBuffer(10**6)
 
     explorer = explorers.AdditiveGaussian(
         scale=0.1, low=action_space.low, high=action_space.high

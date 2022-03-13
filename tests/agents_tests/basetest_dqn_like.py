@@ -64,7 +64,7 @@ class _TestDQNOnABC(_TestDQNLike):
         return opt
 
     def make_replay_buffer(self, env):
-        return replay_buffers.ReplayBuffer(10 ** 5)
+        return replay_buffers.ReplayBuffer(10**5)
 
 
 class _TestDQNOnDiscreteABC(_TestDQNOnABC):
@@ -89,7 +89,7 @@ class _TestDQNOnDiscretePOABC(_TestDQNOnABC):
         )
 
     def make_replay_buffer(self, env):
-        return replay_buffers.EpisodicReplayBuffer(10 ** 5)
+        return replay_buffers.EpisodicReplayBuffer(10**5)
 
     def make_env_and_successful_return(self, test):
         return ABC(discrete=True, partially_observable=True, deterministic=test), 1
@@ -102,7 +102,7 @@ class _TestDQNOnDiscretePOABC(_TestDQNOnABC):
 
 class _TestNStepDQNOnABC(_TestDQNOnABC):
     def make_replay_buffer(self, env):
-        return replay_buffers.ReplayBuffer(10 ** 5, num_steps=3)
+        return replay_buffers.ReplayBuffer(10**5, num_steps=3)
 
 
 class _TestNStepDQNOnDiscreteABC(_TestNStepDQNOnABC):

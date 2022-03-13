@@ -29,7 +29,7 @@ def make_env(args, seed, test):
     assert isinstance(env, gym.wrappers.TimeLimit)
     env = env.env
     # Use different random seeds for train and test envs
-    env_seed = 2 ** 32 - 1 - seed if test else seed
+    env_seed = 2**32 - 1 - seed if test else seed
     env.seed(int(env_seed))
     # Cast observations to float32 because our model uses float32
     env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -75,7 +75,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=10 ** 7,
+        default=10**7,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -145,7 +145,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 32
+    assert process_seeds.max() < 2**32
 
     def make_batch_env(test):
         return pfrl.envs.MultiprocessVectorEnv(
@@ -213,7 +213,7 @@ def main():
     q_func1, q_func1_optimizer = make_q_func_with_optimizer()
     q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
-    rbuf = replay_buffers.ReplayBuffer(10 ** 6, num_steps=args.n_step_return)
+    rbuf = replay_buffers.ReplayBuffer(10**6, num_steps=args.n_step_return)
 
     def burnin_action_func():
         """Select random actions until model is updated one or more times."""

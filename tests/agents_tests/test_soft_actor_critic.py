@@ -200,7 +200,7 @@ class TestSoftActorCritic:
         q_func1, q_func1_optimizer = make_q_func_with_optimizer()
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
-        rbuf = pfrl.replay_buffers.ReplayBuffer(10 ** 6)
+        rbuf = pfrl.replay_buffers.ReplayBuffer(10**6)
 
         def burnin_action_func():
             return np.random.uniform(

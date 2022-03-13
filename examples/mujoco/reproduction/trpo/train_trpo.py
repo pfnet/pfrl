@@ -33,7 +33,7 @@ def main():
         ),
     )
     parser.add_argument(
-        "--steps", type=int, default=2 * 10 ** 6, help="Total time steps for training."
+        "--steps", type=int, default=2 * 10**6, help="Total time steps for training."
     )
     parser.add_argument(
         "--eval-interval",
@@ -98,7 +98,7 @@ def main():
     def make_env(test):
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
-        env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)

@@ -180,7 +180,7 @@ class TestTD3:
         q_func1, q_func1_optimizer = make_q_func_with_optimizer()
         q_func2, q_func2_optimizer = make_q_func_with_optimizer()
 
-        rbuf = pfrl.replay_buffers.ReplayBuffer(10 ** 6)
+        rbuf = pfrl.replay_buffers.ReplayBuffer(10**6)
 
         explorer = pfrl.explorers.AdditiveGaussian(
             scale=0.3, low=env.action_space.low, high=env.action_space.high

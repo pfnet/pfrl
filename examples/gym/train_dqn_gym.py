@@ -45,21 +45,21 @@ def main():
     parser.add_argument("--env", type=str, default="Pendulum-v0")
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=0)
-    parser.add_argument("--final-exploration-steps", type=int, default=10 ** 4)
+    parser.add_argument("--final-exploration-steps", type=int, default=10**4)
     parser.add_argument("--start-epsilon", type=float, default=1.0)
     parser.add_argument("--end-epsilon", type=float, default=0.1)
     parser.add_argument("--noisy-net-sigma", type=float, default=None)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--steps", type=int, default=10 ** 5)
+    parser.add_argument("--steps", type=int, default=10**5)
     parser.add_argument("--prioritized-replay", action="store_true")
     parser.add_argument("--replay-start-size", type=int, default=1000)
-    parser.add_argument("--target-update-interval", type=int, default=10 ** 2)
+    parser.add_argument("--target-update-interval", type=int, default=10**2)
     parser.add_argument("--target-update-method", type=str, default="hard")
     parser.add_argument("--soft-update-tau", type=float, default=1e-2)
     parser.add_argument("--update-interval", type=int, default=1)
     parser.add_argument("--eval-n-runs", type=int, default=100)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 4)
+    parser.add_argument("--eval-interval", type=int, default=10**4)
     parser.add_argument("--n-hidden-channels", type=int, default=100)
     parser.add_argument("--n-hidden-layers", type=int, default=2)
     parser.add_argument("--gamma", type=float, default=0.99)
@@ -94,7 +94,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 32
+    assert process_seeds.max() < 2**32
 
     def clip_action_filter(a):
         return np.clip(a, action_space.low, action_space.high)
@@ -103,7 +103,7 @@ def main():
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
+        env_seed = 2**32 - 1 - process_seed if test else process_seed
         utils.set_random_seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
@@ -161,7 +161,7 @@ def main():
 
     opt = optim.Adam(q_func.parameters())
 
-    rbuf_capacity = 5 * 10 ** 5
+    rbuf_capacity = 5 * 10**5
     if args.minibatch_size is None:
         args.minibatch_size = 32
     if args.prioritized_replay:
