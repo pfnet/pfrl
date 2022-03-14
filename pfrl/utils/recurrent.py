@@ -122,7 +122,13 @@ def pack_one_step_batch_as_sequences(xs):
     if isinstance(xs, tuple):
         return tuple(pack_one_step_batch_as_sequences(x) for x in xs)
     else:
-        return nn.utils.rnn.pack_sequence(xs[:, None])
+        assert isinstance(xs, torch.Tensor)
+        # xs: (B, ...)-shaped tensor
+        # seqs: B-sized list of (1, ...)-shaped tensors
+        seqs = [x for x in xs.split(1)]
+        assert len(xs) == len(seqs)
+        assert (1,) + xs.shape[1:] == seqs[0].shape
+        return nn.utils.rnn.pack_sequence(seqs)
 
 
 def unpack_sequences_as_one_step_batch(pack):
