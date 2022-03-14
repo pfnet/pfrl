@@ -46,7 +46,7 @@ def main():
     parser.add_argument(
         "--steps",
         type=int,
-        default=2 * 10 ** 6,
+        default=2 * 10**6,
         help="Total number of timesteps to train the agent.",
     )
     parser.add_argument(
@@ -107,7 +107,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 32
+    assert process_seeds.max() < 2**32
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
@@ -115,7 +115,7 @@ def main():
         env = gym.make(args.env)
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[process_idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
+        env_seed = 2**32 - 1 - process_seed if test else process_seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)

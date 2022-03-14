@@ -137,7 +137,7 @@ class TestNStepDQNOnContinuousABC(base._TestNStepDQNOnContinuousABC):
 
 def _huber_loss_1(a):
     if abs(a) < 1:
-        return 0.5 * a ** 2
+        return 0.5 * a**2
     else:
         return abs(a) - 0.5
 
@@ -157,7 +157,7 @@ class TestComputeValueLoss:
                 [_huber_loss_1(a) for a in self.y - self.t]
             )
         else:
-            self.gt_losses = torch.FloatTensor([0.5 * a ** 2 for a in self.y - self.t])
+            self.gt_losses = torch.FloatTensor([0.5 * a**2 for a in self.y - self.t])
 
     def test_not_weighted(self):
         loss = compute_value_loss(

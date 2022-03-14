@@ -38,7 +38,7 @@ def main():
     parser.add_argument("--n-times-replay", type=int, default=4)
     parser.add_argument("--beta", type=float, default=1e-2)
     parser.add_argument("--profile", action="store_true")
-    parser.add_argument("--steps", type=int, default=10 ** 7)
+    parser.add_argument("--steps", type=int, default=10**7)
     parser.add_argument(
         "--max-frames",
         type=int,
@@ -46,7 +46,7 @@ def main():
         help="Maximum number of frames for each episode.",
     )
     parser.add_argument("--lr", type=float, default=7e-4)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 5)
+    parser.add_argument("--eval-interval", type=int, default=10**5)
     parser.add_argument("--eval-n-runs", type=int, default=10)
     parser.add_argument("--use-lstm", action="store_true")
     parser.add_argument("--demo", action="store_true", default=False)
@@ -87,7 +87,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.processes) + args.seed * args.processes
-    assert process_seeds.max() < 2 ** 31
+    assert process_seeds.max() < 2**31
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -130,7 +130,7 @@ def main():
         model.parameters(), lr=args.lr, eps=4e-3, alpha=0.99
     )
 
-    replay_buffer = EpisodicReplayBuffer(10 ** 6 // args.processes)
+    replay_buffer = EpisodicReplayBuffer(10**6 // args.processes)
 
     def phi(x):
         # Feature extractor
@@ -156,7 +156,7 @@ def main():
     def make_env(process_idx, test):
         # Use different random seeds for train and test envs
         process_seed = process_seeds[process_idx]
-        env_seed = 2 ** 31 - 1 - process_seed if test else process_seed
+        env_seed = 2**31 - 1 - process_seed if test else process_seed
         env = atari_wrappers.wrap_deepmind(
             atari_wrappers.make_atari(args.env, max_frames=args.max_frames),
             episode_life=not test,

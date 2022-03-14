@@ -40,7 +40,7 @@ def main():
     parser.add_argument("--end-epsilon", type=float, default=0.1)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--steps", type=int, default=10 ** 8)
+    parser.add_argument("--steps", type=int, default=10**8)
     parser.add_argument("--prioritized-replay", action="store_true")
     parser.add_argument("--replay-start-size", type=int, default=50)
     parser.add_argument("--target-update-interval", type=int, default=100)
@@ -67,7 +67,7 @@ def main():
 
     def make_env(test):
         env = gym.make(args.env)
-        env_seed = 2 ** 32 - 1 - args.seed if test else args.seed
+        env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)

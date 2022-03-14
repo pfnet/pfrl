@@ -47,7 +47,7 @@ class TestFactorizedNoisyLinear:
         # In fact, (for each element _[i, j],) it holds:
         # \E[(y2 - y1) ** 2] = 2 * \Var(y) = (4 / pi) * sigma_scale ** 2
 
-        target = (0.4 ** 2) * 2
+        target = (0.4**2) * 2
         if self.bias:
             target *= 2 / numpy.pi + numpy.sqrt(2 / numpy.pi) / y1.shape[1]
         else:

@@ -54,7 +54,7 @@ class _TestDDPGOnABC(_TestTraining):
         return LinearDecayEpsilonGreedy(1.0, 0.2, 1000, random_action_func)
 
     def make_replay_buffer(self, env):
-        return replay_buffers.ReplayBuffer(10 ** 5)
+        return replay_buffers.ReplayBuffer(10**5)
 
 
 class _TestDDPGOnContinuousPOABC(_TestDDPGOnABC):
@@ -84,7 +84,7 @@ class _TestDDPGOnContinuousPOABC(_TestDDPGOnABC):
         return ABC(discrete=False, partially_observable=True, deterministic=test), 1
 
     def make_replay_buffer(self, env):
-        return replay_buffers.EpisodicReplayBuffer(10 ** 5)
+        return replay_buffers.EpisodicReplayBuffer(10**5)
 
 
 class _TestDDPGOnContinuousABC(_TestDDPGOnABC):

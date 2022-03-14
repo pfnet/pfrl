@@ -860,6 +860,6 @@ class TestBatchExperiences(unittest.TestCase):
         )
         self.assertSequenceEqual(
             list(batch["discount"]),
-            list(np.asarray([0.99 ** 3, 0.99 ** 1, 0.99 ** 4], dtype=np.float32)),
+            list(np.asarray([0.99**3, 0.99**1, 0.99**4], dtype=np.float32)),
         )
         self.assertSequenceEqual(list(batch["next_state"]), list(np.asarray([2, 1, 5])))

@@ -35,14 +35,14 @@ def main():
     parser.add_argument("--load", type=str, default=None)
     parser.add_argument("--eval-epsilon", type=float, default=0.0)
     parser.add_argument("--noisy-net-sigma", type=float, default=0.5)
-    parser.add_argument("--steps", type=int, default=5 * 10 ** 7)
+    parser.add_argument("--steps", type=int, default=5 * 10**7)
     parser.add_argument(
         "--max-frames",
         type=int,
         default=30 * 60 * 60,  # 30 minutes with 60 fps
         help="Maximum number of frames for each episode.",
     )
-    parser.add_argument("--replay-start-size", type=int, default=2 * 10 ** 4)
+    parser.add_argument("--replay-start-size", type=int, default=2 * 10**4)
     parser.add_argument("--eval-n-steps", type=int, default=125000)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument(
@@ -77,7 +77,7 @@ def main():
 
     # Set different random seeds for train and test envs.
     train_seed = args.seed
-    test_seed = 2 ** 31 - 1 - args.seed
+    test_seed = 2**31 - 1 - args.seed
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -123,14 +123,14 @@ def main():
     explorer = explorers.Greedy()
 
     # Use the same hyper parameters as https://arxiv.org/abs/1710.02298
-    opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10 ** -4)
+    opt = torch.optim.Adam(q_func.parameters(), 6.25e-5, eps=1.5 * 10**-4)
 
     # Prioritized Replay
     # Anneal beta from beta0 to 1 throughout training
     update_interval = 4
     betasteps = args.steps / update_interval
     rbuf = replay_buffers.PrioritizedReplayBuffer(
-        10 ** 6,
+        10**6,
         alpha=0.5,
         beta0=0.4,
         betasteps=betasteps,

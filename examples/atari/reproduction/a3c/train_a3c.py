@@ -33,7 +33,7 @@ def main():
     parser.add_argument("--t-max", type=int, default=5)
     parser.add_argument("--beta", type=float, default=1e-2)
     parser.add_argument("--profile", action="store_true")
-    parser.add_argument("--steps", type=int, default=8 * 10 ** 7)
+    parser.add_argument("--steps", type=int, default=8 * 10**7)
     parser.add_argument(
         "--max-frames",
         type=int,
@@ -84,7 +84,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.processes) + args.seed * args.processes
-    assert process_seeds.max() < 2 ** 31
+    assert process_seeds.max() < 2**31
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -92,7 +92,7 @@ def main():
     def make_env(process_idx, test):
         # Use different random seeds for train and test envs
         process_seed = process_seeds[process_idx]
-        env_seed = 2 ** 31 - 1 - process_seed if test else process_seed
+        env_seed = 2**31 - 1 - process_seed if test else process_seed
         env = atari_wrappers.wrap_deepmind(
             atari_wrappers.make_atari(args.env, max_frames=args.max_frames),
             episode_life=not test,

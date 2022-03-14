@@ -79,7 +79,7 @@ def main():
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--demo", action="store_true", default=False)
     parser.add_argument("--load", type=str, default=None)
-    parser.add_argument("--final-exploration-frames", type=int, default=10 ** 6)
+    parser.add_argument("--final-exploration-frames", type=int, default=10**6)
     parser.add_argument("--final-epsilon", type=float, default=0.01)
     parser.add_argument("--eval-epsilon", type=float, default=0.001)
     parser.add_argument("--noisy-net-sigma", type=float, default=None)
@@ -89,16 +89,16 @@ def main():
         default="doubledqn",
         choices=["nature", "nips", "dueling", "doubledqn"],
     )
-    parser.add_argument("--steps", type=int, default=5 * 10 ** 7)
+    parser.add_argument("--steps", type=int, default=5 * 10**7)
     parser.add_argument(
         "--max-frames",
         type=int,
         default=30 * 60 * 60,  # 30 minutes with 60 fps
         help="Maximum number of frames for each episode.",
     )
-    parser.add_argument("--replay-start-size", type=int, default=5 * 10 ** 4)
-    parser.add_argument("--target-update-interval", type=int, default=3 * 10 ** 4)
-    parser.add_argument("--eval-interval", type=int, default=10 ** 5)
+    parser.add_argument("--replay-start-size", type=int, default=5 * 10**4)
+    parser.add_argument("--target-update-interval", type=int, default=3 * 10**4)
+    parser.add_argument("--eval-interval", type=int, default=10**5)
     parser.add_argument("--update-interval", type=int, default=4)
     parser.add_argument("--eval-n-runs", type=int, default=10)
     parser.add_argument("--no-clip-delta", dest="clip_delta", action="store_false")
@@ -148,7 +148,7 @@ def main():
     # If seed=0 and processes=4, subprocess seeds are [0, 1, 2, 3].
     # If seed=1 and processes=4, subprocess seeds are [4, 5, 6, 7].
     process_seeds = np.arange(args.num_envs) + args.seed * args.num_envs
-    assert process_seeds.max() < 2 ** 32
+    assert process_seeds.max() < 2**32
 
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
@@ -156,7 +156,7 @@ def main():
     def make_env(idx, test):
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[idx])
-        env_seed = 2 ** 32 - 1 - process_seed if test else process_seed
+        env_seed = 2**32 - 1 - process_seed if test else process_seed
         env = atari_wrappers.wrap_deepmind(
             atari_wrappers.make_atari(args.env, max_frames=args.max_frames),
             episode_life=not test,
@@ -210,14 +210,14 @@ def main():
         # Anneal beta from beta0 to 1 throughout training
         betasteps = args.steps / args.update_interval
         rbuf = replay_buffers.PrioritizedReplayBuffer(
-            10 ** 6,
+            10**6,
             alpha=0.6,
             beta0=0.4,
             betasteps=betasteps,
             num_steps=args.n_step_return,
         )
     else:
-        rbuf = replay_buffers.ReplayBuffer(10 ** 6, num_steps=args.n_step_return)
+        rbuf = replay_buffers.ReplayBuffer(10**6, num_steps=args.n_step_return)
 
     explorer = explorers.LinearDecayEpsilonGreedy(
         1.0,
