@@ -38,11 +38,9 @@ class NoopResetEnv(gym.Wrapper):
             noops = self.override_num_noops
         else:
             if gym.__version__ >= "0.24.0":
-                noops = self.unwrapped.np_random.integers(
-                    1, self.noop_max + 1)
+                noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
             else:
-                noops = self.unwrapped.np_random.randint(
-                    1, self.noop_max + 1)
+                noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)
         assert noops > 0
         obs = None
         for _ in range(noops):
