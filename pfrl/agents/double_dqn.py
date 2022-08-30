@@ -6,7 +6,7 @@ from pfrl.utils.recurrent import pack_and_forward
 class DoubleDQN(dqn.DQN):
     """Double DQN.
 
-    See: http://arxiv.org/abs/1509.06461.
+    See: http://arxiv.org/abs/1509.06461.pdf
     """
 
     def _compute_target_values(self, exp_batch):
