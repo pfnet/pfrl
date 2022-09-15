@@ -7,6 +7,7 @@ from collections import deque
 import gym
 import numpy as np
 from gym import spaces
+from packaging import version
 
 import pfrl
 
@@ -37,8 +38,8 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            gym_version = StrictVersion(gym.__version__) 
-            if gym_version >= StrictVersion("0.24.0"): 
+            gym_version = version.parse(gym.__version__) 
+            if gym_version >= ersion.parse("0.24.0"): 
                 noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
             else:
                 noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)
