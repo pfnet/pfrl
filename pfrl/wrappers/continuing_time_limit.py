@@ -34,7 +34,7 @@ class ContinuingTimeLimit(gymnasium.Wrapper):
         if self._max_episode_steps <= self._elapsed_steps:
             info["needs_reset"] = True
 
-        return observation, reward, done, info
+        return observation, reward, done, False, info
 
     def reset(self):
         self._elapsed_steps = 0
