@@ -69,12 +69,12 @@ def train_loop(
             # a_t
             a = agent.act(obs)
             # o_{t+1}, r_{t+1}
-            obs, r, done, info = env.step(a)
+            obs, r, terminated, truncated, info = env.step(a)
             local_t += 1
             episode_r += r
             episode_len += 1
-            reset = episode_len == max_episode_len or info.get("needs_reset", False)
-            agent.observe(obs, r, done, reset)
+            reset = episode_len == max_episode_len or info.get("needs_reset", False) or truncated
+            agent.observe(obs, r, terminated, reset)
 
             # Get and increment the global counter
             with counter.get_lock():
@@ -84,7 +84,7 @@ def train_loop(
             for hook in global_step_hooks:
                 hook(env, agent, global_t)
 
-            if done or reset or global_t >= steps or stop_event.is_set():
+            if terminated or reset or global_t >= steps or stop_event.is_set():
                 if process_idx == 0:
                     logger.info(
                         "outdir:%s global_step:%s local_step:%s R:%s",

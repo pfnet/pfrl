@@ -16,7 +16,7 @@ def test_cast_observation(env_id, dtype):
     assert obs.dtype == dtype
     np.testing.assert_allclose(env.original_observation, obs, rtol=rtol)
 
-    obs, r, done, info = env.step(env.action_space.sample())
+    obs, r, done, _, info = env.step(env.action_space.sample())
 
     assert env.original_observation.dtype == np.float64
     assert obs.dtype == dtype
@@ -32,7 +32,7 @@ def test_cast_observation_to_float32(env_id):
     assert obs.dtype == np.float32
     np.testing.assert_allclose(env.original_observation, obs)
 
-    obs, r, done, info = env.step(env.action_space.sample())
+    obs, r, done, _, info = env.step(env.action_space.sample())
     assert env.original_observation.dtype == np.float64
     assert obs.dtype == np.float32
     np.testing.assert_allclose(env.original_observation, obs)

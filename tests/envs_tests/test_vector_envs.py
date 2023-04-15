@@ -59,14 +59,15 @@ class TestSerialVectorEnv:
 
         # step
         actions = [env.action_space.sample() for env in self.envs]
-        real_obss, real_rewards, real_dones, real_infos = zip(
+        real_obss, real_rewards, real_terminations, real_truncations, real_infos = zip(
             *[env.step(action) for env, action in zip(self.envs, actions)]
         )
-        obss, rewards, dones, infos = self.vec_env.step(actions)
+        obss, rewards, terminations, truncations, infos = self.vec_env.step(actions)
         np.testing.assert_allclose(obss, real_obss)
         assert rewards == real_rewards
-        assert dones == real_dones
+        assert terminations == real_terminations
         assert infos == real_infos
+        assert truncations == real_truncations
 
         # reset with full mask should have no effect
         mask = np.ones(self.num_envs)

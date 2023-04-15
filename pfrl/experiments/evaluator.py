@@ -35,12 +35,12 @@ def _run_episodes(
             episode_len = 0
             info = {}
         a = agent.act(obs)
-        obs, r, done, info = env.step(a)
+        obs, r, terminated, truncated, info = env.step(a)
         test_r += r
         episode_len += 1
         timestep += 1
-        reset = done or episode_len == max_episode_len or info.get("needs_reset", False)
-        agent.observe(obs, r, done, reset)
+        reset = terminated or episode_len == max_episode_len or info.get("needs_reset", False) or truncated
+        agent.observe(obs, r, terminated, reset)
         if reset:
             logger.info(
                 "evaluation episode %s length:%s R:%s", len(scores), episode_len, test_r
@@ -130,7 +130,7 @@ def _batch_run_episodes(
         actions = agent.batch_act(obss)
         timestep += 1
         # o_{t+1}, r_{t+1}
-        obss, rs, dones, infos = env.step(actions)
+        obss, rs, terminations, truncations, infos = env.step(actions)
         episode_r += rs
         episode_len += 1
         # Compute mask for done and reset
@@ -139,11 +139,11 @@ def _batch_run_episodes(
         else:
             resets = episode_len == max_episode_len
         resets = np.logical_or(
-            resets, [info.get("needs_reset", False) for info in infos]
+            resets, [info.get("needs_reset", False) or truncated for truncated, info in zip(truncations, infos)]
         )
 
         # Make mask. 0 if done/reset, 1 if pass
-        end = np.logical_or(resets, dones)
+        end = np.logical_or(resets, terminations)
         not_end = np.logical_not(end)
 
         for index in range(len(end)):

@@ -28,7 +28,7 @@ class ContinuingTimeLimit(gymnasium.Wrapper):
         assert (
             self._elapsed_steps is not None
         ), "Cannot call env.step() before calling reset()"
-        observation, reward, done, info = self.env.step(action)
+        observation, reward, done, _, info = self.env.step(action)
         self._elapsed_steps += 1
 
         if self._max_episode_steps <= self._elapsed_steps:

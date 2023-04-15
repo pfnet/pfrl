@@ -22,8 +22,8 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
 
     def step(self, actions):
         results = [env.step(a) for env, a in zip(self.envs, actions)]
-        self.last_obs, rews, dones, infos = zip(*results)
-        return self.last_obs, rews, dones, infos
+        self.last_obs, rews, terminations, truncations, infos = zip(*results)
+        return self.last_obs, rews, terminations, truncations,  infos
 
     def reset(self, mask=None):
         if mask is None:

@@ -16,8 +16,8 @@ def worker(remote, env_fn):
         while True:
             cmd, data = remote.recv()
             if cmd == "step":
-                ob, reward, done, info = env.step(data)
-                remote.send((ob, reward, done, info))
+                ob, reward, terminated, truncated, info = env.step(data)
+                remote.send((ob, reward, terminated, truncated, info))
             elif cmd == "reset":
                 ob = env.reset()
                 remote.send(ob)

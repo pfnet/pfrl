@@ -64,10 +64,10 @@ class ObserveElapsedSteps(gymnasium.Wrapper):
         return self.env.reset(), self._elapsed_steps
 
     def step(self, action):
-        observation, reward, done, info = self.env.step(action)
+        observation, reward, terminated, truncated, info = self.env.step(action)
         self._elapsed_steps += 1
         assert self._elapsed_steps <= self._max_steps
-        return (observation, self._elapsed_steps), reward, done, info
+        return (observation, self._elapsed_steps), reward, terminated, truncated, info
 
 
 class RecordMovie(gymnasium.Wrapper):

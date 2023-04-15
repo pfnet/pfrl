@@ -16,16 +16,16 @@ def test_continuing_time_limit(max_episode_steps):
 
     env.reset()
     for t in range(2):
-        _, _, done, info = env.step(0)
+        _, _, done, truncated, info = env.step(0)
         if t + 1 >= max_episode_steps:
-            assert info["needs_reset"]
+            assert info["needs_reset"] and truncated
         else:
-            assert not info.get("needs_reset", False)
+            assert not info.get("needs_reset", False) and not truncated
 
     env.reset()
     for t in range(4):
-        _, _, done, info = env.step(0)
+        _, _, done, truncated , info = env.step(0)
         if t + 1 >= max_episode_steps:
-            assert info["needs_reset"]
+            assert info["needs_reset"] and truncated
         else:
-            assert not info.get("needs_reset", False)
+            assert not info.get("needs_reset", False) and not truncated

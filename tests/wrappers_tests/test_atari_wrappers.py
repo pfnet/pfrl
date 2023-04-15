@@ -74,8 +74,8 @@ def test_frame_stack(dtype, k):
     for _ in range(steps - 1):
         action = env.action_space.sample()
         fs_action = fs_env.action_space.sample()
-        obs, r, done, info = env.step(action)
-        fs_obs, fs_r, fs_done, fs_info = fs_env.step(fs_action)
+        obs, r, done, _, info = env.step(action)
+        fs_obs, fs_r, fs_done, _, fs_info = fs_env.step(fs_action)
         assert isinstance(fs_obs, LazyFrames)
         np.testing.assert_allclose(
             obs.take(indices=0, axis=fs_env.stack_axis),
@@ -142,8 +142,8 @@ def test_scaled_float_frame(dtype):
     for _ in range(steps - 1):
         action = env.action_space.sample()
         s_action = s_env.action_space.sample()
-        obs, r, done, info = env.step(action)
-        s_obs, s_r, s_done, s_info = s_env.step(s_action)
+        obs, r, terminated, _, info = env.step(action)
+        s_obs, s_r, s_terminated, _, s_info = s_env.step(s_action)
         np.testing.assert_allclose(np.array(obs) / s_env.scale, s_obs)
         assert r == s_r
-        assert done == s_done
+        assert terminated == s_terminated

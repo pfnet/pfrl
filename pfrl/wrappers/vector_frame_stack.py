@@ -91,10 +91,10 @@ class VectorFrameStack(VectorEnvWrapper):
         return self._get_ob()
 
     def step(self, action):
-        batch_ob, reward, done, info = self.env.step(action)
+        batch_ob, reward, terminated, _, info = self.env.step(action)
         for frames, ob in zip(self.frames, batch_ob):
             frames.append(ob)
-        return self._get_ob(), reward, done, info
+        return self._get_ob(), reward, terminated, info
 
     def _get_ob(self):
         assert len(self.frames) == self.env.num_envs
