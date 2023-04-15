@@ -1,15 +1,15 @@
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 
 
-class NormalizeActionSpace(gym.ActionWrapper):
+class NormalizeActionSpace(gymnasium.ActionWrapper):
     """Normalize a Box action space to [-1, 1]^n."""
 
     def __init__(self, env):
         super().__init__(env)
-        assert isinstance(env.action_space, gym.spaces.Box)
-        self.action_space = gym.spaces.Box(
+        assert isinstance(env.action_space, gymnasium.spaces.Box)
+        self.action_space = gymnasium.spaces.Box(
             low=-np.ones_like(env.action_space.low),
             high=np.ones_like(env.action_space.low),
         )

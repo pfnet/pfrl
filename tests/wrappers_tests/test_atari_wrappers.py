@@ -4,8 +4,8 @@ only."""
 
 from unittest import mock
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import pytest
 
@@ -46,8 +46,8 @@ def test_frame_stack(dtype, k):
             )
             for _ in range(steps)
         ]
-        env.action_space = gym.spaces.Discrete(2)
-        env.observation_space = gym.spaces.Box(
+        env.action_space = gymnasium.spaces.Discrete(2)
+        env.observation_space = gymnasium.spaces.Box(
             low=low, high=high, shape=(1, 84, 84), dtype=dtype
         )
         return env
@@ -118,8 +118,8 @@ def test_scaled_float_frame(dtype):
             )
             for _ in range(steps)
         ]
-        env.action_space = gym.spaces.Discrete(2)
-        env.observation_space = gym.spaces.Box(
+        env.action_space = gymnasium.spaces.Discrete(2)
+        env.observation_space = gymnasium.spaces.Box(
             low=low, high=high, shape=(1, 84, 84), dtype=dtype
         )
         return env

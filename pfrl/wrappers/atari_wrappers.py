@@ -4,9 +4,9 @@ https://github.com/openai/baselines/blob/master/baselines/common/atari_wrappers.
 
 from collections import deque
 
-import gym
+import gymnasium
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from packaging import version
 
 import pfrl
@@ -20,13 +20,13 @@ except Exception:
     _is_cv2_available = False
 
 
-class NoopResetEnv(gym.Wrapper):
+class NoopResetEnv(gymnasium.Wrapper):
     def __init__(self, env, noop_max=30):
         """Sample initial states by taking random number of no-ops on reset.
 
         No-op is assumed to be action 0.
         """
-        gym.Wrapper.__init__(self, env)
+        gymnasium.Wrapper.__init__(self, env)
         self.noop_max = noop_max
         self.override_num_noops = None
         self.noop_action = 0
@@ -38,7 +38,7 @@ class NoopResetEnv(gym.Wrapper):
         if self.override_num_noops is not None:
             noops = self.override_num_noops
         else:
-            if version.parse(gym.__version__) >= version.parse("0.24.0"):
+            if version.parse(gymnasium.__version__) >= version.parse("0.24.0"):
                 noops = self.unwrapped.np_random.integers(1, self.noop_max + 1)
             else:
                 noops = self.unwrapped.np_random.randint(1, self.noop_max + 1)
@@ -54,10 +54,10 @@ class NoopResetEnv(gym.Wrapper):
         return self.env.step(ac)
 
 
-class FireResetEnv(gym.Wrapper):
+class FireResetEnv(gymnasium.Wrapper):
     def __init__(self, env):
         """Take action on reset for envs that are fixed until firing."""
-        gym.Wrapper.__init__(self, env)
+        gymnasium.Wrapper.__init__(self, env)
         assert env.unwrapped.get_action_meanings()[1] == "FIRE"
         assert len(env.unwrapped.get_action_meanings()) >= 3
 
@@ -75,13 +75,13 @@ class FireResetEnv(gym.Wrapper):
         return self.env.step(ac)
 
 
-class EpisodicLifeEnv(gym.Wrapper):
+class EpisodicLifeEnv(gymnasium.Wrapper):
     def __init__(self, env):
         """Make end-of-life == end-of-episode, but only reset on true game end.
 
         Done by DeepMind for the DQN and co. since it helps value estimation.
         """
-        gym.Wrapper.__init__(self, env)
+        gymnasium.Wrapper.__init__(self, env)
         self.lives = 0
         self.needs_real_reset = True
 
@@ -115,10 +115,10 @@ class EpisodicLifeEnv(gym.Wrapper):
         return obs
 
 
-class MaxAndSkipEnv(gym.Wrapper):
+class MaxAndSkipEnv(gymnasium.Wrapper):
     def __init__(self, env, skip=4):
         """Return only every `skip`-th frame"""
-        gym.Wrapper.__init__(self, env)
+        gymnasium.Wrapper.__init__(self, env)
         # most recent raw observations (for max pooling across time steps)
         self._obs_buffer = np.zeros((2,) + env.observation_space.shape, dtype=np.uint8)
         self._skip = skip
@@ -146,16 +146,16 @@ class MaxAndSkipEnv(gym.Wrapper):
         return self.env.reset(**kwargs)
 
 
-class ClipRewardEnv(gym.RewardWrapper):
+class ClipRewardEnv(gymnasium.RewardWrapper):
     def __init__(self, env):
-        gym.RewardWrapper.__init__(self, env)
+        gymnasium.RewardWrapper.__init__(self, env)
 
     def reward(self, reward):
         """Bin reward to {+1, 0, -1} by its sign."""
         return np.sign(reward)
 
 
-class WarpFrame(gym.ObservationWrapper):
+class WarpFrame(gymnasium.ObservationWrapper):
     def __init__(self, env, channel_order="hwc"):
         """Warp frames to 84x84 as done in the Nature paper and later work.
 
@@ -166,7 +166,7 @@ class WarpFrame(gym.ObservationWrapper):
                 "Cannot import cv2 module. Please install OpenCV-Python to use"
                 " WarpFrame."
             )
-        gym.ObservationWrapper.__init__(self, env)
+        gymnasium.ObservationWrapper.__init__(self, env)
         self.width = 84
         self.height = 84
         shape = {
@@ -185,7 +185,7 @@ class WarpFrame(gym.ObservationWrapper):
         return frame.reshape(self.observation_space.low.shape)
 
 
-class FrameStack(gym.Wrapper):
+class FrameStack(gymnasium.Wrapper):
     def __init__(self, env, k, channel_order="hwc"):
         """Stack k last frames.
 
@@ -195,7 +195,7 @@ class FrameStack(gym.Wrapper):
         --------
         baselines.common.atari_wrappers.LazyFrames
         """
-        gym.Wrapper.__init__(self, env)
+        gymnasium.Wrapper.__init__(self, env)
         self.k = k
         self.frames = deque([], maxlen=k)
         self.stack_axis = {"hwc": 2, "chw": 0}[channel_order]
@@ -222,7 +222,7 @@ class FrameStack(gym.Wrapper):
         return LazyFrames(list(self.frames), stack_axis=self.stack_axis)
 
 
-class ScaledFloatFrame(gym.ObservationWrapper):
+class ScaledFloatFrame(gymnasium.ObservationWrapper):
     """Divide frame values by 255.0 and return them as np.float32.
 
     Especially, when the original env.observation_space is np.uint8,
@@ -231,7 +231,7 @@ class ScaledFloatFrame(gym.ObservationWrapper):
 
     def __init__(self, env):
         assert isinstance(env.observation_space, spaces.Box)
-        gym.ObservationWrapper.__init__(self, env)
+        gymnasium.ObservationWrapper.__init__(self, env)
 
         self.scale = 255.0
 
@@ -272,11 +272,11 @@ class LazyFrames(object):
         return out
 
 
-class FlickerFrame(gym.ObservationWrapper):
+class FlickerFrame(gymnasium.ObservationWrapper):
     """Stochastically flicker frames."""
 
     def __init__(self, env):
-        gym.ObservationWrapper.__init__(self, env)
+        gymnasium.ObservationWrapper.__init__(self, env)
 
     def observation(self, observation):
         if self.unwrapped.np_random.rand() < 0.5:
@@ -286,9 +286,9 @@ class FlickerFrame(gym.ObservationWrapper):
 
 
 def make_atari(env_id, max_frames=30 * 60 * 60):
-    env = gym.make(env_id)
+    env = gymnasium.make(env_id)
     assert "NoFrameskip" in env.spec.id
-    assert isinstance(env, gym.wrappers.TimeLimit)
+    assert isinstance(env, gymnasium.wrappers.TimeLimit)
     # Unwrap TimeLimit wrapper because we use our own time limits
     env = env.env
     if max_frames:

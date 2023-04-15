@@ -41,7 +41,7 @@ class MultiprocessVectorEnv(pfrl.env.VectorEnv):
 
     Args:
         env_fns (list of callable): List of callables, each of which
-            returns gym.Env that is run in its own subprocess.
+            returns gymnasium.Env that is run in its own subprocess.
     """
 
     def __init__(self, env_fns):

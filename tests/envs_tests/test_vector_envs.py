@@ -1,4 +1,4 @@
-import gym
+import gymnasium
 import numpy as np
 import pytest
 
@@ -21,16 +21,16 @@ class TestSerialVectorEnv:
         # Init VectorEnv to test
         if self.vector_env_to_test == "SerialVectorEnv":
             self.vec_env = pfrl.envs.SerialVectorEnv(
-                [gym.make(self.env_id) for _ in range(self.num_envs)]
+                [gymnasium.make(self.env_id) for _ in range(self.num_envs)]
             )
         elif self.vector_env_to_test == "MultiprocessVectorEnv":
             self.vec_env = pfrl.envs.MultiprocessVectorEnv(
-                [(lambda: gym.make(self.env_id)) for _ in range(self.num_envs)]
+                [(lambda: gymnasium.make(self.env_id)) for _ in range(self.num_envs)]
             )
         else:
             assert False
         # Init envs to compare against
-        self.envs = [gym.make(self.env_id) for _ in range(self.num_envs)]
+        self.envs = [gymnasium.make(self.env_id) for _ in range(self.num_envs)]
 
     def teardown_method(self):
         # Delete so that all the subprocesses are joined

@@ -10,7 +10,7 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
     use MultiprocessVectorEnv if possible.
 
     Args:
-        env_fns (list of gym.Env): List of gym.Env.
+        env_fns (list of gymnasium.Env): List of gymnasium.Env.
     """
 
     def __init__(self, envs):

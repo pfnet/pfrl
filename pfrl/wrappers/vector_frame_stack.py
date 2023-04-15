@@ -1,14 +1,14 @@
 from collections import deque
 
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 
 from pfrl.env import VectorEnv
 from pfrl.wrappers.atari_wrappers import LazyFrames
 
 
 class VectorEnvWrapper(VectorEnv):
-    """VectorEnv analog to gym.Wrapper."""
+    """VectorEnv analog to gymnasium.Wrapper."""
 
     def __init__(self, env):
         self.env = env

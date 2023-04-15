@@ -1,18 +1,18 @@
-"""An example of training a REINFORCE agent against OpenAI Gym envs.
+"""An example of training a REINFORCE agent against OpenAI gymnasium envs.
 
-This script is an example of training a REINFORCE agent against OpenAI Gym
+This script is an example of training a REINFORCE agent against OpenAI gymnasium
 envs. Both discrete and continuous action spaces are supported.
 
 To solve CartPole-v0, run:
-    python train_reinforce_gym.py
+    python train_reinforce_gymnasium.py
 
 To solve InvertedPendulum-v1, run:
-    python train_reinforce_gym.py --env InvertedPendulum-v1
+    python train_reinforce_gymnasium.py --env InvertedPendulum-v1
 """
 import argparse
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import torch
 from torch import nn
 
@@ -59,7 +59,7 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
     def make_env(test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Use different random seeds for train and test envs
         env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
@@ -83,7 +83,7 @@ def main():
     obs_size = obs_space.low.size
     hidden_size = 200
     # Switch policy types accordingly to action space types
-    if isinstance(action_space, gym.spaces.Box):
+    if isinstance(action_space, gymnasium.spaces.Box):
         model = nn.Sequential(
             nn.Linear(obs_size, hidden_size),
             nn.LeakyReLU(0.2),

@@ -14,7 +14,7 @@ import logging
 import os
 import random
 
-import gym
+import gymnasium
 import torch.optim as optim
 
 try:
@@ -54,9 +54,9 @@ def _objective_core(
     test_seed = 2**31 - 1 - seed
 
     def make_env(test=False):
-        env = gym.make(env_id)
+        env = gymnasium.make(env_id)
 
-        if not isinstance(env.observation_space, gym.spaces.Box):
+        if not isinstance(env.observation_space, gymnasium.spaces.Box):
             raise ValueError(
                 "Supported only Box observation environments, but given: {}".format(
                     env.observation_space
@@ -68,7 +68,7 @@ def _objective_core(
                     env.observation_space.shape
                 )
             )
-        if not isinstance(env.action_space, gym.spaces.Discrete):
+        if not isinstance(env.action_space, gymnasium.spaces.Discrete):
             raise ValueError(
                 "Supported only discrete action environments, but given: {}".format(
                     env.action_space
@@ -244,7 +244,7 @@ def main():
         "--env",
         type=str,
         default="LunarLander-v2",
-        help="OpenAI Gym Environment ID.",
+        help="OpenAI gymnasium Environment ID.",
     )
     parser.add_argument(
         "--outdir",

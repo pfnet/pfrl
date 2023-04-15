@@ -2,9 +2,9 @@ import os
 import shutil
 import tempfile
 
-import gym
+import gymnasium
 import pytest
-from gym.wrappers import TimeLimit
+from gymnasium.wrappers import TimeLimit
 
 import pfrl
 
@@ -13,7 +13,7 @@ import pfrl
 def test_monitor(n_episodes):
     steps = 15
 
-    env = gym.make("CartPole-v1")
+    env = gymnasium.make("CartPole-v1")
     # unwrap default TimeLimit and wrap with new one to simulate done=True
     # at step 5
     assert isinstance(env, TimeLimit)
