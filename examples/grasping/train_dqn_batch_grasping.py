@@ -87,7 +87,7 @@ class RecordMovie(gymnasium.Wrapper):
             pybullet.STATE_LOGGING_VIDEO_MP4,
             os.path.join(self._dirname, "{}.mp4".format(self._episode_idx)),
         )
-        return obs
+        return obs, {}
 
 
 class GraspingQFunction(nn.Module):

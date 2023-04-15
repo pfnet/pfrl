@@ -16,7 +16,7 @@ class Render(gymnasium.Wrapper):
     def reset(self, **kwargs):
         ret = self.env.reset(**kwargs)
         self.env.render(**self._kwargs)
-        return ret
+        return ret, {}
 
     def step(self, action):
         ret = self.env.step(action)

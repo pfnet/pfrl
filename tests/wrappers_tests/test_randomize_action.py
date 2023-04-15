@@ -15,7 +15,7 @@ class ActionRecordingEnv(gymnasium.Env):
         self.past_actions = []
 
     def reset(self):
-        return self.observation_space.sample()
+        return self.observation_space.sample(), {}
 
     def step(self, action):
         self.past_actions.append(action)

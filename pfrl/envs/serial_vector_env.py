@@ -33,7 +33,7 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
             for m, env, o in zip(mask, self.envs, self.last_obs)
         ]
         self.last_obs = obs
-        return obs
+        return obs, {}
 
     def seed(self, seeds):
         for env, seed in zip(self.envs, seeds):

@@ -11,6 +11,7 @@ from packaging import version
 
 import pfrl
 
+
 try:
     import cv2
 
@@ -48,7 +49,7 @@ class NoopResetEnv(gymnasium.Wrapper):
             obs, _, done, truncated, info = self.env.step(self.noop_action)
             if done or info.get("needs_reset", False) or truncated:
                 obs = self.env.reset(**kwargs)
-        return obs
+        return obs, {}
 
     def step(self, ac):
         return self.env.step(ac)
@@ -69,7 +70,7 @@ class FireResetEnv(gymnasium.Wrapper):
         obs, _, done, info = self.env.step(2)
         if done or info.get("needs_reset", False) or truncated:
             self.env.reset(**kwargs)
-        return obs
+        return obs, {}
 
     def step(self, ac):
         return self.env.step(ac)
@@ -112,7 +113,7 @@ class EpisodicLifeEnv(gymnasium.Wrapper):
             # no-op step to advance from terminal/lost life state
             obs, _, _, _, _ = self.env.step(0)
         self.lives = self.env.unwrapped.ale.lives()
-        return obs
+        return obs, {}
 
 
 class MaxAndSkipEnv(gymnasium.Wrapper):
@@ -178,6 +179,7 @@ class WarpFrame(gymnasium.ObservationWrapper):
         )
 
     def observation(self, frame):
+        set_trace()
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(
             frame, (self.width, self.height), interpolation=cv2.INTER_AREA
@@ -207,10 +209,10 @@ class FrameStack(gymnasium.Wrapper):
         )
 
     def reset(self):
-        ob = self.env.reset()
+        ob, _ = self.env.reset()
         for _ in range(self.k):
             self.frames.append(ob)
-        return self._get_ob()
+        return self._get_ob(), {}
 
     def step(self, action):
         ob, reward, done, truncated, info = self.env.step(action)

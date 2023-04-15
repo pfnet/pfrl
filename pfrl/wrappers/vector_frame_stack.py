@@ -88,7 +88,7 @@ class VectorFrameStack(VectorEnvWrapper):
             if not m:
                 for _ in range(self.k):
                     frames.append(ob)
-        return self._get_ob()
+        return self._get_ob(), {}
 
     def step(self, action):
         batch_ob, reward, terminated, _, info = self.env.step(action)

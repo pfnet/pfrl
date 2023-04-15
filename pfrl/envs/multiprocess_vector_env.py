@@ -99,7 +99,7 @@ See https://github.com/numpy/numpy/issues/12793 for details.
             for m, remote, o in zip(mask, self.remotes, self.last_obs)
         ]
         self.last_obs = obs
-        return obs
+        return obs, {}
 
     def close(self):
         self._assert_not_closed()

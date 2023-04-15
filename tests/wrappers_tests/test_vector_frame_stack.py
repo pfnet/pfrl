@@ -74,8 +74,8 @@ def test_vector_frame_stack(num_envs, k):
     assert fs_env.action_space == vfs_env.action_space
     assert fs_env.observation_space == vfs_env.observation_space
 
-    fs_obs = fs_env.reset()
-    vfs_obs = vfs_env.reset()
+    fs_obs, _ = fs_env.reset()
+    vfs_obs, _ = vfs_env.reset()
 
     # Same LazyFrames observations
     for env_idx in range(num_envs):
