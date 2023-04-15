@@ -4,7 +4,7 @@ from setuptools import setup
 
 install_requires = [
     'torch>=1.3.0',
-    'gym>=0.9.7',
+    'gymnasium[all]',
     'numpy>=1.11.0',
     'pillow',
     'filelock',
