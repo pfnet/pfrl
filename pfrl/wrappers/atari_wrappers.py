@@ -48,8 +48,8 @@ class NoopResetEnv(gymnasium.Wrapper):
         for _ in range(noops):
             obs, _, done, truncated, info = self.env.step(self.noop_action)
             if done or info.get("needs_reset", False) or truncated:
-                obs = self.env.reset(**kwargs)
-        return obs, {}
+                obs, info = self.env.reset(**kwargs)
+        return obs, info
 
     def step(self, ac):
         return self.env.step(ac)
@@ -108,12 +108,12 @@ class EpisodicLifeEnv(gymnasium.Wrapper):
         and the learner need not know about any of this behind-the-scenes.
         """
         if self.needs_real_reset:
-            obs = self.env.reset(**kwargs)
+            obs, info = self.env.reset(**kwargs)
         else:
             # no-op step to advance from terminal/lost life state
-            obs, _, _, _, _ = self.env.step(0)
+            obs, _, _, _, info = self.env.step(0)
         self.lives = self.env.unwrapped.ale.lives()
-        return obs, {}
+        return obs, info
 
 
 class MaxAndSkipEnv(gymnasium.Wrapper):
@@ -179,7 +179,6 @@ class WarpFrame(gymnasium.ObservationWrapper):
         )
 
     def observation(self, frame):
-        set_trace()
         frame = cv2.cvtColor(frame, cv2.COLOR_RGB2GRAY)
         frame = cv2.resize(
             frame, (self.width, self.height), interpolation=cv2.INTER_AREA
@@ -209,10 +208,10 @@ class FrameStack(gymnasium.Wrapper):
         )
 
     def reset(self):
-        ob, _ = self.env.reset()
+        ob, info = self.env.reset()
         for _ in range(self.k):
             self.frames.append(ob)
-        return self._get_ob(), {}
+        return self._get_ob(), info
 
     def step(self, action):
         ob, reward, done, truncated, info = self.env.step(action)
@@ -288,10 +287,11 @@ class FlickerFrame(gymnasium.ObservationWrapper):
 
 
 def make_atari(env_id, max_frames=30 * 60 * 60):
-    env = gymnasium.make(env_id)
+    env = gymnasium.make(env_id,
+                         repeat_action_probability=0.0,
+                         full_action_space=False, frameskip=1,
+                         max_num_frames_per_episode=max_frames)
     assert "NoFrameskip" in env.spec.id
-    if max_frames:
-        env = pfrl.wrappers.ContinuingTimeLimit(env, max_episode_steps=max_frames)
     env = NoopResetEnv(env, noop_max=30)
     env = MaxAndSkipEnv(env, skip=4)
     return env
