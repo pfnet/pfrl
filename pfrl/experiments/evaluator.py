@@ -29,8 +29,8 @@ def _run_episodes(
     reset = True
     while not terminate:
         if reset:
-            obs = env.reset()
-            done = False
+            obs, info = env.reset()
+            terminated = False
             test_r = 0
             episode_len = 0
             info = {}
@@ -120,7 +120,7 @@ def _batch_run_episodes(
     episode_r = np.zeros(num_envs, dtype=np.float64)
     episode_len = np.zeros(num_envs, dtype="i")
 
-    obss = env.reset()
+    obss, infos = env.reset()
     rs = np.zeros(num_envs, dtype="f")
 
     termination_conditions = False
@@ -199,7 +199,7 @@ def _batch_run_episodes(
             resets.fill(True)
 
         # Agent observes the consequences.
-        agent.batch_observe(obss, rs, dones, resets)
+        agent.batch_observe(obss, rs, terminations, resets)
 
         if termination_conditions:
             break
