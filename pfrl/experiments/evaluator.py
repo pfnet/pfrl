@@ -8,7 +8,6 @@ import numpy as np
 
 import pfrl
 
-
 def _run_episodes(
     env,
     agent,
@@ -23,11 +22,11 @@ def _run_episodes(
     logger = logger or logging.getLogger(__name__)
     scores = []
     lengths = []
-    terminate = False
+    terminated = False
     timestep = 0
 
     reset = True
-    while not terminate:
+    while not terminated:
         if reset:
             obs, info = env.reset()
             terminated = False
@@ -50,9 +49,9 @@ def _run_episodes(
             scores.append(float(test_r))
             lengths.append(float(episode_len))
         if n_steps is None:
-            terminate = len(scores) >= n_episodes
+            terminated = len(scores) >= n_episodes
         else:
-            terminate = timestep >= n_steps
+            terminated = timestep >= n_steps
     # If all steps were used for a single unfinished episode
     if len(scores) == 0:
         scores.append(float(test_r))

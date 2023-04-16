@@ -87,8 +87,8 @@ class EpisodicLifeEnv(gymnasium.Wrapper):
         self.needs_real_reset = True
 
     def step(self, action):
-        obs, reward, done, truncated, info = self.env.step(action)
-        self.needs_real_reset = done or info.get("needs_reset", False)
+        obs, reward, terminated, truncated, info = self.env.step(action)
+        self.needs_real_reset = terminated or info.get("needs_reset", False) or truncated
         # check current lives, make loss of life terminal,
         # then update lives to handle bonus lives
         lives = self.env.unwrapped.ale.lives()
@@ -97,9 +97,9 @@ class EpisodicLifeEnv(gymnasium.Wrapper):
             # frames
             # so its important to keep lives > 0, so that we only reset once
             # the environment advertises done.
-            done = True
+            terminated = True
         self.lives = lives
-        return obs, reward, done, truncated, info
+        return obs, reward, terminated, truncated, info
 
     def reset(self, **kwargs):
         """Reset only when lives are exhausted.
