@@ -541,7 +541,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
                         )
                     )
                 self.replay_buffer.append(env_id=i, **transition)
-                if batch_reset[i] or batch_done[i]:
+                recurrent_done = self.recurrent and len(self.replay_buffer.current_episode[i]) == self.episodic_update_len
+                if batch_reset[i] or batch_done[i] or recurrent_done:
                     self.batch_last_obs[i] = None
                     self.batch_last_action[i] = None
                     self.replay_buffer.stop_current_episode(env_id=i)
