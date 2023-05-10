@@ -7,7 +7,7 @@ install_requires = [
     'gymnasium[all]',
     'numpy>=1.11.0',
     'pillow',
-    'filelock',
+    # 'filelock',
 ]
 
 test_requires = [
