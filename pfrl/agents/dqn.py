@@ -791,8 +791,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         if self.recurrent:
             self.test_recurrent_states = None
 
-    def save(self, dirname: str) -> None:
-        super().save(dirname)
+    def save_snapshot(self, dirname: str) -> None:
+        self.save(dirname)
         torch.save(
             self.t, os.path.join(dirname, "t.pt")
         )
@@ -807,8 +807,8 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         )
 
 
-    def load(self, dirname: str) -> None:
-        super().load(dirname)
+    def load_snapshot(self, dirname: str) -> None:
+        self.load(dirname)
         self.t = torch.load(
             os.path.join(dirname, "t.pt")
         )
