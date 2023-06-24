@@ -3,11 +3,11 @@ from setuptools import find_packages
 from setuptools import setup
 
 install_requires = [
-    # 'torch>=1.3.0',
-    # 'gymnasium[all]',
-    # 'numpy>=1.11.0',
-    # 'pillow',
-    # 'filelock',
+    'torch>=1.3.0',
+    'gymnasium[all]',
+    'numpy>=1.11.0',
+    'pillow',
+    'filelock',
 ]
 
 test_requires = [
