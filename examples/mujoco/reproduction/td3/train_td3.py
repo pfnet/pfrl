@@ -19,7 +19,6 @@ from pfrl import experiments, explorers, replay_buffers, utils
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--outdir",

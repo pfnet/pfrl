@@ -6,7 +6,6 @@ from pfrl.utils.recurrent import pack_and_forward
 
 class DoublePAL(pal.PAL):
     def _compute_y_and_t(self, exp_batch):
-
         batch_state = exp_batch["state"]
         batch_size = len(exp_batch["reward"])
 

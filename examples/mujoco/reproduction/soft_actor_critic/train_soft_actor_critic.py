@@ -21,7 +21,6 @@ from pfrl.nn.lmbda import Lambda
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--outdir",

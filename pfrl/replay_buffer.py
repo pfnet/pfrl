@@ -316,7 +316,6 @@ class ReplayUpdater(object):
         update_interval,
         episodic_update_len=None,
     ):
-
         assert batchsize <= replay_start_size
         self.replay_buffer = replay_buffer
         self.update_func = update_func

@@ -81,7 +81,6 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         batch_states=batch_states,
         burnin_action_func=None,
     ):
-
         self.model = nn.ModuleList([policy, q_func])
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -223,7 +222,6 @@ class DDPG(AttributeSavingMixin, BatchAgent):
             batches.append(batch)
 
         with self.model.state_reset(), self.target_model.state_reset():
-
             # Since the target model is evaluated one-step ahead,
             # its internal states need to be updated
             self.target_q_function.update_state(
@@ -238,7 +236,6 @@ class DDPG(AttributeSavingMixin, BatchAgent):
             self.critic_optimizer.update(lambda: critic_loss / max_epi_len)
 
         with self.model.state_reset():
-
             # Update actor through time
             actor_loss = 0
             for batch in batches:

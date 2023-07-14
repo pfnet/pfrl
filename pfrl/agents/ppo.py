@@ -115,7 +115,6 @@ def _add_log_prob_and_value_to_episodes(
     obs_normalizer,
     device,
 ):
-
     dataset = list(itertools.chain.from_iterable(episodes))
 
     # Compute v_pred and next_v_pred
@@ -533,7 +532,6 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
             self.n_updates += 1
 
     def _update_once_recurrent(self, episodes, mean_advs, std_advs):
-
         assert std_advs is None or std_advs > 0
 
         device = self.device
@@ -636,7 +634,6 @@ class PPO(agent.AttributeSavingMixin, agent.BatchAgent):
     def _lossfun(
         self, entropy, vs_pred, log_probs, vs_pred_old, log_probs_old, advs, vs_teacher
     ):
-
         prob_ratio = torch.exp(log_probs - log_probs_old)
 
         loss_policy = -torch.mean(

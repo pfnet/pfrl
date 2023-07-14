@@ -33,7 +33,6 @@ class _TestTraining:
         raise NotImplementedError()
 
     def _test_training(self, gpu, steps=5000, load_model=False, require_success=True):
-
         random_seed.set_random_seed(1)
         logging.basicConfig(level=logging.DEBUG)
 
@@ -112,7 +111,6 @@ class _TestBatchTrainingMixin(object):
     def _test_batch_training(
         self, gpu, steps=5000, load_model=False, require_success=True
     ):
-
         random_seed.set_random_seed(1)
         logging.basicConfig(level=logging.DEBUG)
 
@@ -183,7 +181,6 @@ class _TestActorLearnerTrainingMixin(object):
     """
 
     def _test_actor_learner_training(self, gpu, steps=100000, require_success=True):
-
         logging.basicConfig(level=logging.DEBUG)
 
         test_env, successful_return = self.make_env_and_successful_return(test=True)

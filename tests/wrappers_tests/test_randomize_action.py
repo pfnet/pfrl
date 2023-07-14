@@ -7,7 +7,6 @@ import pfrl
 
 
 class ActionRecordingEnv(gym.Env):
-
     observation_space = gym.spaces.Box(low=-1, high=1, shape=(1,))
     action_space = gym.spaces.Discrete(3)
 

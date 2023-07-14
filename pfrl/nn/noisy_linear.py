@@ -13,7 +13,6 @@ def init_lecun_uniform(tensor, scale=1.0):
 
 
 def init_variance_scaling_constant(tensor, scale=1.0):
-
     if tensor.ndim == 1:
         s = scale / np.sqrt(tensor.shape[0])
     else:

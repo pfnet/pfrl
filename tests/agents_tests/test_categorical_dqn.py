@@ -322,7 +322,6 @@ class TestComputeValueLoss:
         assertions.assertAlmostEqual(loss, eltwise_loss, places=5)
 
     def test_uniformly_weighted(self):
-
         # Uniform weights of size batch size
         w1 = np.ones(self.y.shape[0], dtype="f")
 
@@ -344,7 +343,6 @@ class TestComputeValueLoss:
         assertions.assertAlmostEqual(loss_w1, eltwise_loss, places=5)
 
     def test_randomly_weighted(self):
-
         # Random weights
         wu = np.random.uniform(low=0, high=2, size=self.y.shape[0]).astype("f")
 

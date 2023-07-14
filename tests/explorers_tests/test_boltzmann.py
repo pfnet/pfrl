@@ -24,7 +24,6 @@ def count_actions_selected_by_boltzmann(T, q_values):
 
 class TestBoltzmann(unittest.TestCase):
     def test_boltzmann(self):
-
         # T=1
         q_values = torch.from_numpy(np.asarray([[-1, 1, 0]], dtype=np.float32))
         action_count = count_actions_selected_by_boltzmann(1, q_values)
