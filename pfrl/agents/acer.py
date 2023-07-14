@@ -332,7 +332,6 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         average_kl_decay=0.999,
         logger=None,
     ):
-
         # Globally shared model
         self.shared_model = model
 
@@ -472,7 +471,6 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         action_distribs_mu,
         avg_action_distribs,
     ):
-
         assert np.isscalar(R)
         pi_loss = 0
         Q_loss = 0
@@ -566,7 +564,6 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         action_distribs_mu,
         avg_action_distribs,
     ):
-
         assert np.isscalar(R)
         self.assert_shared_memory()
 
@@ -595,7 +592,6 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
         self.sync_parameters()
 
     def update_from_replay(self):
-
         if self.replay_buffer is None:
             return
 
@@ -715,7 +711,6 @@ class ACER(agent.AttributeSavingMixin, agent.AsyncAgent):
             self._observe_eval(obs, reward, done, reset)
 
     def _act_train(self, obs):
-
         statevar = batch_states([obs], self.device, self.phi)
 
         if self.recurrent:

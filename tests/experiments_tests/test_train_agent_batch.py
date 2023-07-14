@@ -13,7 +13,6 @@ import pfrl
 @pytest.mark.parametrize("steps", [5, 6])
 @pytest.mark.parametrize("enable_evaluation", [True, False])
 def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
-
     outdir = tempfile.mkdtemp()
 
     agent = mock.Mock()

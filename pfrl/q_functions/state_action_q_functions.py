@@ -105,7 +105,7 @@ class FCLSTMSAQFunction(nn.Module, StateActionQFunction):
             num_layers=1, input_size=n_hidden_channels, hidden_size=n_hidden_channels
         )
         self.out = nn.Linear(n_hidden_channels, 1)
-        for (n, p) in self.lstm.named_parameters():
+        for n, p in self.lstm.named_parameters():
             if "weight" in n:
                 init_lecun_normal(p)
             else:

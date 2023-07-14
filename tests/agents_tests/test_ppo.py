@@ -313,7 +313,6 @@ class _TestPPO:
         self._test_abc_batch(steps=100, require_success=False, gpu=0)
 
     def _test_abc(self, steps=100000, require_success=True, gpu=-1, load_model=False):
-
         env, _ = self.make_env_and_successful_return(test=False)
         test_env, successful_return = self.make_env_and_successful_return(test=True)
         agent = self.make_agent(env, gpu)
@@ -356,7 +355,6 @@ class _TestPPO:
     def _test_abc_batch(
         self, steps=100000, require_success=True, gpu=-1, load_model=False, num_envs=4
     ):
-
         env, _ = self.make_vec_env_and_successful_return(test=False, num_envs=num_envs)
         test_env, successful_return = self.make_vec_env_and_successful_return(
             test=True, num_envs=num_envs

@@ -119,7 +119,6 @@ class _TestA3C:
         steps=100000,
         require_success=True,
     ):
-
         nproc = 8
 
         def make_env(process_idx, test):

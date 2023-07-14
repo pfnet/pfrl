@@ -21,7 +21,6 @@ class PAL(dqn.DQN):
         super().__init__(*args, **kwargs)
 
     def _compute_y_and_t(self, exp_batch):
-
         batch_state = exp_batch["state"]
         batch_size = len(exp_batch["reward"])
 

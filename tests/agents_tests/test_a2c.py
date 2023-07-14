@@ -48,7 +48,6 @@ class TestA2C:
         self._test_abc(steps=100, require_success=False, gpu=0)
 
     def _test_abc(self, steps=1000000, require_success=True, gpu=-1, load_model=False):
-
         env, _ = self.make_env_and_successful_return(test=False, n=self.num_processes)
         test_env, successful_return = self.make_env_and_successful_return(
             test=True, n=1

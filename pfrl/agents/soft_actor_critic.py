@@ -119,7 +119,6 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         temperature_optimizer_lr=None,
         act_deterministically=True,
     ):
-
         self.policy = policy
         self.q_func1 = q_func1
         self.q_func2 = q_func2

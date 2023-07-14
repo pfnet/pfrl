@@ -22,7 +22,6 @@ from pfrl.policies import DeterministicHead
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--outdir",

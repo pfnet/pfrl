@@ -41,7 +41,6 @@ def train_loop(
     logger=None,
     global_step_hooks=[],
 ):
-
     logger = logger or logging.getLogger(__name__)
 
     if eval_env is None:
@@ -55,7 +54,6 @@ def train_loop(
             logger.info("Saved the current model to %s", dirname)
 
     try:
-
         episode_r = 0
         global_t = 0
         local_t = 0
@@ -65,7 +63,6 @@ def train_loop(
         successful = False
 
         while True:
-
             # a_t
             a = agent.act(obs)
             # o_{t+1}, r_{t+1}

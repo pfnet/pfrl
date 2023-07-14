@@ -7,7 +7,6 @@ import pfrl
 
 class TestLinearInterpolationHook(unittest.TestCase):
     def test_call(self):
-
         buf = []
 
         def setter(env, agent, value):

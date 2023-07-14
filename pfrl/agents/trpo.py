@@ -193,7 +193,6 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         policy_step_size_stats_window=100,
         logger=getLogger(__name__),
     ):
-
         self.policy = policy
         self.vf = vf
         self.vf_optimizer = vf_optimizer
@@ -335,7 +334,6 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
         self._update_vf_recurrent(dataset)
 
     def _update_vf_recurrent(self, dataset):
-
         for epoch in range(self.vf_epochs):
             random.shuffle(dataset)
             for (
@@ -346,7 +344,6 @@ class TRPO(agent.AttributeSavingMixin, agent.BatchAgent):
                 self._update_vf_once_recurrent(minibatch)
 
     def _update_vf_once_recurrent(self, episodes):
-
         # Sort episodes desc by length for pack_sequence
         episodes = sorted(episodes, key=len, reverse=True)
 
