@@ -4,6 +4,7 @@ import ctypes
 import multiprocessing as mp
 import multiprocessing.synchronize
 import time
+import os
 from logging import Logger, getLogger
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -789,6 +790,37 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
     def stop_episode(self) -> None:
         if self.recurrent:
             self.test_recurrent_states = None
+
+    def save_snapshot(self, dirname: str) -> None:
+        self.save(dirname)
+        torch.save(
+            self.t, os.path.join(dirname, "t.pt")
+        )
+        torch.save(
+            self.optim_t, os.path.join(dirname, "optim_t.pt")
+        )
+        torch.save(
+            self._cumulative_steps, os.path.join(dirname, "_cumulative_steps.pt")
+        )
+        self.replay_buffer.save(
+            os.path.join(dirname, "replay_buffer.pkl")
+        )
+
+
+    def load_snapshot(self, dirname: str) -> None:
+        self.load(dirname)
+        self.t = torch.load(
+            os.path.join(dirname, "t.pt")
+        )
+        self.optim_t = torch.load(
+            os.path.join(dirname, "optim_t.pt")
+        )
+        self._cumulative_steps = torch.load(
+            os.path.join(dirname, "_cumulative_steps.pt")
+        )
+        self.replay_buffer.load(
+            os.path.join(dirname, "replay_buffer.pkl")
+        )
 
     def get_statistics(self):
         return [
