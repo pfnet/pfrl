@@ -5,6 +5,7 @@ import multiprocessing as mp
 import multiprocessing.synchronize
 import os
 import time
+import typing
 from logging import Logger, getLogger
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple
 
@@ -37,7 +38,7 @@ from pfrl.utils.recurrent import (
 
 def _mean_or_nan(xs: Sequence[float]) -> float:
     """Return its mean a non-empty sequence, numpy.nan for a empty one."""
-    return np.mean(xs) if xs else np.nan
+    return typing.cast(float, np.mean(xs)) if xs else np.nan
 
 
 def compute_value_loss(
