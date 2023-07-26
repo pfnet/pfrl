@@ -10,6 +10,7 @@ from pfrl.agents.double_pal import DoublePAL  # NOQA
 from pfrl.agents.dpp import DPP  # NOQA
 from pfrl.agents.dqn import DQN  # NOQA
 from pfrl.agents.iqn import IQN  # NOQA
+from pfrl.agents.mdqn import MDQN  # NOQA
 from pfrl.agents.pal import PAL  # NOQA
 from pfrl.agents.ppo import PPO  # NOQA
 from pfrl.agents.reinforce import REINFORCE  # NOQA
