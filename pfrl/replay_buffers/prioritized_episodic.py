@@ -22,25 +22,16 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer, PriorityWeightError)
         error_min=None,
         error_max=None,
     ):
-        self.current_episode = collections.defaultdict(list)
-        self.episodic_memory = PrioritizedBuffer(
-            capacity=None, wait_priority_after_sampling=wait_priority_after_sampling
-        )
-        self.memory = RandomAccessQueue(maxlen=capacity)
+        self.initialize_memory(capacity)
+        self.capacity = capacity
+        self.wait_priority_after_sampling = wait_priority_after_sampling
+        self.beta0 = beta0
+        self.betasteps = betasteps
+
         self.capacity_left = capacity
         self.default_priority_func = default_priority_func
         self.uniform_ratio = uniform_ratio
         self.return_sample_weights = return_sample_weights
-        PriorityWeightError.__init__(
-            self,
-            alpha,
-            beta0,
-            betasteps,
-            eps,
-            normalize_by_max,
-            error_min=error_min,
-            error_max=error_max,
-        )
 
     def sample_episodes(self, n_episodes, max_len=None):
         """Sample n unique samples from this replay buffer"""
@@ -75,3 +66,27 @@ class PrioritizedEpisodicReplayBuffer(EpisodicReplayBuffer, PriorityWeightError)
                 discarded_episode = self.episodic_memory.popleft()
                 self.capacity_left += len(discarded_episode)
         assert not self.current_episode[env_id]
+
+    def initialize_memory(self, capacity, wait_priority_after_sampling,
+                          alpha, beta0, betasteps, eps, normalize_by_max, 
+                          error_min, error_max):
+        self.current_episode = collections.defaultdict(list)
+        self.episodic_memory = PrioritizedBuffer(
+            capacity=None, wait_priority_after_sampling=wait_priority_after_sampling
+        )
+        self.memory = RandomAccessQueue(maxlen=capacity)
+        PriorityWeightError.__init__(
+            self,
+            alpha,
+            beta0,
+            betasteps,
+            eps,
+            normalize_by_max,
+            error_min=error_min,
+            error_max=error_max,
+        )
+
+    def clear(self):
+        self.initialize_memory(self.capacity, self.wait_priority_after_sampling, 
+                               self.alpha, self.beta0, self.betasteps, self.eps,
+                               self.normalize_by_max, self.error_min, self.error_max)
