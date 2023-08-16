@@ -1,5 +1,8 @@
+import csv
 import logging
 import os
+import shutil
+import time
 
 from pfrl.experiments.evaluator import Evaluator, save_agent
 from pfrl.utils.ask_yes_no import ask_yes_no
@@ -21,14 +24,96 @@ def ask_and_save_agent_replay_buffer(agent, t, outdir, suffix=""):
         save_agent_replay_buffer(agent, t, outdir, suffix=suffix)
 
 
+def snapshot(
+    agent,
+    t,
+    episode_idx,
+    outdir,
+    suffix="_snapshot",
+    logger=None,
+    delete_old=True,
+):
+    start_time = time.time()
+    tmp_suffix = f"{suffix}_"
+    tmp_dirname = os.path.join(outdir, f"{t}{tmp_suffix}")  # use until files are saved
+    agent.save(tmp_dirname)
+    if hasattr(agent, "replay_buffer"):
+        agent.replay_buffer.save(os.path.join(tmp_dirname, "replay.pkl"))
+    if os.path.exists(os.path.join(outdir, "scores.txt")):
+        shutil.copyfile(
+            os.path.join(outdir, "scores.txt"), os.path.join(tmp_dirname, "scores.txt")
+        )
+
+    history_path = os.path.join(outdir, "snapshot_history.txt")
+    if not os.path.exists(history_path):  # write header
+        with open(history_path, "a") as f:
+            csv.writer(f, delimiter="\t").writerow(["step", "episode", "snapshot_time"])
+    with open(history_path, "a") as f:
+        csv.writer(f, delimiter="\t").writerow(
+            [t, episode_idx, time.time() - start_time]
+        )
+    shutil.copyfile(history_path, os.path.join(tmp_dirname, "snapshot_history.txt"))
+
+    real_dirname = os.path.join(outdir, f"{t}{suffix}")
+    os.rename(tmp_dirname, real_dirname)
+    if logger:
+        logger.info(f"Saved the snapshot to {real_dirname}")
+    if delete_old:
+        for old_dir in filter(
+            lambda s: s.endswith(suffix) or s.endswith(tmp_suffix), os.listdir(outdir)
+        ):
+            if old_dir != f"{t}{suffix}":
+                shutil.rmtree(os.path.join(outdir, old_dir))
+
+
+def load_snapshot(agent, dirname, logger=None):
+    agent.load(dirname)
+    if hasattr(agent, "replay_buffer"):
+        agent.replay_buffer.load(os.path.join(dirname, "replay.pkl"))
+    if logger:
+        logger.info(f"Loaded the snapshot from {dirname}")
+    with open(os.path.join(dirname, "snapshot_history.txt")) as f:
+        step, episode = map(int, f.readlines()[-1].split()[:2])
+    max_score = None
+    if os.path.exists(os.path.join(dirname, "scores.txt")):
+        with open(os.path.join(dirname, "scores.txt")) as f:
+            lines = f.readlines()
+        if len(lines) > 1:
+            max_score = float(lines[-1].split()[3])  # mean
+    shutil.copyfile(
+        os.path.join(dirname, "snapshot_history.txt"),
+        os.path.join(dirname, "..", "snapshot_history.txt"),
+    )
+    shutil.copyfile(
+        os.path.join(dirname, "scores.txt"),
+        os.path.join(dirname, "..", "scores.txt"),
+    )
+    return step, episode, max_score
+
+
+def latest_snapshot_dir(search_dir, suffix="_snapshot"):
+    """
+    return None if no snapshot exists
+    """
+    candidates = list(filter(lambda s: s.endswith(suffix), os.listdir(search_dir)))
+    if len(candidates) == 0:
+        return None
+    return os.path.join(
+        search_dir, max(candidates, key=lambda name: int(name.split("_")[0]))
+    )
+
+
 def train_agent(
     agent,
     env,
     steps,
     outdir,
     checkpoint_freq=None,
+    take_resumable_snapshot=False,
     max_episode_len=None,
     step_offset=0,
+    episode_offset=0,
+    max_score=None,
     evaluator=None,
     successful_score=None,
     step_hooks=(),
@@ -37,8 +122,12 @@ def train_agent(
 ):
     logger = logger or logging.getLogger(__name__)
 
+    # restore max_score
+    if evaluator and max_score:
+        evaluator.max_score = max_score
+
     episode_r = 0
-    episode_idx = 0
+    episode_idx = episode_offset
 
     # o_0, r_0
     obs = env.reset()
@@ -98,7 +187,10 @@ def train_agent(
                 episode_len = 0
                 obs = env.reset()
             if checkpoint_freq and t % checkpoint_freq == 0:
-                save_agent(agent, t, outdir, logger, suffix="_checkpoint")
+                if take_resumable_snapshot:
+                    snapshot(agent, t, episode_idx, outdir, logger=logger)
+                else:
+                    save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed
@@ -120,9 +212,12 @@ def train_agent_with_evaluation(
     eval_interval,
     outdir,
     checkpoint_freq=None,
+    take_resumable_snapshot=False,
     train_max_episode_len=None,
     step_offset=0,
+    episode_offset=0,
     eval_max_episode_len=None,
+    max_score=None,
     eval_env=None,
     successful_score=None,
     step_hooks=(),
@@ -142,11 +237,18 @@ def train_agent_with_evaluation(
         eval_n_episodes (int): Number of episodes at each evaluation phase.
         eval_interval (int): Interval of evaluation.
         outdir (str): Path to the directory to output data.
-        checkpoint_freq (int): frequency at which agents are stored.
+        checkpoint_freq (int): frequency in step at which agents are stored.
+        take_resumable_snapshot (bool): If True, snapshot is saved in checkpoint.
+            Note that currently, snapshot does not support agent analytics (e.g.,
+            for DQN, average_q, average_loss, cumulative_steps, and n_updates) and
+            those valued in "scores.txt" might be incorrect after resuming from
+            snapshot.
         train_max_episode_len (int): Maximum episode length during training.
         step_offset (int): Time step from which training starts.
+        episode_offset (int): Episode index from which training starts,
         eval_max_episode_len (int or None): Maximum episode length of
             evaluation runs. If None, train_max_episode_len is used instead.
+        max_score (int): Current max socre.
         eval_env: Environment used for evaluation.
         successful_score (float): Finish training if the mean score is greater
             than or equal to this value if not None
@@ -209,8 +311,11 @@ def train_agent_with_evaluation(
         steps,
         outdir,
         checkpoint_freq=checkpoint_freq,
+        take_resumable_snapshot=take_resumable_snapshot,
         max_episode_len=train_max_episode_len,
         step_offset=step_offset,
+        episode_offset=episode_offset,
+        max_score=max_score,
         evaluator=evaluator,
         successful_score=successful_score,
         step_hooks=step_hooks,

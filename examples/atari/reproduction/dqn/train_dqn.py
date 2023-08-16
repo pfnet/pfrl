@@ -31,6 +31,12 @@ def main():
             " If it does not exist, it will be created."
         ),
     )
+    parser.add_argument(
+        "--exp-id",
+        type=str,
+        default=None,
+        help="Experiment ID. If None, commit hash or timestamp is used.",
+    )
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 31)")
     parser.add_argument(
         "--gpu", type=int, default=0, help="GPU to use, set to -1 if no GPU."
@@ -73,9 +79,22 @@ def main():
         default=5 * 10**4,
         help="Minimum replay buffer size before " + "performing gradient updates.",
     )
+    parser.add_argument(
+        "--save-snapshot",
+        action="store_true",
+        default=False,
+        help="Take resumable snapshot at every checkpoint",
+    )
+    parser.add_argument(
+        "--load-snapshot",
+        action="store_true",
+        default=False,
+        help="Load snapshot if exists",
+    )
     parser.add_argument("--eval-n-steps", type=int, default=125000)
     parser.add_argument("--eval-interval", type=int, default=250000)
     parser.add_argument("--n-best-episodes", type=int, default=30)
+    parser.add_argument("--checkpoint-freq", type=int, default=2000000)
     args = parser.parse_args()
 
     import logging
@@ -89,7 +108,9 @@ def main():
     train_seed = args.seed
     test_seed = 2**31 - 1 - args.seed
 
-    args.outdir = experiments.prepare_output_dir(args, args.outdir)
+    args.outdir = experiments.prepare_output_dir(
+        args, args.outdir, exp_id=args.exp_id, make_backup=args.exp_id is None
+    )
     print("Output files are saved in {}".format(args.outdir))
 
     def make_env(test):
@@ -162,6 +183,17 @@ def main():
         phi=phi,
     )
 
+    # load snapshot
+    step_offset, episode_offset = 0, 0
+    max_score = None
+    if args.load_snapshot:
+        snapshot_dirname = experiments.latest_snapshot_dir(args.outdir)
+        if snapshot_dirname:
+            print(f"load snapshot from {snapshot_dirname}")
+            step_offset, episode_offset, max_score = experiments.load_snapshot(
+                agent, snapshot_dirname
+            )
+
     if args.load or args.load_pretrained:
         # either load or load_pretrained must be false
         assert not args.load or not args.load_pretrained
@@ -194,6 +226,11 @@ def main():
             eval_n_steps=args.eval_n_steps,
             eval_n_episodes=None,
             eval_interval=args.eval_interval,
+            step_offset=step_offset,
+            episode_offset=episode_offset,
+            max_score=max_score,
+            checkpoint_freq=args.checkpoint_freq,
+            take_resumable_snapshot=args.save_snapshot,
             outdir=args.outdir,
             save_best_so_far_agent=True,
             eval_env=eval_env,
