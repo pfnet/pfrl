@@ -16,7 +16,6 @@ import pfrl
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--gpu", type=int, default=0, help="GPU device ID. Set to -1 to use CPUs only."
@@ -215,7 +214,6 @@ def main():
         with open(os.path.join(args.outdir, "demo_scores.json"), "w") as f:
             json.dump(eval_stats, f)
     else:
-
         pfrl.experiments.train_agent_with_evaluation(
             agent=agent,
             env=env,

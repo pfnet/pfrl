@@ -51,7 +51,6 @@ class TestExponentialDecayEpsilonGreedy:
 
 class TestEpsilonGreedy:
     def test_linear_decay_epsilon_greedy(self):
-
         random_action_func_count = [0]
         greedy_action_func_count = [0]
 
@@ -80,7 +79,6 @@ class TestEpsilonGreedy:
         assert pytest.approx(explorer.epsilon) == 0.1
 
     def test_constant_epsilon_greedy(self):
-
         random_action_func_count = [0]
         greedy_action_func_count = [0]
 

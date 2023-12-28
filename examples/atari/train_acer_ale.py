@@ -19,7 +19,6 @@ from pfrl.wrappers import atari_wrappers  # NOQA:E402
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument("processes", type=int)
     parser.add_argument("--env", type=str, default="BreakoutNoFrameskip-v4")
@@ -185,7 +184,6 @@ def main():
             )
         )
     else:
-
         # Linearly decay the learning rate to zero
         def lr_setter(env, agent, value):
             for pg in agent.optimizer.param_groups:

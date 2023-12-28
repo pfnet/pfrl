@@ -64,7 +64,6 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
         average_value_decay=0.999,
         batch_states=batch_states,
     ):
-
         # Globally shared model
         self.shared_model = model
 
@@ -241,7 +240,6 @@ class A3C(agent.AttributeSavingMixin, agent.AsyncAgent):
             self._observe_eval(obs, reward, done, reset)
 
     def _act_train(self, obs):
-
         self.past_obs[self.t] = obs
 
         with torch.no_grad():

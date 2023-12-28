@@ -71,7 +71,6 @@ class A2C(agent.AttributeSavingMixin, agent.BatchAgent):
         average_value_decay=0.999,
         batch_states=batch_states,
     ):
-
         self.model = model
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()

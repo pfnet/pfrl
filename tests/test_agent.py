@@ -14,7 +14,6 @@ def create_simple_link():
 
 
 class Parent(pfrl.agent.AttributeSavingMixin, object):
-
     saved_attributes = ("link", "child")
 
     def __init__(self):
@@ -23,7 +22,6 @@ class Parent(pfrl.agent.AttributeSavingMixin, object):
 
 
 class Child(pfrl.agent.AttributeSavingMixin, object):
-
     saved_attributes = ("link",)
 
     def __init__(self):
@@ -31,7 +29,6 @@ class Child(pfrl.agent.AttributeSavingMixin, object):
 
 
 class Parent2(pfrl.agent.AttributeSavingMixin, object):
-
     saved_attributes = ("child_a", "child_b")
 
     def __init__(self, child_a, child_b):

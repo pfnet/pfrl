@@ -45,7 +45,6 @@ def make_env(args, seed, test):
 
 
 def main():
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--outdir",

@@ -10,7 +10,6 @@ class DoubleDQN(dqn.DQN):
     """
 
     def _compute_target_values(self, exp_batch):
-
         batch_next_state = exp_batch["next_state"]
 
         with evaluating(self.model):

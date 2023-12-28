@@ -13,7 +13,6 @@ from pfrl.experiments.train_agent_async import train_loop
 @pytest.mark.parametrize("num_envs", [1, 2])
 @pytest.mark.parametrize("max_episode_len", [None, 2])
 def test_train_agent_async(num_envs, max_episode_len):
-
     steps = 50
 
     outdir = tempfile.mkdtemp()
@@ -147,7 +146,6 @@ def test_unsupported_evaluation_hook():
 
 class TestTrainLoop(unittest.TestCase):
     def test_needs_reset(self):
-
         outdir = tempfile.mkdtemp()
 
         agent = mock.Mock()

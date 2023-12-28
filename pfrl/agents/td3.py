@@ -101,7 +101,6 @@ class TD3(AttributeSavingMixin, BatchAgent):
         policy_update_delay=2,
         target_policy_smoothing_func=default_target_policy_smoothing_func,
     ):
-
         self.policy = policy
         self.q_func1 = q_func1
         self.q_func2 = q_func2

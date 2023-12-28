@@ -13,7 +13,6 @@ from pfrl.experiments import evaluator
 @pytest.mark.parametrize("n_steps", [None, 1, 2])
 @pytest.mark.parametrize("n_episodes", [None, 1, 2])
 def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_episodes):
-
     outdir = tempfile.mkdtemp()
 
     # MagicMock can mock eval_mode while Mock cannot

@@ -245,7 +245,6 @@ class TestLoadDDPG:
         self.pretrained_type = pretrained_type
 
     def _test_load_ddpg(self, gpu):
-
         obs_size = 11
         action_size = 3
         from pfrl.nn import ConcatObsAndAction
@@ -443,7 +442,6 @@ class TestLoadTD3:
         self.pretrained_type = pretrained_type
 
     def _test_load_td3(self, gpu):
-
         obs_size = 11
         action_size = 3
 
