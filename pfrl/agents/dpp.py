@@ -17,7 +17,6 @@ class AbstractDPP(DQN, metaclass=ABCMeta):
         raise NotImplementedError()
 
     def _compute_target_values(self, exp_batch):
-
         batch_next_state = exp_batch["next_state"]
 
         if self.recurrent:
@@ -38,7 +37,6 @@ class AbstractDPP(DQN, metaclass=ABCMeta):
         )
 
     def _compute_y_and_t(self, exp_batch):
-
         batch_state = exp_batch["state"]
         batch_size = len(exp_batch["reward"])
 

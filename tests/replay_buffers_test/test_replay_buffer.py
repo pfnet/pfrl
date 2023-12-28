@@ -399,7 +399,6 @@ class TestPrioritizedReplayBuffer:
         np.testing.assert_allclose(s4[0][0]["weight"], s4[1][0]["weight"])
 
     def test_normalize_by_max(self):
-
         rbuf = replay_buffers.PrioritizedReplayBuffer(
             self.capacity,
             normalize_by_max=self.normalize_by_max,

@@ -35,7 +35,6 @@ def train_agent(
     eval_during_episode=False,
     logger=None,
 ):
-
     logger = logger or logging.getLogger(__name__)
 
     episode_r = 0
@@ -52,7 +51,6 @@ def train_agent(
     episode_len = 0
     try:
         while t < steps:
-
             # a_t
             action = agent.act(obs)
             # o_{t+1}, r_{t+1}

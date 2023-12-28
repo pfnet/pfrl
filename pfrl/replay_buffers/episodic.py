@@ -7,7 +7,6 @@ from pfrl.replay_buffer import AbstractEpisodicReplayBuffer, random_subseq
 
 
 class EpisodicReplayBuffer(AbstractEpisodicReplayBuffer):
-
     # Implements AbstractReplayBuffer.capacity
     capacity: Optional[int] = None
 

@@ -9,7 +9,6 @@ import pfrl
 
 class TestBatchStates(unittest.TestCase):
     def _test(self, gpu):
-
         # state: ((2,2)-shaped array, integer, (1,)-shaped array)
         states = [
             (np.arange(4).reshape((2, 2)), 0, np.zeros(1)),

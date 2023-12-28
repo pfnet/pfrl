@@ -14,7 +14,6 @@ from pfrl.wrappers.vector_frame_stack import VectorEnvWrapper, VectorFrameStack
 
 class TestVectorEnvWrapper(unittest.TestCase):
     def test(self):
-
         vec_env = pfrl.envs.SerialVectorEnv([mock.Mock() for _ in range(3)])
 
         wrapped_vec_env = VectorEnvWrapper(vec_env)
@@ -28,7 +27,6 @@ class TestVectorEnvWrapper(unittest.TestCase):
 @pytest.mark.parametrize("num_envs", [1, 3])
 @pytest.mark.parametrize("k", [2, 3])
 def test_vector_frame_stack(num_envs, k):
-
     steps = 10
 
     # Mock env that returns atari-like frames

@@ -20,9 +20,7 @@ def work_dir(dirname):
 
 
 def test_is_under_git_control():
-
     with tempfile.TemporaryDirectory() as tmp:
-
         # Not under git control
         with work_dir(tmp):
             assert not pfrl.experiments.is_under_git_control()
@@ -37,7 +35,6 @@ def test_is_under_git_control():
 
 
 def test_generate_exp_id():
-
     with tempfile.TemporaryDirectory() as tmp:
         with work_dir(tmp):
             subprocess.check_output(["git", "init"])
@@ -71,7 +68,6 @@ def test_generate_exp_id():
     ),
 )
 def test_prepare_output_dir(exp_id, git, basedir, argv):
-
     with tempfile.TemporaryDirectory() as tmp:
         if not exp_id and not git:
             pytest.skip("Without git it cannot generate experiment id")
@@ -80,7 +76,6 @@ def test_prepare_output_dir(exp_id, git, basedir, argv):
         os.environ["PFRL_TEST_PREPARE_OUTPUT_DIR"] = "T"
 
         with work_dir(tmp):
-
             if git:
                 subprocess.call(["git", "init"])
                 with open("not_utf-8.txt", "wb") as f:

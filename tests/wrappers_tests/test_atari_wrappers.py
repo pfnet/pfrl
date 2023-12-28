@@ -15,7 +15,6 @@ from pfrl.wrappers.atari_wrappers import FrameStack, LazyFrames, ScaledFloatFram
 @pytest.mark.parametrize("dtype", [np.uint8, np.float32])
 @pytest.mark.parametrize("k", [2, 3])
 def test_frame_stack(dtype, k):
-
     steps = 10
 
     # Mock env that returns atari-like frames
@@ -87,7 +86,6 @@ def test_frame_stack(dtype, k):
 
 @pytest.mark.parametrize("dtype", [np.uint8, np.float32])
 def test_scaled_float_frame(dtype):
-
     steps = 10
 
     # Mock env that returns atari-like frames

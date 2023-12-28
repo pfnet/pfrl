@@ -273,7 +273,6 @@ def test_compute_loss_with_kl_constraint_softmax():
 
 
 def _test_compute_loss_with_kl_constraint(base_policy):
-
     # Train a policy with and without KL constraint against the original
     # distribution to confirm KL constraint works.
 
@@ -351,7 +350,6 @@ class _TestACER:
         steps=100000,
         require_success=True,
     ):
-
         nproc = 8
 
         def make_env(process_idx, test):

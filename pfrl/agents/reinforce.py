@@ -57,7 +57,6 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
         max_grad_norm=None,
         logger=None,
     ):
-
         self.model = model
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
@@ -103,7 +102,6 @@ class REINFORCE(agent.AttributeSavingMixin, agent.Agent):
             self._observe_eval(obs, reward, done, reset)
 
     def _act_train(self, obs):
-
         batch_obs = self.batch_states([obs], self.device, self.phi)
         if self.recurrent:
             action_distrib, self.train_recurrent_states = one_step_forward(

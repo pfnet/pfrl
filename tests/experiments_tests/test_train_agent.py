@@ -9,7 +9,6 @@ import pfrl
 
 class TestTrainAgent(unittest.TestCase):
     def test(self):
-
         outdir = tempfile.mkdtemp()
 
         agent = mock.Mock()
@@ -50,7 +49,6 @@ class TestTrainAgent(unittest.TestCase):
             self.assertEqual(args[2], i + 1)
 
     def test_needs_reset(self):
-
         outdir = tempfile.mkdtemp()
 
         agent = mock.Mock()
@@ -136,7 +134,6 @@ class TestTrainAgent(unittest.TestCase):
 
 @pytest.mark.parametrize("eval_during_episode", [False, True])
 def test_eval_during_episode(eval_during_episode):
-
     outdir = tempfile.mkdtemp()
 
     agent = mock.MagicMock()
