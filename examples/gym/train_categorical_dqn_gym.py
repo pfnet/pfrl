@@ -1,16 +1,16 @@
-"""An example of training Categorical DQN against OpenAI Gym Envs.
+"""An example of training Categorical DQN against OpenAI gymnasium Envs.
 
 This script is an example of training a CategoricalDQN agent against OpenAI
-Gym envs. Only discrete spaces are supported.
+gymnasium envs. Only discrete spaces are supported.
 
 To solve CartPole-v0, run:
-    python train_categorical_dqn_gym.py --env CartPole-v0
+    python train_categorical_dqn_gymnasium.py --env CartPole-v0
 """
 
 import argparse
 import sys
 
-import gym
+import gymnasium
 import torch
 
 import pfrl
@@ -66,7 +66,7 @@ def main():
     print("Output files are saved in {}".format(args.outdir))
 
     def make_env(test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32

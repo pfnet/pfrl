@@ -1,11 +1,11 @@
-import gym
+import gymnasium
 
 
-class Render(gym.Wrapper):
+class Render(gymnasium.Wrapper):
     """Render env by calling its render method.
 
     Args:
-        env (gym.Env): Env to wrap.
+        env (gymnasium.Env): Env to wrap.
         **kwargs: Keyword arguments passed to the render method.
     """
 
@@ -16,7 +16,7 @@ class Render(gym.Wrapper):
     def reset(self, **kwargs):
         ret = self.env.reset(**kwargs)
         self.env.render(**self._kwargs)
-        return ret
+        return ret, {}
 
     def step(self, action):
         ret = self.env.step(action)

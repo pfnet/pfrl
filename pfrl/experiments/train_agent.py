@@ -41,7 +41,7 @@ def train_agent(
     episode_idx = 0
 
     # o_0, r_0
-    obs = env.reset()
+    obs , info = env.reset()
 
     t = step_offset
     if hasattr(agent, "t"):
@@ -54,17 +54,17 @@ def train_agent(
             # a_t
             action = agent.act(obs)
             # o_{t+1}, r_{t+1}
-            obs, r, done, info = env.step(action)
+            obs, r, terminated, truncated, info = env.step(action)
             t += 1
             episode_r += r
             episode_len += 1
-            reset = episode_len == max_episode_len or info.get("needs_reset", False)
-            agent.observe(obs, r, done, reset)
+            reset = episode_len == max_episode_len or info.get("needs_reset", False) or truncated
+            agent.observe(obs, r, terminated, reset)
 
             for hook in step_hooks:
                 hook(env, agent, t)
 
-            episode_end = done or reset or t == steps
+            episode_end = terminated or reset or t == steps
 
             if episode_end:
                 logger.info(
@@ -96,7 +96,7 @@ def train_agent(
                 # Start a new episode
                 episode_r = 0
                 episode_len = 0
-                obs = env.reset()
+                obs, info = env.reset()
             if checkpoint_freq and t % checkpoint_freq == 0:
                 save_agent(agent, t, outdir, logger, suffix="_checkpoint")
 

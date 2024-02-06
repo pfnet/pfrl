@@ -24,11 +24,11 @@ def make_timestep_limited(env, timestep_limit):
     old_reset = env.reset
 
     def step(action):
-        observation, reward, done, info = old_step(action)
+        observation, reward, done, truncated, info = old_step(action)
         if t[0] >= timestep_limit:
             done = True
         t[0] += 1
-        return observation, reward, done, info
+        return observation, reward, done, truncated, info
 
     def reset():
         t[0] = 1
@@ -51,9 +51,9 @@ def make_reward_filtered(env, reward_filter):
     old_step = env.step
 
     def step(action):
-        observation, reward, done, info = old_step(action)
+        observation, reward, done, truncated, info = old_step(action)
         reward = reward_filter(reward)
-        return observation, reward, done, info
+        return observation, reward, done, truncated, info
 
     env.step = step
 
@@ -73,10 +73,10 @@ def make_action_repeated(env, n_times):
     def step(action):
         r_total = 0
         for _ in range(n_times):
-            obs, r, done, info = old_step(action)
+            obs, r, done, truncated, info = old_step(action)
             r_total += r
             if done:
                 break
-        return obs, r_total, done, info
+        return obs, r_total, done, truncated, info
 
     env.step = step

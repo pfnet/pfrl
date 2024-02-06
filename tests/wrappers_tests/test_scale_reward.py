@@ -1,4 +1,4 @@
-import gym
+import gymnasium
 import numpy as np
 import pytest
 
@@ -8,7 +8,7 @@ import pfrl
 @pytest.mark.parametrize("env_id", ["CartPole-v1", "MountainCar-v0"])
 @pytest.mark.parametrize("scale", [1.0, 0.1])
 def test_scale_reward(env_id, scale):
-    env = pfrl.wrappers.ScaleReward(gym.make(env_id), scale=scale)
+    env = pfrl.wrappers.ScaleReward(gymnasium.make(env_id), scale=scale)
     assert env.original_reward is None
     np.testing.assert_allclose(env.scale, scale)
 

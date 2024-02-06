@@ -1,10 +1,10 @@
-import gym
+import gymnasium
 
 
-class ContinuingTimeLimit(gym.Wrapper):
+class ContinuingTimeLimit(gymnasium.Wrapper):
     """TimeLimit wrapper for continuing environments.
 
-    This is similar gym.wrappers.TimeLimit, which sets a time limit for
+    This is similar gymnasium.wrappers.TimeLimit, which sets a time limit for
     each episode, except that done=False is returned and that
     info['needs_reset'] is set to True when past the limit.
 
@@ -13,7 +13,7 @@ class ContinuingTimeLimit(gym.Wrapper):
     key and its value is True.
 
     Args:
-        env (gym.Env): Env to wrap.
+        env (gymnasium.Env): Env to wrap.
         max_episode_steps (int): Maximum number of timesteps during an episode,
             after which the env needs a reset.
     """
@@ -28,13 +28,13 @@ class ContinuingTimeLimit(gym.Wrapper):
         assert (
             self._elapsed_steps is not None
         ), "Cannot call env.step() before calling reset()"
-        observation, reward, done, info = self.env.step(action)
+        observation, reward, done, _, info = self.env.step(action)
         self._elapsed_steps += 1
 
         if self._max_episode_steps <= self._elapsed_steps:
             info["needs_reset"] = True
 
-        return observation, reward, done, info
+        return observation, reward, done, False, info
 
     def reset(self):
         self._elapsed_steps = 0

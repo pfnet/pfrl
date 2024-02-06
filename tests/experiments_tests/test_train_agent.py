@@ -16,11 +16,11 @@ class TestTrainAgent(unittest.TestCase):
         # Reaches the terminal state after five actions
         env.reset.side_effect = [("state", 0)]
         env.step.side_effect = [
-            (("state", 1), 0, False, {}),
-            (("state", 2), 0, False, {}),
-            (("state", 3), -0.5, False, {}),
-            (("state", 4), 0, False, {}),
-            (("state", 5), 1, True, {}),
+            (("state", 1), 0, False, False, {}),
+            (("state", 2), 0, False, False, {}),
+            (("state", 3), -0.5, False, False, {}),
+            (("state", 4), 0, False, False, {}),
+            (("state", 5), 1, True, False, {}),
         ]
         hook = mock.Mock()
 
@@ -57,12 +57,12 @@ class TestTrainAgent(unittest.TestCase):
         # Second episode: 4 -> 5 -> 6 -> 7 (done)
         env.reset.side_effect = [("state", 0), ("state", 4)]
         env.step.side_effect = [
-            (("state", 1), 0, False, {}),
-            (("state", 2), 0, False, {}),
-            (("state", 3), 0, False, {"needs_reset": True}),
-            (("state", 5), -0.5, False, {}),
-            (("state", 6), 0, False, {}),
-            (("state", 7), 1, True, {}),
+            (("state", 1), 0, False, False, {}),
+            (("state", 2), 0, False, False, {}),
+            (("state", 3), 0, False, False, {"needs_reset": True}),
+            (("state", 5), -0.5, False, False, {}),
+            (("state", 6), 0, False, False,{}),
+            (("state", 7), 1, True, False, {}),
         ]
         hook = mock.Mock()
 
@@ -141,11 +141,11 @@ def test_eval_during_episode(eval_during_episode):
     # Two episodes
     env.reset.side_effect = [("state", 0)] * 2
     env.step.side_effect = [
-        (("state", 1), 0, False, {}),
-        (("state", 2), 0, False, {}),
-        (("state", 3), -0.5, True, {}),
-        (("state", 4), 0, False, {}),
-        (("state", 5), 1, True, {}),
+        (("state", 1), 0, False, False, {}),
+        (("state", 2), 0, False, False, {}),
+        (("state", 3), -0.5, True, False, {}),
+        (("state", 4), 0, False, False, {}),
+        (("state", 5), 1, True, False, {}),
     ]
 
     evaluator = mock.Mock()

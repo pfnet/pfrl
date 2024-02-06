@@ -1,6 +1,6 @@
 # Slime Volleyball
 
-This directory contains an example script that learns to play Slime Volleyball using the environment `SlimeVolley-v0` of [slimevolleygym](https://github.com/hardmaru/slimevolleygym).
+This directory contains an example script that learns to play Slime Volleyball using the environment `SlimeVolley-v0` of [slimevolleygymnasium](https://github.com/hardmaru/slimevolleygymnasium).
 
 ![SlimeVolley](assets/slimevolley.gif)
 
@@ -10,8 +10,8 @@ This directory contains an example script that learns to play Slime Volleyball u
 
 ## Requirements
 
-- `slimevolleygym` (https://github.com/hardmaru/slimevolleygym)
-  - You can install from PyPI: `pip install slimevolleygym==0.1.0`
+- `slimevolleygymnasium` (https://github.com/hardmaru/slimevolleygymnasium)
+  - You can install from PyPI: `pip install slimevolleygymnasium==0.1.0`
 
 ## Algorithm
 
@@ -37,7 +37,7 @@ python examples/slimevolley/train_rainbow.py --demo --render --load <path to age
 
 ## Results
 
-Below is the learning curve of the example script averaged over three trials with different random seeds. Each trial took around 18 hours for 2M steps. After every ~250K timesteps, the agent is evaluated for 1000 episodes, following the protocol of https://github.com/hardmaru/slimevolleygym/blob/master/TRAINING.md#ppo-and-cma-es-example-train-directly-against-baseline-policy (https://github.com/hardmaru/slimevolleygym/blob/2aba3d2c70429ff8447f17951a528dcfd5ab7cd0/training_scripts/train_ppo.py). 
+Below is the learning curve of the example script averaged over three trials with different random seeds. Each trial took around 18 hours for 2M steps. After every ~250K timesteps, the agent is evaluated for 1000 episodes, following the protocol of https://github.com/hardmaru/slimevolleygymnasium/blob/master/TRAINING.md#ppo-and-cma-es-example-train-directly-against-baseline-policy (https://github.com/hardmaru/slimevolleygymnasium/blob/2aba3d2c70429ff8447f17951a528dcfd5ab7cd0/training_scripts/train_ppo.py). 
 
 All the three trials outperform the baseline policy, i.e., achieving a positive average score over 1000 evaluation episodes, after 750K steps. The best trial among three achieved 0.541 after 1.75M steps, the model of which is used for the animation.
 

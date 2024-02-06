@@ -2,32 +2,32 @@ import time
 from logging import getLogger
 
 try:
-    from gym.wrappers import Monitor as _GymMonitor
+    from gymnasium.wrappers import Monitor as _gymnasiumMonitor
 except ImportError:
 
     class _Stub:
         def __init__(self, *args, **kwargs):
-            raise RuntimeError("Monitor is not available in this version of gym")
+            raise RuntimeError("Monitor is not available in this version of gymnasium")
 
-    class _GymMonitor(_Stub):  # type: ignore
+    class _gymnasiumMonitor(_Stub):  # type: ignore
         pass
 
-    class _GymStatsRecorder(_Stub):
+    class _gymnasiumStatsRecorder(_Stub):
         pass
 
 else:
-    from gym.wrappers.monitoring.stats_recorder import StatsRecorder as _GymStatsRecorder  # type: ignore  # isort: skip  # noqa: E501
+    from gymnasium.wrappers.monitoring.stats_recorder import StatsRecorder as _gymnasiumStatsRecorder  # type: ignore  # isort: skip  # noqa: E501
 
 
-class Monitor(_GymMonitor):
+class Monitor(_gymnasiumMonitor):
     """`Monitor` with PFRL's `ContinuingTimeLimit` support.
 
     `Agent` in PFRL might reset the env even when `done=False`
     if `ContinuingTimeLimit` returns `info['needs_reset']=True`,
-    which is not expected for `gym.Monitor`.
+    which is not expected for `gymnasium.Monitor`.
 
     For details, see
-    https://github.com/openai/gym/blob/master/gym/wrappers/monitor.py
+    https://github.com/openai/gymnasium/blob/master/gymnasium/wrappers/monitor.py
     """
 
     def _start(
@@ -66,11 +66,11 @@ class Monitor(_GymMonitor):
         return ret
 
 
-class _StatsRecorder(_GymStatsRecorder):
+class _StatsRecorder(_gymnasiumStatsRecorder):
     """`StatsRecorder` with PFRL's `ContinuingTimeLimit` support.
 
     For details, see
-    https://github.com/openai/gym/blob/master/gym/wrappers/monitoring/stats_recorder.py
+    https://github.com/openai/gymnasium/blob/master/gymnasium/wrappers/monitoring/stats_recorder.py
     """
 
     def __init__(

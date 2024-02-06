@@ -1,14 +1,14 @@
 from collections import deque
 
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 
 from pfrl.env import VectorEnv
 from pfrl.wrappers.atari_wrappers import LazyFrames
 
 
 class VectorEnvWrapper(VectorEnv):
-    """VectorEnv analog to gym.Wrapper."""
+    """VectorEnv analog to gymnasium.Wrapper."""
 
     def __init__(self, env):
         self.env = env
@@ -88,13 +88,13 @@ class VectorFrameStack(VectorEnvWrapper):
             if not m:
                 for _ in range(self.k):
                     frames.append(ob)
-        return self._get_ob()
+        return self._get_ob(), {}
 
     def step(self, action):
-        batch_ob, reward, done, info = self.env.step(action)
+        batch_ob, reward, terminated, _, info = self.env.step(action)
         for frames, ob in zip(self.frames, batch_ob):
             frames.append(ob)
-        return self._get_ob(), reward, done, info
+        return self._get_ob(), reward, terminated, info
 
     def _get_ob(self):
         assert len(self.frames) == self.env.num_envs

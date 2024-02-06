@@ -22,7 +22,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
 
     env = mock.Mock()
     env.reset.return_value = "obs"
-    env.step.return_value = ("obs", 0, True, {})
+    env.step.return_value = ("obs", 0, True, False, {})
     env.get_statistics.return_value = []
 
     evaluation_hook = mock.create_autospec(
@@ -88,7 +88,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
             assert agent.save.call_count == 0
 
         # Third evaluation with a better score
-        env.step.return_value = ("obs", 1, True, {})
+        env.step.return_value = ("obs", 1, True, False,  {})
         agent_evaluator.evaluate_if_necessary(t=9, episodes=9)
         assert agent.act.call_count == 3 * value
         assert agent.observe.call_count == 3 * value
@@ -111,7 +111,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
 
     env = mock.Mock()
     env.reset.return_value = "obs"
-    env.step.return_value = ("obs", 0, True, {})
+    env.step.return_value = ("obs", 0, True, False, {})
     env.get_statistics.return_value = []
 
     evaluation_hook = mock.create_autospec(
@@ -158,7 +158,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
         assert agent.save.call_count == 0
 
     # Third evaluation with a better score
-    env.step.return_value = ("obs", 1, True, {})
+    env.step.return_value = ("obs", 1, True, False, {})
     agent_evaluator.evaluate_if_necessary(t=9, episodes=9, env=env, agent=agent)
     assert agent.act.call_count == 3 * n_episodes
     assert agent.observe.call_count == 3 * n_episodes
@@ -183,8 +183,8 @@ def test_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
         (("state", 2), 0.2, False, {}),
         (("state", 3), 0.3, False, {"needs_reset": True}),
         (("state", 5), -0.5, False, {}),
-        (("state", 6), 0, False, {}),
-        (("state", 7), 1, True, {}),
+        (("state", 6), 0, False, False, {}),
+        (("state", 7), 1, True, False, {}),
     ]
 
     if n_episodes:
@@ -261,11 +261,11 @@ def test_batch_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
             # Second episode: 4 -> 5 -> 6 -> 7 (done)
             env.reset.side_effect = [("state", 0), ("state", 4)]
             env.step.side_effect = [
-                (("state", 1), 0, False, {}),
-                (("state", 2), 0.1, False, {}),
-                (("state", 3), 0.2, False, {"needs_reset": True}),
-                (("state", 5), -0.5, False, {}),
-                (("state", 6), 0, False, {}),
+                (("state", 1), 0, False, False, {}),
+                (("state", 2), 0.1, False, False, {}),
+                (("state", 3), 0.2, False, False, {"needs_reset": True}),
+                (("state", 5), -0.5, False, False, {}),
+                (("state", 6), 0, False, False, {}),
                 (("state", 7), 1, True, {}),
             ]
         else:
@@ -274,11 +274,11 @@ def test_batch_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
             # Third episode: 4 -> 5 -> 6 -> 7 (done)
             env.reset.side_effect = [("state", 0), ("state", 2), ("state", 4)]
             env.step.side_effect = [
-                (("state", 1), 2, False, {"needs_reset": True}),
-                (("state", 3), 3, False, {"needs_reset": True}),
-                (("state", 5), -0.6, False, {}),
-                (("state", 6), 0, False, {}),
-                (("state", 7), 1, True, {}),
+                (("state", 1), 2, False, False, {"needs_reset": True}),
+                (("state", 3), 3, False, False, {"needs_reset": True}),
+                (("state", 5), -0.6, False, False, {}),
+                (("state", 6), 0, False, False, {}),
+                (("state", 7), 1, True, False, {}),
             ]
         return env
 
@@ -326,12 +326,12 @@ class TestBatchRunEvaluationEpisode(unittest.TestCase):
                 # Second episode: 4 -> 5 -> 6 -> 7 (done)
                 env.reset.side_effect = [("state", 0), ("state", 4)]
                 env.step.side_effect = [
-                    (("state", 1), 0, False, {}),
-                    (("state", 2), 0, False, {}),
-                    (("state", 3), 0, False, {"needs_reset": True}),
-                    (("state", 5), -0.5, False, {}),
-                    (("state", 6), 0, False, {}),
-                    (("state", 7), 1, True, {}),
+                    (("state", 1), 0, False, False, {}),
+                    (("state", 2), 0, False, False, {}),
+                    (("state", 3), 0, False, False, {"needs_reset": True}),
+                    (("state", 5), -0.5, False, False, {}),
+                    (("state", 6), 0, False, False, {}),
+                    (("state", 7), 1, True, False, {}),
                 ]
             else:
                 # First episode: 0 -> 1 (reset)
@@ -339,11 +339,11 @@ class TestBatchRunEvaluationEpisode(unittest.TestCase):
                 # Third episode: 4 -> 5 -> 6 -> 7 (done)
                 env.reset.side_effect = [("state", 0), ("state", 2), ("state", 4)]
                 env.step.side_effect = [
-                    (("state", 1), 2, False, {"needs_reset": True}),
-                    (("state", 3), 3, False, {"needs_reset": True}),
-                    (("state", 5), -0.6, False, {}),
-                    (("state", 6), 0, False, {}),
-                    (("state", 7), 1, True, {}),
+                    (("state", 1), 2, False, False, {"needs_reset": True}),
+                    (("state", 3), 3, False, False, {"needs_reset": True}),
+                    (("state", 5), -0.6, False, False, {}),
+                    (("state", 6), 0, False, False, {}),
+                    (("state", 7), 1, True, False, {}),
                 ]
             return env
 

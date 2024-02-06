@@ -16,8 +16,8 @@ def worker(remote, env_fn):
         while True:
             cmd, data = remote.recv()
             if cmd == "step":
-                ob, reward, done, info = env.step(data)
-                remote.send((ob, reward, done, info))
+                ob, reward, terminated, truncated, info = env.step(data)
+                remote.send((ob, reward, terminated, truncated, info))
             elif cmd == "reset":
                 ob = env.reset()
                 remote.send(ob)
@@ -41,7 +41,7 @@ class MultiprocessVectorEnv(pfrl.env.VectorEnv):
 
     Args:
         env_fns (list of callable): List of callables, each of which
-            returns gym.Env that is run in its own subprocess.
+            returns gymnasium.Env that is run in its own subprocess.
     """
 
     def __init__(self, env_fns):
@@ -99,7 +99,7 @@ See https://github.com/numpy/numpy/issues/12793 for details.
             for m, remote, o in zip(mask, self.remotes, self.last_obs)
         ]
         self.last_obs = obs
-        return obs
+        return obs, {}
 
     def close(self):
         self._assert_not_closed()
