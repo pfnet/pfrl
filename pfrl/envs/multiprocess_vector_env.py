@@ -83,8 +83,8 @@ See https://github.com/numpy/numpy/issues/12793 for details.
         for remote, action in zip(self.remotes, actions):
             remote.send(("step", action))
         results = [remote.recv() for remote in self.remotes]
-        self.last_obs, rews, dones, infos = zip(*results)
-        return self.last_obs, rews, dones, infos
+        self.last_obs, rews, terminateds, truncateds, infos = zip(*results)
+        return self.last_obs, rews, terminateds, truncateds, infos
 
     def reset(self, mask=None):
         self._assert_not_closed()
