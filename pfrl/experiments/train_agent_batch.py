@@ -54,7 +54,7 @@ def train_agent_batch(
     episode_len = np.zeros(num_envs, dtype="i")
 
     # o_0, r_0
-    obss = env.reset()
+    obss, infos = env.reset()
 
     t = step_offset
     if hasattr(agent, "t"):
@@ -138,7 +138,7 @@ def train_agent_batch(
             # Start new episodes if needed
             episode_r[end] = 0
             episode_len[end] = 0
-            obss = env.reset(not_end)
+            obss, infos = env.reset(not_end)
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed

@@ -19,8 +19,8 @@ def worker(remote, env_fn):
                 ob, reward, terminated, truncated, info = env.step(data)
                 remote.send((ob, reward, terminated, truncated, info))
             elif cmd == "reset":
-                ob = env.reset()
-                remote.send(ob)
+                ob, info = env.reset()
+                remote.send((ob, info))
             elif cmd == "close":
                 remote.close()
                 break
@@ -94,12 +94,13 @@ See https://github.com/numpy/numpy/issues/12793 for details.
             if not m:
                 remote.send(("reset", None))
 
-        obs = [
-            remote.recv() if not m else o
+        results = [
+            remote.recv() if not m else (o, {})
             for m, remote, o in zip(mask, self.remotes, self.last_obs)
         ]
+        obs, info = zip(*results)
         self.last_obs = obs
-        return obs, {}
+        return obs, info
 
     def close(self):
         self._assert_not_closed()
