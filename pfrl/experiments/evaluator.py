@@ -203,7 +203,7 @@ def _batch_run_episodes(
         if termination_conditions:
             break
         else:
-            obss = env.reset(not_end)
+            obss, infos = env.reset(not_end)
 
     for i, (epi_len, epi_ret) in enumerate(
         zip(eval_episode_lens, eval_episode_returns)
