@@ -30,7 +30,7 @@ Refer to [Installation](http://pfrl.readthedocs.io/en/latest/install.html) for m
 
 ## Getting started
 
-You can try [PFRL Quickstart Guide](examples/quickstart/quickstart.ipynb) first, or check the [examples](examples) ready for Atari 2600 and Open AI gymnasium.
+You can try [PFRL Quickstart Guide](examples/quickstart/quickstart.ipynb) first, or check the [examples](examples) ready for Atari 2600 and Farama Foundation's gymnasium.
 
 For more information, you can refer to [PFRL's documentation](http://pfrl.readthedocs.io/en/latest/index.html).
 
@@ -99,7 +99,7 @@ Following useful techniques have been also implemented in PFRL:
 
 ## Environments
 
-Environments that support the subset of OpenAI gymnasium's interface (`reset` and `step` methods) can be used.
+Environments that support the subset of Farama Foundation's gymnasium's interface (`reset` and `step` methods) can be used.
 
 ## Contributing
 
