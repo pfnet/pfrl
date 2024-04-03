@@ -1,8 +1,8 @@
-import gymnasium
+import gymnasium as gym
 import numpy as np
 
 
-class CastObservation(gymnasium.ObservationWrapper):
+class CastObservation(gym.ObservationWrapper):
     """Cast observations to a given type.
 
     Args:

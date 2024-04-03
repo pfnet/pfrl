@@ -1,5 +1,6 @@
 import numpy as np
-from gymnasium import spaces
+import gymnasium as gym
+from gym import spaces
 
 from pfrl import env
 

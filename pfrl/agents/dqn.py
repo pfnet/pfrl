@@ -35,7 +35,6 @@ from pfrl.utils.recurrent import (
     recurrent_state_as_numpy,
 )
 
-from pdb import set_trace
 
 def _mean_or_nan(xs: Sequence[float]) -> float:
     """Return its mean a non-empty sequence, numpy.nan for a empty one."""
@@ -487,13 +486,6 @@ class DQN(agent.AttributeSavingMixin, agent.BatchAgent):
         else:
             batch_av = self.model(batch_xs)
         return batch_av
-
-    def compute_q(self, batch_obs: Sequence[Any], batch_action: Sequence[Any]) -> Sequence[Any]:
-        with torch.no_grad(), evaluating(self.model):
-            batch_av = self._evaluate_model_and_update_recurrent_states(batch_obs)
-            q_values = batch_av.q_values
-            batch_q_values = q_values[torch.arange(q_values.shape[0]), batch_action]
-            return batch_q_values
 
     def batch_act(self, batch_obs: Sequence[Any]) -> Sequence[Any]:
         with torch.no_grad(), evaluating(self.model):

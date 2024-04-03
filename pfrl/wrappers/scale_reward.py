@@ -1,7 +1,7 @@
-import gymnasium
+import gymnasium as gym
 
 
-class ScaleReward(gymnasium.RewardWrapper):
+class ScaleReward(gym.RewardWrapper):
     """Scale reward by a scale factor.
 
     Args:
