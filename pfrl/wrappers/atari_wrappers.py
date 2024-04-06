@@ -6,7 +6,7 @@ from collections import deque
 
 import gymnasium as gym
 import numpy as np
-from gym import spaces
+from gymnasium import spaces
 from packaging import version
 
 import pfrl
