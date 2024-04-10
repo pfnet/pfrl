@@ -21,7 +21,7 @@ def test_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_steps, n_epis
     agent.get_statistics.return_value = []
 
     env = mock.Mock()
-    env.reset.return_value = "obs"
+    env.reset.return_value = "obs", {}
     env.step.return_value = ("obs", 0, True, False, {})
     env.get_statistics.return_value = []
 
@@ -110,7 +110,7 @@ def test_async_evaluator_evaluate_if_necessary(save_best_so_far_agent, n_episode
     agent.get_statistics.return_value = []
 
     env = mock.Mock()
-    env.reset.return_value = "obs"
+    env.reset.return_value = "obs", {}
     env.step.return_value = ("obs", 0, True, False, {})
     env.get_statistics.return_value = []
 
@@ -179,10 +179,10 @@ def test_run_evaluation_episodes_with_n_steps(n_episodes, n_steps):
     # Second episode: 4 -> 5 -> 6 -> 7 (done)
     env.reset.side_effect = [("state", 0), ("state", 4)]
     env.step.side_effect = [
-        (("state", 1), 0.1, False, {}),
-        (("state", 2), 0.2, False, {}),
-        (("state", 3), 0.3, False, {"needs_reset": True}),
-        (("state", 5), -0.5, False, {}),
+        (("state", 1), 0.1, False, False, {}),
+        (("state", 2), 0.2, False, False, {}),
+        (("state", 3), 0.3, False, True, {"needs_reset": True}),
+        (("state", 5), -0.5, False, False, {}),
         (("state", 6), 0, False, False, {}),
         (("state", 7), 1, True, False, {}),
     ]
@@ -226,12 +226,12 @@ class TestRunEvaluationEpisode(unittest.TestCase):
         # Second episode: 4 -> 5 -> 6 -> 7 (done)
         env.reset.side_effect = [("state", 0), ("state", 4)]
         env.step.side_effect = [
-            (("state", 1), 0, False, {}),
-            (("state", 2), 0, False, {}),
-            (("state", 3), 0, False, {"needs_reset": True}),
-            (("state", 5), -0.5, False, {}),
-            (("state", 6), 0, False, {}),
-            (("state", 7), 1, True, {}),
+            (("state", 1), 0, False, False, {}),
+            (("state", 2), 0, False, False, {}),
+            (("state", 3), 0, False, True, {"needs_reset": True}),
+            (("state", 5), -0.5, False, False, {}),
+            (("state", 6), 0, False, False, {}),
+            (("state", 7), 1, True, False, {}),
         ]
         scores, lengths = evaluator.run_evaluation_episodes(
             env, agent, n_steps=None, n_episodes=2
