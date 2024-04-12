@@ -246,8 +246,8 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         # Update stats
         self.q1_record.extend(predict_q1.detach().cpu().numpy())
         self.q2_record.extend(predict_q2.detach().cpu().numpy())
-        self.q_func1_loss_record.append(float(loss1))
-        self.q_func2_loss_record.append(float(loss2))
+        self.q_func1_loss_record.append(float(loss1.detach().cpu().numpy()))
+        self.q_func2_loss_record.append(float(loss2.detach().cpu().numpy()))
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
