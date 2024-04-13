@@ -213,17 +213,16 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
 
     def update_q_func(self, batch):
         """Compute loss for a given Q-function."""
-
-        batch_next_state = batch["next_state"]
-        batch_rewards = batch["reward"]
-        batch_terminal = batch["is_state_terminal"]
-        batch_state = batch["state"]
-        batch_actions = batch["action"]
-        batch_discount = batch["discount"]
-
         with torch.no_grad(), pfrl.utils.evaluating(self.policy), pfrl.utils.evaluating(
             self.target_q_func1
         ), pfrl.utils.evaluating(self.target_q_func2):
+            batch_state = batch["state"]
+            batch_actions = batch["action"]
+            batch_next_state = batch["next_state"]
+            batch_rewards = batch["reward"]
+            batch_terminal = batch["is_state_terminal"]
+            batch_discount = batch["discount"]
+
             next_action_distrib = self.policy(batch_next_state)
             next_actions = next_action_distrib.sample()
             next_log_prob = next_action_distrib.log_prob(next_actions)

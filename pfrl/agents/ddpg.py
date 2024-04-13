@@ -148,16 +148,16 @@ class DDPG(AttributeSavingMixin, BatchAgent):
     def compute_critic_loss(self, batch):
         """Compute loss for critic."""
 
-        batch_next_state = batch["next_state"]
-        batch_rewards = batch["reward"]
-        batch_terminal = batch["is_state_terminal"]
-        batch_state = batch["state"]
-        batch_actions = batch["action"]
-        batchsize = len(batch_rewards)
-
         with torch.no_grad():
+            batch_state = batch["state"]
+            batch_actions = batch["action"]
+            batch_rewards = batch["reward"]
+            batchsize = len(batch_rewards)
             assert not self.recurrent
+            batch_next_state = batch["next_state"]
+            batch_terminal = batch["is_state_terminal"]
             next_actions = self.target_policy(batch_next_state).sample()
+            
             next_q = self.target_q_function((batch_next_state, next_actions))
             target_q = batch_rewards + self.gamma * (
                 1.0 - batch_terminal
