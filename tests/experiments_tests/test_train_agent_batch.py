@@ -24,16 +24,16 @@ def test_train_agent_batch(num_envs, max_episode_len, steps, enable_evaluation):
         if max_episode_len is None:
             # Episodic env that terminates after 5 actions
             env.step.side_effect = [
-                (("state", 1), 0, False, {}),
-                (("state", 2), 0, False, {}),
-                (("state", 3), -0.5, False, {}),
-                (("state", 4), 0, False, {}),
-                (("state", 5), 1, True, {}),
+                (("state", 1), 0, False, False, {}),
+                (("state", 2), 0, False, False, {}),
+                (("state", 3), -0.5, False, False, {}),
+                (("state", 4), 0, False, False, {}),
+                (("state", 5), 1, True, False, {}),
             ] * 1000
         else:
             # Continuing env
             env.step.side_effect = [
-                (("state", 1), 0, False, {}),
+                (("state", 1), 0, False, False, {}),
             ] * 1000
         return env
 
@@ -193,12 +193,12 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
                 # Second episode: 4 -> 5 -> 6 -> 7 (done)
                 env.reset.side_effect = [("state", 0), ("state", 4)]
                 env.step.side_effect = [
-                    (("state", 1), 0, False, {}),
-                    (("state", 2), 0, False, {}),
-                    (("state", 3), 0, False, {"needs_reset": True}),
-                    (("state", 5), -0.5, False, {}),
-                    (("state", 6), 0, False, {}),
-                    (("state", 7), 1, True, {}),
+                    (("state", 1), 0, False, False, {}),
+                    (("state", 2), 0, False, False, {}),
+                    (("state", 3), 0, False, False, {"needs_reset": True}),
+                    (("state", 5), -0.5, False, False, {}),
+                    (("state", 6), 0, False, False, {}),
+                    (("state", 7), 1, True, False, {}),
                 ]
             else:
                 # First episode: 0 -> 1 (reset)
@@ -206,11 +206,11 @@ class TestTrainAgentBatchNeedsReset(unittest.TestCase):
                 # Third episode: 4 -> 5 -> 6 -> 7 (done)
                 env.reset.side_effect = [("state", 0), ("state", 2), ("state", 4)]
                 env.step.side_effect = [
-                    (("state", 1), 0, False, {"needs_reset": True}),
-                    (("state", 3), 0, False, {"needs_reset": True}),
-                    (("state", 5), -0.5, False, {}),
-                    (("state", 6), 0, False, {}),
-                    (("state", 7), 1, True, {}),
+                    (("state", 1), 0, False, False, {"needs_reset": True}),
+                    (("state", 3), 0, False, False, {"needs_reset": True}),
+                    (("state", 5), -0.5, False, False, {}),
+                    (("state", 6), 0, False, False, {}),
+                    (("state", 7), 1, True, False, {}),
                 ]
             return env
 

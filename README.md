@@ -30,7 +30,7 @@ Refer to [Installation](http://pfrl.readthedocs.io/en/latest/install.html) for m
 
 ## Getting started
 
-You can try [PFRL Quickstart Guide](examples/quickstart/quickstart.ipynb) first, or check the [examples](examples) ready for Atari 2600 and Open AI Gym.
+You can try [PFRL Quickstart Guide](examples/quickstart/quickstart.ipynb) first, or check the [examples](examples) ready for Atari 2600 and Farama Foundation's gymnasium.
 
 For more information, you can refer to [PFRL's documentation](http://pfrl.readthedocs.io/en/latest/index.html).
 
@@ -64,9 +64,9 @@ Following algorithms have been implemented in PFRL:
 - [ACER (Actor-Critic with Experience Replay)](https://arxiv.org/abs/1611.01224)
   - examples: [[atari]](examples/atari/train_acer_ale.py)
 - [Categorical DQN](https://arxiv.org/abs/1707.06887)
-  - examples: [[atari]](examples/atari/train_categorical_dqn_ale.py) [[general gym]](examples/gym/train_categorical_dqn_gym.py)
+  - examples: [[atari]](examples/atari/train_categorical_dqn_ale.py) [[general gymnasium]](examples/gymnasium/train_categorical_dqn_gymnasium.py)
 - [DQN (Deep Q-Network)](https://storage.googleapis.com/deepmind-media/dqn/DQNNaturePaper.pdf) (including [Double DQN](https://arxiv.org/abs/1509.06461), [Persistent Advantage Learning (PAL)](https://arxiv.org/abs/1512.04860), Double PAL, [Dynamic Policy Programming (DPP)](http://www.jmlr.org/papers/volume13/azar12a/azar12a.pdf))
-  - examples: [[atari reproduction]](examples/atari/reproduction/dqn) [[atari]](examples/atari/train_dqn_ale.py) [[atari (batched)]](examples/atari/train_dqn_batch_ale.py) [[flickering atari]](examples/atari/train_drqn_ale.py) [[general gym]](examples/gym/train_dqn_gym.py)
+  - examples: [[atari reproduction]](examples/atari/reproduction/dqn) [[atari]](examples/atari/train_dqn_ale.py) [[atari (batched)]](examples/atari/train_dqn_batch_ale.py) [[flickering atari]](examples/atari/train_drqn_ale.py) [[general gymnasium]](examples/gymnasium/train_dqn_gymnasium.py)
 - [DDPG (Deep Deterministic Policy Gradients)](https://arxiv.org/abs/1509.02971) (including [SVG(0)](https://arxiv.org/abs/1510.09142))
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/ddpg)
 - [IQN (Implicit Quantile Networks)](https://arxiv.org/abs/1806.06923)
@@ -76,7 +76,7 @@ Following algorithms have been implemented in PFRL:
 - [Rainbow](https://arxiv.org/abs/1710.02298)
   - examples: [[atari reproduction]](examples/atari/reproduction/rainbow) [[Slime volleyball]](examples/slimevolley/)
 - [REINFORCE](http://www-anw.cs.umass.edu/~barto/courses/cs687/williams92simple.pdf)
-  - examples: [[general gym]](examples/gym/train_reinforce_gym.py)
+  - examples: [[general gymnasium]](examples/gymnasium/train_reinforce_gymnasium.py)
 - [SAC (Soft Actor-Critic)](https://arxiv.org/abs/1812.05905)
   - examples: [[mujoco reproduction]](examples/mujoco/reproduction/soft_actor_critic) [[Atlas walk]](examples/atlas/)
 - [TRPO (Trust Region Policy Optimization)](https://arxiv.org/abs/1502.05477) with [GAE (Generalized Advantage Estimation)](https://arxiv.org/abs/1506.02438)
@@ -92,14 +92,14 @@ Following useful techniques have been also implemented in PFRL:
 - [Dueling Network](https://arxiv.org/abs/1511.06581)
   - examples: [[Rainbow]](examples/atari/reproduction/rainbow) [[DQN/DoubleDQN/PAL]](examples/atari/train_dqn_ale.py)
 - [Normalized Advantage Function](https://arxiv.org/abs/1603.00748)
-  - examples: [[DQN]](examples/gym/train_dqn_gym.py) (for continuous-action envs only)
+  - examples: [[DQN]](examples/gymnasium/train_dqn_gymnasium.py) (for continuous-action envs only)
 - [Deep Recurrent Q-Network](https://arxiv.org/abs/1507.06527)
   - examples: [[DQN]](examples/atari/train_drqn_ale.py)
 
 
 ## Environments
 
-Environments that support the subset of OpenAI Gym's interface (`reset` and `step` methods) can be used.
+Environments that support the subset of Farama Foundation's gymnasium's interface (`reset` and `step` methods) can be used.
 
 ## Contributing
 

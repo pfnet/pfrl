@@ -21,39 +21,41 @@ def test_render(render_kwargs):
         ("state", 3),
     ]
     orig_env.step.side_effect = [
-        (("state", 1), 0, False, {}),
-        (("state", 2), 1, True, {}),
+        (("state", 1), 0, False, False, {}),
+        (("state", 2), 1, True, False, {}),
     ]
     env = pfrl.wrappers.Render(orig_env, **render_kwargs)
 
     # Not called env.render yet
     assert orig_env.render.call_count == 0
 
-    obs = env.reset()
+    obs, _ = env.reset()
     assert obs == ("state", 0)
 
     # Called once
     assert orig_env.render.call_count == 1
 
-    obs, reward, done, info = env.step(0)
+    obs, reward, terminated, truncated, info = env.step(0)
     assert obs == ("state", 1)
     assert reward == 0
-    assert not done
+    assert not terminated
+    assert not truncated
     assert info == {}
 
     # Called twice
     assert orig_env.render.call_count == 2
 
-    obs, reward, done, info = env.step(0)
+    obs, reward, terminated, truncated, info = env.step(0)
     assert obs == ("state", 2)
     assert reward == 1
-    assert done
+    assert terminated
+    assert not truncated
     assert info == {}
 
     # Called thrice
     assert orig_env.render.call_count == 3
 
-    obs = env.reset()
+    obs, _ = env.reset()
     assert obs == ("state", 3)
 
     # Called four times

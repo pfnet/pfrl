@@ -1,4 +1,4 @@
-"""A training script of TD3 on OpenAI Gym Mujoco environments.
+"""A training script of TD3 on OpenAI gymnasium Mujoco environments.
 
 This script follows the settings of http://arxiv.org/abs/1802.09477 as much
 as possible.
@@ -8,8 +8,8 @@ import argparse
 import logging
 import sys
 
-import gym
-import gym.wrappers
+import gymnasium
+import gymnasium.wrappers
 import numpy as np
 import torch
 from torch import nn
@@ -33,7 +33,7 @@ def main():
         "--env",
         type=str,
         default="Hopper-v2",
-        help="OpenAI Gym MuJoCo env to perform algorithm on.",
+        help="OpenAI gymnasium MuJoCo env to perform algorithm on.",
     )
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument(
@@ -78,7 +78,7 @@ def main():
         "--pretrained-type", type=str, default="best", choices=["best", "final"]
     )
     parser.add_argument(
-        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
+        "--monitor", action="store_true", help="Wrap env with gymnasium.wrappers.Monitor."
     )
     parser.add_argument(
         "--log-level", type=int, default=logging.INFO, help="Level of the root logger."
@@ -94,9 +94,9 @@ def main():
     utils.set_random_seed(args.seed)
 
     def make_env(test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Unwrap TimeLimit wrapper
-        assert isinstance(env, gym.wrappers.TimeLimit)
+        assert isinstance(env, gymnasium.wrappers.TimeLimit)
         env = env.env
         # Use different random seeds for train and test envs
         env_seed = 2**32 - 1 - args.seed if test else args.seed

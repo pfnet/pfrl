@@ -1,24 +1,24 @@
-"""An example of training DQN against OpenAI Gym Envs.
+"""An example of training DQN against OpenAI gymnasium Envs.
 
-This script is an example of training a DQN agent against OpenAI Gym envs.
+This script is an example of training a DQN agent against OpenAI gymnasium envs.
 Both discrete and continuous action spaces are supported. For continuous action
 spaces, A NAF (Normalized Advantage Function) is used to approximate Q-values.
 
-To solve CartPole-v0, run:
-    python train_dqn_gym.py --env CartPole-v0
+To solve CartPole-v1, run:
+    python train_dqn_gymnasium.py --env CartPole-v1
 
-To solve Pendulum-v0, run:
-    python train_dqn_gym.py --env Pendulum-v0
+To solve Pendulum-v1, run:
+    python train_dqn_gymnasium.py --env Pendulum-v1
 """
 
 import argparse
 import os
 import sys
 
-import gym
+import gymnasium
 import numpy as np
 import torch.optim as optim
-from gym import spaces
+from gymnasium import spaces
 
 import pfrl
 from pfrl import experiments, explorers
@@ -42,7 +42,7 @@ def main():
             " If it does not exist, it will be created."
         ),
     )
-    parser.add_argument("--env", type=str, default="Pendulum-v0")
+    parser.add_argument("--env", type=str, default="Pendulum-v1")
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--final-exploration-steps", type=int, default=10**4)
@@ -100,7 +100,7 @@ def main():
         return np.clip(a, action_space.low, action_space.high)
 
     def make_env(idx=0, test=False):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[idx])
         env_seed = 2**32 - 1 - process_seed if test else process_seed

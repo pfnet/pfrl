@@ -1,7 +1,7 @@
 import argparse
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import torch
 from torch import nn
@@ -12,22 +12,22 @@ from pfrl import nn as pnn
 from pfrl import replay_buffers, utils
 
 
-class MultiBinaryAsDiscreteAction(gym.ActionWrapper):
+class MultiBinaryAsDiscreteAction(gymnasium.ActionWrapper):
     """Transforms MultiBinary action space to Discrete.
 
-    If the action space of a given env is `gym.spaces.MultiBinary(n)`, then
-    the action space of the wrapped env will be `gym.spaces.Discrete(2**n)`,
+    If the action space of a given env is `gymnasium.spaces.MultiBinary(n)`, then
+    the action space of the wrapped env will be `gymnasium.spaces.Discrete(2**n)`,
     which covers all the combinations of the original action space.
 
     Args:
-        env (gym.Env): Gym env whose action space is `gym.spaces.MultiBinary`.
+        env (gymnasium.Env): gymnasium env whose action space is `gymnasium.spaces.MultiBinary`.
     """
 
     def __init__(self, env):
         super().__init__(env)
-        assert isinstance(env.action_space, gym.spaces.MultiBinary)
+        assert isinstance(env.action_space, gymnasium.spaces.MultiBinary)
         self.orig_action_space = env.action_space
-        self.action_space = gym.spaces.Discrete(2**env.action_space.n)
+        self.action_space = gymnasium.spaces.Discrete(2**env.action_space.n)
 
     def action(self, action):
         return [(action >> i) % 2 for i in range(self.orig_action_space.n)]
@@ -129,10 +129,10 @@ def main():
 
     def make_env(test):
         if "SlimeVolley" in args.env:
-            # You need to install slimevolleygym
-            import slimevolleygym  # NOQA
+            # You need to install slimevolleygymnasium
+            import slimevolleygymnasium  # NOQA
 
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Use different random seeds for train and test envs
         env_seed = test_seed if test else train_seed
         env.seed(int(env_seed))
@@ -142,7 +142,7 @@ def main():
             )
         if args.render:
             env = pfrl.wrappers.Render(env)
-        if isinstance(env.action_space, gym.spaces.MultiBinary):
+        if isinstance(env.action_space, gymnasium.spaces.MultiBinary):
             env = MultiBinaryAsDiscreteAction(env)
         return env
 
