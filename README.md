@@ -40,7 +40,7 @@ For more information, you can refer to [PFRL's documentation](http://pfrl.readth
 
 ## Algorithms
 
-| Algorithm | Discrete Action | Continous Action | Recurrent Model | Batch Training | CPU Async Training | Pretrained models<sup>*</sup> |
+| Algorithm | Discrete Action | Continuous Action | Recurrent Model | Batch Training | CPU Async Training | Pretrained models<sup>*</sup> |
 |:----------|:---------------:|:----------------:|:---------------:|:--------------:|:------------------:|:------------------:|
 | DQN (including DoubleDQN etc.) | ✓ | ✓ (NAF) | ✓ | ✓ | x | ✓ |
 | Categorical DQN | ✓ | x | ✓ | ✓ | x | x |
