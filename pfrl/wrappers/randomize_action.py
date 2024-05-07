@@ -36,8 +36,7 @@ class RandomizeAction(gymnasium.ActionWrapper):
             return action
 
     def reset(self, **kwargs):
+        if 'seed' in kwargs:
+            self._rng = np.random.RandomState(kwargs['seed'])
         return self.env.reset(**kwargs)
 
-    def seed(self, seed):
-        super().seed(seed)
-        self._rng.seed(seed)
