@@ -80,12 +80,18 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         logger=getLogger(__name__),
         batch_states=batch_states,
         burnin_action_func=None,
+        clip_return_range=None,
+        action_l2_penalty_coef=None,
+        obs_normalizer=None,
     ):
         self.model = nn.ModuleList([policy, q_func])
+        self.obs_normalizer = obs_normalizer
         if gpu is not None and gpu >= 0:
             assert torch.cuda.is_available()
             self.device = torch.device("cuda:{}".format(gpu))
             self.model.to(self.device)
+            if self.obs_normalizer is not None:
+                self.obs_normalizer.to(self.device)
         else:
             self.device = torch.device("cpu")
 
@@ -118,6 +124,8 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         )
         self.batch_states = batch_states
         self.burnin_action_func = burnin_action_func
+        self.clip_return_range = clip_return_range
+        self.action_l2_penalty_coef = action_l2_penalty_coef
 
         self.t = 0
         self.last_state = None
@@ -162,6 +170,8 @@ class DDPG(AttributeSavingMixin, BatchAgent):
             target_q = batch_rewards + self.gamma * (
                 1.0 - batch_terminal
             ) * next_q.reshape((batchsize,))
+            if self.clip_return_range is not None:
+                target_q = target_q.clamp(*self.clip_return_range)
 
         predict_q = self.q_function((batch_state, batch_actions)).reshape((batchsize,))
 
@@ -180,6 +190,9 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         q = self.q_function((batch_state, onpolicy_actions))
         loss = -q.mean()
 
+        if self.action_l2_penalty_coef is not None:
+            loss += self.action_l2_penalty_coef * (onpolicy_actions ** 2).mean()
+
         # Update stats
         self.q_record.extend(q.detach().cpu().numpy())
         self.actor_loss_record.append(float(loss.detach().cpu().numpy()))
@@ -190,6 +203,10 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         """Update the model from experiences"""
 
         batch = batch_experiences(experiences, self.device, self.phi, self.gamma)
+
+        if self.obs_normalizer:
+            batch["state"] = self.obs_normalizer(batch["state"], update=False)
+            batch["next_state"] = self.obs_normalizer(batch["next_state"], update=False)
 
         self.critic_optimizer.zero_grad()
         self.compute_critic_loss(batch).backward()
@@ -255,6 +272,8 @@ class DDPG(AttributeSavingMixin, BatchAgent):
     def _batch_select_greedy_actions(self, batch_obs):
         with torch.no_grad(), evaluating(self.policy):
             batch_xs = self.batch_states(batch_obs, self.device, self.phi)
+            if self.obs_normalizer:
+                batch_xs = self.obs_normalizer(batch_xs, update=False)
             batch_action = self.policy(batch_xs).sample()
             return batch_action.cpu().numpy()
 
@@ -297,6 +316,12 @@ class DDPG(AttributeSavingMixin, BatchAgent):
                     is_state_terminal=batch_done[i],
                     env_id=i,
                 )
+                if self.obs_normalizer is not None:
+                    self.obs_normalizer.experience(
+                        self.batch_states(
+                            [self.batch_last_obs[i]], self.device, self.phi
+                        )
+                    )
                 if batch_reset[i] or batch_done[i]:
                     self.batch_last_obs[i] = None
                     self.batch_last_action[i] = None

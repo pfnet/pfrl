@@ -318,6 +318,200 @@ class TestEpisodicReplayBuffer:
 
 
 @pytest.mark.parametrize("capacity", [100, None])
+@pytest.mark.parametrize("num_steps", [1, 3])
+class TestHindsightReplayBuffer:
+    @pytest.fixture(autouse=True)
+    def setUp(self, capacity, num_steps):
+        self.capacity = capacity
+        self.num_steps = num_steps
+
+    def test_append_and_sample(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        assert len(rbuf) == 0
+
+        # Add one and sample one
+        correct_item = collections.deque([], maxlen=num_steps)
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            correct_item.append(trans1)
+            rbuf.append(**trans1)
+        assert len(rbuf) == 1
+        s1 = rbuf.sample(1)
+        assert len(s1) == 1
+        assert s1[0] == list(correct_item)
+
+        # Add two and sample two, which must be unique
+        correct_item2 = copy.deepcopy(correct_item)
+        trans2 = dict(
+            state=1,
+            action=1,
+            reward=2,
+            next_state=3,
+            next_action=4,
+            is_state_terminal=False,
+        )
+        correct_item2.append(trans2)
+        rbuf.append(**trans2)
+        assert len(rbuf) == 2
+        s2 = rbuf.sample(2)
+        assert len(s2) == 2
+        if s2[0][num_steps - 1]["state"] == 0:
+            assert s2[0] == list(correct_item)
+            assert s2[1] == list(correct_item2)
+        else:
+            assert s2[1] == list(correct_item)
+            assert s2[0] == list(correct_item2)
+
+    def test_append_and_terminate(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        assert len(rbuf) == 0
+
+        # Add one and sample one
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            rbuf.append(**trans1)
+        assert len(rbuf) == 1
+        s1 = rbuf.sample(1)
+        assert len(s1) == 1
+
+        # Add two and sample two, which must be unique
+        trans2 = dict(
+            state=1,
+            action=1,
+            reward=2,
+            next_state=3,
+            next_action=4,
+            is_state_terminal=True,
+        )
+        rbuf.append(**trans2)
+        assert len(rbuf) == self.num_steps + 1
+        s2 = rbuf.sample(self.num_steps + 1)
+        assert len(s2) == self.num_steps + 1
+        if self.num_steps == 1:
+            if s2[0][0]["state"] == 0:
+                assert s2[1][0]["state"] == 1
+            else:
+                assert s2[1][0]["state"] == 0
+        else:
+            for item in s2:
+                # e.g. if states are 0,0,0,1 then buffer looks like:
+                # [[0,0,0], [0, 0, 1], [0, 1], [1]]
+                if len(item) < self.num_steps:
+                    assert item[len(item) - 1]["state"] == 1
+                    for i in range(len(item) - 1):
+                        assert item[i]["state"] == 0
+                else:
+                    for i in range(len(item) - 1):
+                        assert item[i]["state"] == 0
+
+    def test_stop_current_episode(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        assert len(rbuf) == 0
+
+        # Add one and sample one
+        for _ in range(num_steps - 1):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            rbuf.append(**trans1)
+        # we haven't experienced n transitions yet
+        assert len(rbuf) == 0
+        # episode ends
+        rbuf.stop_current_episode()
+        # episode ends, so we should add n-1 transitions
+        assert len(rbuf) == self.num_steps - 1
+
+    def test_save_and_load(self):
+        capacity = self.capacity
+        num_steps = self.num_steps
+
+        tempdir = tempfile.mkdtemp()
+
+        rbuf = replay_buffers.ReplayBuffer(capacity, num_steps)
+
+        correct_item = collections.deque([], maxlen=num_steps)
+        # Add two transitions
+        for _ in range(num_steps):
+            trans1 = dict(
+                state=0,
+                action=1,
+                reward=2,
+                next_state=3,
+                next_action=4,
+                is_state_terminal=False,
+            )
+            correct_item.append(trans1)
+            rbuf.append(**trans1)
+        correct_item2 = copy.deepcopy(correct_item)
+        trans2 = dict(
+            state=1,
+            action=1,
+            reward=2,
+            next_state=3,
+            next_action=4,
+            is_state_terminal=False,
+        )
+        correct_item2.append(trans2)
+        rbuf.append(**trans2)
+
+        # Now it has two transitions
+        assert len(rbuf) == 2
+
+        # Save
+        filename = os.path.join(tempdir, "rbuf.pkl")
+        rbuf.save(filename)
+
+        # Initialize rbuf
+        rbuf = replay_buffers.ReplayBuffer(capacity)
+
+        # Of course it has no transition yet
+        assert len(rbuf) == 0
+
+        # Load the previously saved buffer
+        rbuf.load(filename)
+
+        # Now it has two transitions again
+        assert len(rbuf) == 2
+
+        # And sampled transitions are exactly what I added!
+        s2 = rbuf.sample(2)
+        if s2[0][num_steps - 1]["state"] == 0:
+            assert s2[0] == list(correct_item)
+            assert s2[1] == list(correct_item2)
+        else:
+            assert s2[0] == list(correct_item2)
+            assert s2[1] == list(correct_item)
+
+
+@pytest.mark.parametrize("capacity", [100, None])
 @pytest.mark.parametrize("normalize_by_max", ["batch", "memory"])
 class TestPrioritizedReplayBuffer:
     @pytest.fixture(autouse=True)
