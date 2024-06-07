@@ -384,7 +384,10 @@ def write_header(outdir, agent, env):
         "max",  # maximum value of returns of evaluation runs
         "min",  # minimum value of returns of evaluation runs
     )
-    with open(os.path.join(outdir, "scores.txt"), "w") as f:
+    fp = os.path.join(outdir, "scores.txt")
+    if os.path.exists(fp) and os.stat(fp).st_size > 0:
+        return
+    with open(fp, "w") as f:
         custom_columns = tuple(t[0] for t in agent.get_statistics())
         env_get_stats = getattr(env, "get_statistics", lambda: [])
         assert callable(env_get_stats)
