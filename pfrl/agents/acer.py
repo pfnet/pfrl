@@ -170,12 +170,19 @@ class ACERContinuousActionHead(nn.Module):
 
 
 def get_params_of_distribution(distrib):
+    """Returns learnable parameters of a given distribution."""
     if isinstance(distrib, torch.distributions.Independent):
         return get_params_of_distribution(distrib.base_dist)
     elif isinstance(distrib, torch.distributions.Categorical):
+        assert distrib._param.requires_grad
         return (distrib._param,)
     elif isinstance(distrib, torch.distributions.Normal):
-        return distrib.loc, distrib.scale
+        # Either loc or scale must be learnable
+        params = tuple(
+            param for param in [distrib.loc, distrib.scale] if param.requires_grad
+        )
+        assert len(params) > 0
+        return params
     else:
         raise NotImplementedError("{} is not supported by ACER".format(type(distrib)))
 
