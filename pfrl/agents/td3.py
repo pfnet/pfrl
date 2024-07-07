@@ -211,8 +211,8 @@ class TD3(AttributeSavingMixin, BatchAgent):
         loss2 = F.mse_loss(target_q, predict_q2)
 
         # Update stats
-        self.q1_record.extend(predict_q1.item())
-        self.q2_record.extend(predict_q2.item())
+        self.q1_record.extend(predict_q1.detach().cpu().numpy())
+        self.q2_record.extend(predict_q2.detach().cpu().numpy())
         self.q_func1_loss_record.append(loss1.item())
         self.q_func2_loss_record.append(loss2.item())
 
