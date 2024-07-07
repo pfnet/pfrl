@@ -211,10 +211,10 @@ class TD3(AttributeSavingMixin, BatchAgent):
         loss2 = F.mse_loss(target_q, predict_q2)
 
         # Update stats
-        self.q1_record.extend(predict_q1.detach().cpu().numpy())
-        self.q2_record.extend(predict_q2.detach().cpu().numpy())
-        self.q_func1_loss_record.append(float(loss1.detach().cpu().numpy()))
-        self.q_func2_loss_record.append(float(loss1.detach().cpu().numpy()))
+        self.q1_record.extend(predict_q1.item())
+        self.q2_record.extend(predict_q2.item())
+        self.q_func1_loss_record.append(loss1.item())
+        self.q_func2_loss_record.append(loss2.item())
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
@@ -241,7 +241,7 @@ class TD3(AttributeSavingMixin, BatchAgent):
         # Since we want to maximize Q, loss is negation of Q
         loss = -torch.mean(q)
 
-        self.policy_loss_record.append(float(loss.detach().cpu().numpy()))
+        self.policy_loss_record.append(loss.item())
         self.policy_optimizer.zero_grad()
         loss.backward()
         if self.max_grad_norm is not None:

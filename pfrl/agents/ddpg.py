@@ -168,7 +168,7 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         loss = F.mse_loss(target_q, predict_q)
 
         # Update stats
-        self.critic_loss_record.append(float(loss.detach().cpu().numpy()))
+        self.critic_loss_record.append(loss.item())
 
         return loss
 
@@ -181,8 +181,8 @@ class DDPG(AttributeSavingMixin, BatchAgent):
         loss = -q.mean()
 
         # Update stats
-        self.q_record.extend(q.detach().cpu().numpy())
-        self.actor_loss_record.append(float(loss.detach().cpu().numpy()))
+        self.q_record.extend(q.item())
+        self.actor_loss_record.append(loss.item())
 
         return loss
 

@@ -244,10 +244,10 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         loss2 = 0.5 * F.mse_loss(target_q, predict_q2)
 
         # Update stats
-        self.q1_record.extend(predict_q1.detach().cpu().numpy())
-        self.q2_record.extend(predict_q2.detach().cpu().numpy())
-        self.q_func1_loss_record.append(float(loss1.detach().cpu().numpy()))
-        self.q_func2_loss_record.append(float(loss2.detach().cpu().numpy()))
+        self.q1_record.extend(predict_q1.item())
+        self.q2_record.extend(predict_q2.item())
+        self.q_func1_loss_record.append(loss1.item())
+        self.q_func2_loss_record.append(loss2.item())
 
         self.q_func1_optimizer.zero_grad()
         loss1.backward()
@@ -301,11 +301,11 @@ class SoftActorCritic(AttributeSavingMixin, BatchAgent):
         with torch.no_grad():
             try:
                 self.entropy_record.extend(
-                    action_distrib.entropy().detach().cpu().numpy()
+                    action_distrib.entropy().item()
                 )
             except NotImplementedError:
                 # Record - log p(x) instead
-                self.entropy_record.extend(-log_prob.detach().cpu().numpy())
+                self.entropy_record.extend(-log_prob.item())
 
     def update(self, experiences, errors_out=None):
         """Update the model from experiences"""
