@@ -12,6 +12,8 @@ install_requires = [
 
 test_requires = [
     'pytest',
+    'scipy',
+    'optuna',
     'attrs<19.2.0',  # pytest does not run with attrs==19.2.0 (https://github.com/pytest-dev/pytest/issues/3280)  # NOQA
 ]
 

@@ -23,7 +23,7 @@ def generate_exp_id(prefix=None, argv=sys.argv) -> str:
     checksum, git diff from HEAD and command line arguments.
 
     Returns:
-        A generated experiment id in string (str) which if avialable
+        A generated experiment id in string (str) which if available
         for directory name
 
     """
@@ -76,7 +76,7 @@ def prepare_output_dir(
     """Prepare a directory for outputting training results.
 
     An output directory, which ends with the current datetime string,
-    is created. Then the following infomation is saved into the directory:
+    is created. Then the following information is saved into the directory:
 
         args.txt: argument values and arbitrary parameters
         command.txt: command itself
