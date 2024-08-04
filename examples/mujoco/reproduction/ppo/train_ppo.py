@@ -1,4 +1,4 @@
-"""A training script of PPO on OpenAI Gym Mujoco environments.
+"""A training script of PPO on OpenAI gymnasium Mujoco environments.
 
 This script follows the settings of https://arxiv.org/abs/1709.06560 as much
 as possible.
@@ -6,8 +6,8 @@ as possible.
 import argparse
 import functools
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import torch
 from torch import nn
@@ -28,7 +28,7 @@ def main():
         "--env",
         type=str,
         default="Hopper-v2",
-        help="OpenAI Gym MuJoCo env to perform algorithm on.",
+        help="OpenAI gymnasium MuJoCo env to perform algorithm on.",
     )
     parser.add_argument(
         "--num-envs", type=int, default=1, help="Number of envs run in parallel."
@@ -75,7 +75,7 @@ def main():
         "--log-level", type=int, default=logging.INFO, help="Level of the root logger."
     )
     parser.add_argument(
-        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
+        "--monitor", action="store_true", help="Wrap env with gymnasium.wrappers.Monitor."
     )
     parser.add_argument(
         "--log-interval",
@@ -112,7 +112,7 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
 
     def make_env(process_idx, test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[process_idx])
         env_seed = 2**32 - 1 - process_seed if test else process_seed
@@ -134,14 +134,14 @@ def main():
         )
 
     # Only for getting timesteps, and obs-action spaces
-    sample_env = gym.make(args.env)
+    sample_env = gymnasium.make(args.env)
     timestep_limit = sample_env.spec.max_episode_steps
     obs_space = sample_env.observation_space
     action_space = sample_env.action_space
     print("Observation space:", obs_space)
     print("Action space:", action_space)
 
-    assert isinstance(action_space, gym.spaces.Box)
+    assert isinstance(action_space, gymnasium.spaces.Box)
 
     # Normalize observations based on their empirical mean and variance
     obs_normalizer = pfrl.nn.EmpiricalNormalization(

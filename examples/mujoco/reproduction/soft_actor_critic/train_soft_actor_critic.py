@@ -1,4 +1,4 @@
-"""A training script of Soft Actor-Critic on OpenAI Gym Mujoco environments.
+"""A training script of Soft Actor-Critic on OpenAI gymnasium Mujoco environments.
 
 This script follows the settings of https://arxiv.org/abs/1812.05905 as much
 as possible.
@@ -9,8 +9,8 @@ import logging
 import sys
 from distutils.version import LooseVersion
 
-import gym
-import gym.wrappers
+import gymnasium
+import gymnasium.wrappers
 import numpy as np
 import torch
 from torch import distributions, nn
@@ -35,7 +35,7 @@ def main():
         "--env",
         type=str,
         default="Hopper-v2",
-        help="OpenAI Gym MuJoCo env to perform algorithm on.",
+        help="OpenAI gymnasium MuJoCo env to perform algorithm on.",
     )
     parser.add_argument(
         "--num-envs", type=int, default=1, help="Number of envs run in parallel."
@@ -83,7 +83,7 @@ def main():
         "--pretrained-type", type=str, default="best", choices=["best", "final"]
     )
     parser.add_argument(
-        "--monitor", action="store_true", help="Wrap env with gym.wrappers.Monitor."
+        "--monitor", action="store_true", help="Wrap env with gymnasium.wrappers.Monitor."
     )
     parser.add_argument(
         "--log-interval",
@@ -117,9 +117,9 @@ def main():
     assert process_seeds.max() < 2**32
 
     def make_env(process_idx, test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Unwrap TimiLimit wrapper
-        assert isinstance(env, gym.wrappers.TimeLimit)
+        assert isinstance(env, gymnasium.wrappers.TimeLimit)
         env = env.env
         # Use different random seeds for train and test envs
         process_seed = int(process_seeds[process_idx])
@@ -130,7 +130,7 @@ def main():
         # Normalize action space to [-1, 1]^n
         env = pfrl.wrappers.NormalizeActionSpace(env)
         if args.monitor:
-            env = gym.wrappers.Monitor(env, args.outdir)
+            env = gymnasium.wrappers.Monitor(env, args.outdir)
         if args.render:
             env = pfrl.wrappers.Render(env)
         return env

@@ -2,8 +2,8 @@ import argparse
 import functools
 import os
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import torch
 from torch import nn
@@ -13,7 +13,7 @@ from pfrl import experiments, explorers, replay_buffers, utils
 from pfrl.q_functions import DiscreteActionValueHead
 
 
-class CastAction(gym.ActionWrapper):
+class CastAction(gymnasium.ActionWrapper):
     """Cast actions to a given type."""
 
     def __init__(self, env, type_):
@@ -24,14 +24,14 @@ class CastAction(gym.ActionWrapper):
         return self.type_(action)
 
 
-class TransposeObservation(gym.ObservationWrapper):
+class TransposeObservation(gymnasium.ObservationWrapper):
     """Transpose observations."""
 
     def __init__(self, env, axes):
         super().__init__(env)
         self._axes = axes
-        assert isinstance(env.observation_space, gym.spaces.Box)
-        self.observation_space = gym.spaces.Box(
+        assert isinstance(env.observation_space, gymnasium.spaces.Box)
+        self.observation_space = gymnasium.spaces.Box(
             low=env.observation_space.low.transpose(*self._axes),
             high=env.observation_space.high.transpose(*self._axes),
             dtype=env.observation_space.dtype,
@@ -41,7 +41,7 @@ class TransposeObservation(gym.ObservationWrapper):
         return observation.transpose(*self._axes)
 
 
-class ObserveElapsedSteps(gym.Wrapper):
+class ObserveElapsedSteps(gymnasium.Wrapper):
     """Observe the number of elapsed steps in an episode.
 
     A new observation will be a tuple of an original observation and an integer
@@ -52,10 +52,10 @@ class ObserveElapsedSteps(gym.Wrapper):
         super().__init__(env)
         self._max_steps = max_steps
         self._elapsed_steps = 0
-        self.observation_space = gym.spaces.Tuple(
+        self.observation_space = gymnasium.spaces.Tuple(
             (
                 env.observation_space,
-                gym.spaces.Discrete(self._max_steps + 1),
+                gymnasium.spaces.Discrete(self._max_steps + 1),
             )
         )
 
@@ -64,13 +64,13 @@ class ObserveElapsedSteps(gym.Wrapper):
         return self.env.reset(), self._elapsed_steps
 
     def step(self, action):
-        observation, reward, done, info = self.env.step(action)
+        observation, reward, terminated, truncated, info = self.env.step(action)
         self._elapsed_steps += 1
         assert self._elapsed_steps <= self._max_steps
-        return (observation, self._elapsed_steps), reward, done, info
+        return (observation, self._elapsed_steps), reward, terminated, truncated, info
 
 
-class RecordMovie(gym.Wrapper):
+class RecordMovie(gymnasium.Wrapper):
     """Record MP4 videos using pybullet's logging API."""
 
     def __init__(self, env, dirname):
@@ -87,7 +87,7 @@ class RecordMovie(gym.Wrapper):
             pybullet.STATE_LOGGING_VIDEO_MP4,
             os.path.join(self._dirname, "{}.mp4".format(self._episode_idx)),
         )
-        return obs
+        return obs, {}
 
 
 class GraspingQFunction(nn.Module):
@@ -243,7 +243,7 @@ def main():
     max_episode_steps = 8
 
     def make_env(idx, test):
-        from pybullet_envs.bullet.kuka_diverse_object_gym_env import (  # NOQA
+        from pybullet_envs.bullet.kuka_diverse_object_gymnasium_env import (  # NOQA
             KukaDiverseObjectEnv,
         )
 
@@ -263,7 +263,7 @@ def main():
         # Disable file caching to keep memory usage small
         env._p.setPhysicsEngineParameter(enableFileCaching=False)
         assert env.observation_space is None
-        env.observation_space = gym.spaces.Box(
+        env.observation_space = gymnasium.spaces.Box(
             low=0, high=255, shape=(84, 84, 3), dtype=np.uint8
         )
         # (84, 84, 3) -> (3, 84, 84)

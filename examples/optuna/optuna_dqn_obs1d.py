@@ -14,7 +14,7 @@ import logging
 import os
 import random
 
-import gym
+import gymnasium as gym
 import torch.optim as optim
 
 try:
@@ -244,7 +244,7 @@ def main():
         "--env",
         type=str,
         default="LunarLander-v2",
-        help="OpenAI Gym Environment ID.",
+        help="OpenAI gym Environment ID.",
     )
     parser.add_argument(
         "--outdir",

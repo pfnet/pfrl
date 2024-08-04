@@ -1,6 +1,6 @@
 # Soft Actor-Critic (SAC) on MuJoCo benchmarks
 
-This example trains a SAC agent ([Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905)) on MuJoCo benchmarks from OpenAI Gym.
+This example trains a SAC agent ([Soft Actor-Critic Algorithms and Applications](https://arxiv.org/abs/1812.05905)) on MuJoCo benchmarks from OpenAI gymnasium.
 
 ## Requirements
 

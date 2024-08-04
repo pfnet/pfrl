@@ -4,8 +4,8 @@ import functools
 import logging
 import sys
 
-import gym
-import gym.wrappers
+import gymnasium
+import gymnasium.wrappers
 import numpy as np
 import torch
 from torch import distributions, nn
@@ -17,16 +17,16 @@ from pfrl.nn.lmbda import Lambda
 
 def make_env(args, seed, test):
     if args.env.startswith("Roboschool"):
-        # Check gym version because roboschool does not work with gym>=0.15.6
+        # Check gymnasium version because roboschool does not work with gymnasium>=0.15.6
         from distutils.version import StrictVersion
 
-        gym_version = StrictVersion(gym.__version__)
-        if gym_version >= StrictVersion("0.15.6"):
-            raise RuntimeError("roboschool does not work with gym>=0.15.6")
+        gymnasium_version = StrictVersion(gymnasium.__version__)
+        if gymnasium_version >= StrictVersion("0.15.6"):
+            raise RuntimeError("roboschool does not work with gymnasium>=0.15.6")
         import roboschool  # NOQA
-    env = gym.make(args.env)
+    env = gymnasium.make(args.env)
     # Unwrap TimiLimit wrapper
-    assert isinstance(env, gym.wrappers.TimeLimit)
+    assert isinstance(env, gymnasium.wrappers.TimeLimit)
     env = env.env
     # Use different random seeds for train and test envs
     env_seed = 2**32 - 1 - seed if test else seed
@@ -59,7 +59,7 @@ def main():
         "--env",
         type=str,
         default="RoboschoolAtlasForwardWalk-v1",
-        help="OpenAI Gym env to perform algorithm on.",
+        help="OpenAI gymnasium env to perform algorithm on.",
     )
     parser.add_argument(
         "--num-envs", type=int, default=4, help="Number of envs run in parallel."

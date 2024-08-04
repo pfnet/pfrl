@@ -1,4 +1,4 @@
-"""A training script of TRPO on OpenAI Gym Mujoco environments.
+"""A training script of TRPO on OpenAI gymnasium Mujoco environments.
 
 This script follows the settings of https://arxiv.org/abs/1709.06560 as much
 as possible.
@@ -6,9 +6,9 @@ as possible.
 import argparse
 import logging
 
-import gym
-import gym.spaces
-import gym.wrappers
+import gymnasium
+import gymnasium.spaces
+import gymnasium.wrappers
 import torch
 from torch import nn
 
@@ -20,7 +20,7 @@ def main():
     parser.add_argument(
         "--gpu", type=int, default=0, help="GPU device ID. Set to -1 to use CPUs only."
     )
-    parser.add_argument("--env", type=str, default="Hopper-v2", help="Gym Env ID")
+    parser.add_argument("--env", type=str, default="Hopper-v2", help="gymnasium Env ID")
     parser.add_argument("--seed", type=int, default=0, help="Random seed [0, 2 ** 32)")
     parser.add_argument(
         "--outdir",
@@ -81,7 +81,7 @@ def main():
         "--monitor",
         action="store_true",
         help=(
-            "Monitor the env by gym.wrappers.Monitor."
+            "Monitor the env by gymnasium.wrappers.Monitor."
             " Videos and additional log will be saved."
         ),
     )
@@ -95,14 +95,14 @@ def main():
     args.outdir = pfrl.experiments.prepare_output_dir(args, args.outdir)
 
     def make_env(test):
-        env = gym.make(args.env)
+        env = gymnasium.make(args.env)
         # Use different random seeds for train and test envs
         env_seed = 2**32 - 1 - args.seed if test else args.seed
         env.seed(env_seed)
         # Cast observations to float32 because our model uses float32
         env = pfrl.wrappers.CastObservationToFloat32(env)
         if args.monitor:
-            env = gym.wrappers.Monitor(env, args.outdir)
+            env = gymnasium.wrappers.Monitor(env, args.outdir)
         if args.render:
             env = pfrl.wrappers.Render(env)
         return env
@@ -114,7 +114,7 @@ def main():
     print("Observation space:", obs_space)
     print("Action space:", action_space)
 
-    assert isinstance(obs_space, gym.spaces.Box)
+    assert isinstance(obs_space, gymnasium.spaces.Box)
 
     # Normalize observations based on their empirical mean and variance
     obs_normalizer = pfrl.nn.EmpiricalNormalization(

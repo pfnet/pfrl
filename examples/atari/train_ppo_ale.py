@@ -1,4 +1,4 @@
-"""An example of training PPO against OpenAI Gym Atari Envs.
+"""An example of training PPO against OpenAI gymnasium Atari Envs.
 
 This script is an example of training a PPO agent on Atari envs.
 
@@ -25,7 +25,7 @@ from pfrl.wrappers import atari_wrappers
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--env", type=str, default="BreakoutNoFrameskip-v4", help="Gym Env ID."
+        "--env", type=str, default="BreakoutNoFrameskip-v4", help="gymnasium Env ID."
     )
     parser.add_argument(
         "--gpu", type=int, default=0, help="GPU device ID. Set to -1 to use CPUs only."
