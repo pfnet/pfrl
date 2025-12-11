@@ -75,7 +75,7 @@ main() {
   # pytest does not run with attrs==19.2.0 (https://github.com/pytest-dev/pytest/issues/3280)  # NOQA
   "${PYTHON}" -m pip install \
       'pytest==4.1.1' 'attrs==19.1.0' 'pytest-xdist==1.26.1' \
-      'gym[atari,classic_control]==0.19.0' 'optuna' 'zipp==1.0.0' 'pybullet==2.8.1' 'jupyterlab==2.1.5' 'traitlets==5.1.1' 'pyglet==1.5.27'
+      'gymnasium[atari,classic_control]==0.19.0' 'optuna' 'zipp==1.0.0' 'pybullet==2.8.1' 'jupyterlab==2.1.5' 'traitlets==5.1.1'
 
   git config --global user.email "you@example.com"
   git config --global user.name "Your Name"

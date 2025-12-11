@@ -5,4 +5,4 @@ build/
 dist/
 .idea/
 results/
-examples/gym/results/
+examples/gymnasium/results/

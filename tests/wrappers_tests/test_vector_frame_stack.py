@@ -2,8 +2,8 @@ import functools
 import unittest
 from unittest import mock
 
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import pytest
 
@@ -43,8 +43,8 @@ def test_vector_frame_stack(num_envs, k):
             )
             for _ in range(steps)
         ]
-        env.action_space = gym.spaces.Discrete(2)
-        env.observation_space = gym.spaces.Box(
+        env.action_space = gymnasium.spaces.Discrete(2)
+        env.observation_space = gymnasium.spaces.Box(
             low=0, high=255, shape=(1, 84, 84), dtype=np.uint8
         )
         return env
@@ -72,8 +72,8 @@ def test_vector_frame_stack(num_envs, k):
     assert fs_env.action_space == vfs_env.action_space
     assert fs_env.observation_space == vfs_env.observation_space
 
-    fs_obs = fs_env.reset()
-    vfs_obs = vfs_env.reset()
+    fs_obs, _ = fs_env.reset()
+    vfs_obs, _ = vfs_env.reset()
 
     # Same LazyFrames observations
     for env_idx in range(num_envs):
@@ -84,8 +84,8 @@ def test_vector_frame_stack(num_envs, k):
         )
 
     batch_action = [0] * num_envs
-    fs_new_obs, fs_r, fs_done, _ = fs_env.step(batch_action)
-    vfs_new_obs, vfs_r, vfs_done, _ = vfs_env.step(batch_action)
+    fs_new_obs, fs_r, fs_done, _, _ = fs_env.step(batch_action)
+    vfs_new_obs, vfs_r, vfs_done, _,  _ = vfs_env.step(batch_action)
 
     # Same LazyFrames observations, but those from fs_env are copies
     # while those from vfs_env are references.
@@ -105,8 +105,8 @@ def test_vector_frame_stack(num_envs, k):
     for _ in range(steps - 1):
         fs_env.reset(mask=np.logical_not(fs_done))
         vfs_env.reset(mask=np.logical_not(vfs_done))
-        fs_obs, fs_r, fs_done, _ = fs_env.step(batch_action)
-        vfs_obs, vfs_r, vfs_done, _ = vfs_env.step(batch_action)
+        fs_obs, fs_r, fs_terminated, _, _ = fs_env.step(batch_action)
+        vfs_obs, vfs_r, vfs_terminated, _, _ = vfs_env.step(batch_action)
         for env_idx in range(num_envs):
             assert isinstance(fs_new_obs[env_idx], LazyFrames)
             assert isinstance(vfs_new_obs[env_idx], LazyFrames)
@@ -114,4 +114,4 @@ def test_vector_frame_stack(num_envs, k):
                 np.asarray(fs_new_obs[env_idx]), np.asarray(vfs_new_obs[env_idx])
             )
         np.testing.assert_allclose(fs_r, vfs_r)
-        np.testing.assert_allclose(fs_done, vfs_done)
+        np.testing.assert_allclose(fs_terminated, vfs_terminated)

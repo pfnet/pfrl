@@ -9,10 +9,11 @@ To train DRQN for 50M timesteps on Breakout, run:
 To train DQRN using a recurrent model on flickering 1-frame Breakout, run:
     python train_drqn_ale.py --recurrent --flicker --no-frame-stack
 """
+
 import argparse
 
-import gym
-import gym.wrappers
+import gymnasium
+import gymnasium.wrappers
 import numpy as np
 import torch
 from torch import nn
@@ -193,7 +194,7 @@ def main():
             # Randomize actions like epsilon-greedy in evaluation as well
             env = pfrl.wrappers.RandomizeAction(env, args.eval_epsilon)
         if args.monitor:
-            env = gym.wrappers.Monitor(
+            env = gymnasium.wrappers.Monitor(
                 env, args.outdir, mode="evaluation" if test else "training"
             )
         if args.render:

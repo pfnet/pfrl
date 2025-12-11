@@ -10,7 +10,7 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
     use MultiprocessVectorEnv if possible.
 
     Args:
-        env_fns (list of gym.Env): List of gym.Env.
+        env_fns (list of gymnasium.Env): List of gymnasium.Env.
     """
 
     def __init__(self, envs):
@@ -22,8 +22,8 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
 
     def step(self, actions):
         results = [env.step(a) for env, a in zip(self.envs, actions)]
-        self.last_obs, rews, dones, infos = zip(*results)
-        return self.last_obs, rews, dones, infos
+        self.last_obs, rews, terminations, truncations, infos = zip(*results)
+        return self.last_obs, rews, terminations, truncations,  infos
 
     def reset(self, mask=None):
         if mask is None:
@@ -33,7 +33,7 @@ class SerialVectorEnv(pfrl.env.VectorEnv):
             for m, env, o in zip(mask, self.envs, self.last_obs)
         ]
         self.last_obs = obs
-        return obs
+        return obs, {}
 
     def seed(self, seeds):
         for env, seed in zip(self.envs, seeds):

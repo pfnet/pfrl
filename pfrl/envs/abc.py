@@ -1,5 +1,6 @@
 import numpy as np
-from gym import spaces
+import gymnasium as gym
+from gymnasium import spaces
 
 from pfrl import env
 
@@ -123,7 +124,7 @@ class ABC(env.Env):
                 self._offset = np.random.randint(self.n_max_offset + 1)
         else:
             self._offset = 0
-        return self.observe()
+        return self.observe(), {}
 
     def step(self, action):
         if isinstance(self.action_space, spaces.Box):

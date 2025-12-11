@@ -1,20 +1,21 @@
-import gym
-import gym.spaces
+import gymnasium
+import gymnasium.spaces
 import numpy as np
 import pytest
 
 import pfrl
 
 
-class ActionRecordingEnv(gym.Env):
-    observation_space = gym.spaces.Box(low=-1, high=1, shape=(1,))
-    action_space = gym.spaces.Discrete(3)
+class ActionRecordingEnv(gymnasium.Env):
+
+    observation_space = gymnasium.spaces.Box(low=-1, high=1, shape=(1,))
+    action_space = gymnasium.spaces.Discrete(3)
 
     def __init__(self):
         self.past_actions = []
 
     def reset(self):
-        return self.observation_space.sample()
+        return self.observation_space.sample(), {}
 
     def step(self, action):
         self.past_actions.append(action)

@@ -16,11 +16,11 @@ def worker(remote, env_fn):
         while True:
             cmd, data = remote.recv()
             if cmd == "step":
-                ob, reward, done, info = env.step(data)
-                remote.send((ob, reward, done, info))
+                ob, reward, terminated, truncated, info = env.step(data)
+                remote.send((ob, reward, terminated, truncated, info))
             elif cmd == "reset":
-                ob = env.reset()
-                remote.send(ob)
+                ob, info = env.reset()
+                remote.send((ob, info))
             elif cmd == "close":
                 remote.close()
                 break
@@ -41,7 +41,7 @@ class MultiprocessVectorEnv(pfrl.env.VectorEnv):
 
     Args:
         env_fns (list of callable): List of callables, each of which
-            returns gym.Env that is run in its own subprocess.
+            returns gymnasium.Env that is run in its own subprocess.
     """
 
     def __init__(self, env_fns):
@@ -83,8 +83,8 @@ See https://github.com/numpy/numpy/issues/12793 for details.
         for remote, action in zip(self.remotes, actions):
             remote.send(("step", action))
         results = [remote.recv() for remote in self.remotes]
-        self.last_obs, rews, dones, infos = zip(*results)
-        return self.last_obs, rews, dones, infos
+        self.last_obs, rews, terminateds, truncateds, infos = zip(*results)
+        return self.last_obs, rews, terminateds, truncateds, infos
 
     def reset(self, mask=None):
         self._assert_not_closed()
@@ -94,12 +94,13 @@ See https://github.com/numpy/numpy/issues/12793 for details.
             if not m:
                 remote.send(("reset", None))
 
-        obs = [
-            remote.recv() if not m else o
+        results = [
+            remote.recv() if not m else (o, {})
             for m, remote, o in zip(mask, self.remotes, self.last_obs)
         ]
+        obs, info = zip(*results)
         self.last_obs = obs
-        return obs
+        return obs, info
 
     def close(self):
         self._assert_not_closed()

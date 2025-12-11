@@ -54,7 +54,7 @@ def train_agent_batch(
     episode_len = np.zeros(num_envs, dtype="i")
 
     # o_0, r_0
-    obss = env.reset()
+    obss, infos = env.reset()
 
     t = step_offset
     if hasattr(agent, "t"):
@@ -66,7 +66,7 @@ def train_agent_batch(
             # a_t
             actions = agent.batch_act(obss)
             # o_{t+1}, r_{t+1}
-            obss, rs, dones, infos = env.step(actions)
+            obss, rs, terminations, truncations, infos = env.step(actions)
             episode_r += rs
             episode_len += 1
 
@@ -76,13 +76,13 @@ def train_agent_batch(
             else:
                 resets = episode_len == max_episode_len
             resets = np.logical_or(
-                resets, [info.get("needs_reset", False) for info in infos]
+                resets, [info.get("needs_reset", False) or truncation for truncation, info in zip(truncations, infos)]
             )
             # Agent observes the consequences
-            agent.batch_observe(obss, rs, dones, resets)
+            agent.batch_observe(obss, rs, terminations, resets)
 
-            # Make mask. 0 if done/reset, 1 if pass
-            end = np.logical_or(resets, dones)
+            # Make mask. 0 if termination/reset, 1 if pass
+            end = np.logical_or(resets, terminations)
             not_end = np.logical_not(end)
 
             # For episodes that ends, do the following:
@@ -138,7 +138,7 @@ def train_agent_batch(
             # Start new episodes if needed
             episode_r[end] = 0
             episode_len[end] = 0
-            obss = env.reset(not_end)
+            obss, infos = env.reset(not_end)
 
     except (Exception, KeyboardInterrupt):
         # Save the current model before being killed

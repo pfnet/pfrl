@@ -4,8 +4,8 @@ import os
 # Prevent numpy from using multiple threads
 os.environ["OMP_NUM_THREADS"] = "1"
 
-import gym  # NOQA:E402
-import gym.wrappers  # NOQA:E402
+import gymnasium  # NOQA:E402
+import gymnasium.wrappers  # NOQA:E402
 import numpy as np  # NOQA:E402
 from torch import nn  # NOQA:E402
 
@@ -91,7 +91,7 @@ def main():
     args.outdir = experiments.prepare_output_dir(args, args.outdir)
     print("Output files are saved in {}".format(args.outdir))
 
-    n_actions = gym.make(args.env).action_space.n
+    n_actions = gymnasium.make(args.env).action_space.n
 
     input_to_hidden = nn.Sequential(
         nn.Conv2d(4, 16, 8, stride=4),
