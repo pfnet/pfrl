@@ -15,7 +15,11 @@ from pfrl.envs.abc import ABC
 from pfrl.experiments.evaluator import run_evaluation_episodes
 from pfrl.experiments.train_agent_async import train_agent_async
 from pfrl.nn import ConcatObsAndAction
-from pfrl.policies import GaussianHeadWithDiagonalCovariance, SoftmaxCategoricalHead
+from pfrl.policies import (
+    GaussianHeadWithDiagonalCovariance,
+    GaussianHeadWithFixedCovariance,
+    SoftmaxCategoricalHead,
+)
 from pfrl.q_functions import DiscreteActionValueHead
 from pfrl.replay_buffers import EpisodicReplayBuffer
 
@@ -263,6 +267,15 @@ def test_compute_loss_with_kl_constraint_gaussian():
     _test_compute_loss_with_kl_constraint(policy)
 
 
+def test_compute_loss_with_kl_constraint_gaussian_with_fixed_covariance():
+    action_size = 3
+    policy = nn.Sequential(
+        nn.Linear(1, action_size),
+        GaussianHeadWithFixedCovariance(),
+    )
+    _test_compute_loss_with_kl_constraint(policy)
+
+
 def test_compute_loss_with_kl_constraint_softmax():
     n_actions = 3
     policy = nn.Sequential(
@@ -281,11 +294,13 @@ def _test_compute_loss_with_kl_constraint(base_policy):
     with torch.no_grad():
         # Compute KL divergence against the original distribution
         base_distrib = base_policy(x)
+        some_action = base_distrib.sample()
 
     def base_loss_func(distrib):
-        # Any loss that tends to increase KL divergence should be ok
-        kl = torch.distributions.kl_divergence(base_distrib, distrib)
-        return -(kl + distrib.entropy())
+        # Any loss that tends to increase KL divergence should be ok.
+        # Here I choose to minimize the log probability of some fixed action.
+        # The loss is clipped to avoid NaN.
+        return torch.max(distrib.log_prob(some_action), torch.as_tensor(-20.0))
 
     def compute_kl_after_update(loss_func, n=100):
         policy = copy.deepcopy(base_policy)
