@@ -51,6 +51,11 @@ class TestEpisodicReplayBuffer(object):
                     assert t0["next_state"] == t1["state"]
                     assert t0["next_action"] == t1["action"]
 
+    def test_clear(self, capacity):
+        rbuf = PersistentEpisodicReplayBuffer(self.tempdir.name, capacity)
+        with pytest.raises(NotImplementedError):
+            rbuf.clear()
+
     def test_save_and_load(self, capacity):
         tempdir = tempfile.mkdtemp()
 
@@ -172,3 +177,9 @@ class TestEpisodicReplayBufferWithEnvID(object):
 
         # Finally it should have 4 + 2 + 9 = 15 transitions
         assert len(rbuf) == 15
+
+    def test_clear(self):
+        rbuf = PersistentEpisodicReplayBuffer(self.tempdir.name, capacity=None)
+        with pytest.raises(NotImplementedError):
+            rbuf.clear()
+

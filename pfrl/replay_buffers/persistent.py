@@ -80,6 +80,9 @@ class PersistentReplayBuffer(ReplayBuffer):
             "{}.load() has been ignored, as it is persistent replay buffer".format(self)
         )
 
+    def clear(self):
+        raise NotImplementedError 
+
 
 class PersistentEpisodicReplayBuffer(EpisodicReplayBuffer):
     """Episodic version of :py:class:`PersistentReplayBuffer`
@@ -163,3 +166,6 @@ class PersistentEpisodicReplayBuffer(EpisodicReplayBuffer):
         warnings.warn(
             "PersistentEpisodicReplayBuffer.load() is called but it has not effect."
         )
+
+    def clear(self):
+        raise NotImplementedError 

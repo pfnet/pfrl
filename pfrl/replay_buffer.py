@@ -113,6 +113,12 @@ class AbstractReplayBuffer(object, metaclass=ABCMeta):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def clear(self):
+        """Clears the replay buffer.
+        """
+        raise NotImplementedError
+
 
 class AbstractEpisodicReplayBuffer(AbstractReplayBuffer):
     """Defines a common interface of episodic replay buffer.
@@ -142,6 +148,12 @@ class AbstractEpisodicReplayBuffer(AbstractReplayBuffer):
 
         Returns:
             Number of episodes in the buffer.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear(self):
+        """Clears the replay buffer.
         """
         raise NotImplementedError
 
