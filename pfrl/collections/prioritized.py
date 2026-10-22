@@ -248,10 +248,11 @@ def _find(index_left: int, index_right: int, node: Node, pos: float) -> int:
     else:
         node_left, node_right, _ = node
         index_center = (index_left + index_right) // 2
-        if node_left:
-            left_value = node_left[2]
-        else:
-            left_value = 0.0
+        if not node_right or (node_right[2] == 0.0 and node_left):
+            return _find(index_left, index_center, node_left, pos)
+        if not node_left or (node_left[2] == 0.0 and node_right):
+            return _find(index_center, index_right, node_right, max(0.0, pos))
+        left_value = node_left[2]
         if pos < left_value:
             return _find(index_left, index_center, node_left, pos)
         else:
