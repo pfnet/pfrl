@@ -1,7 +1,6 @@
-from numbers import Number
-
 import torch
 from torch.distributions import Distribution, constraints
+from torch.distributions.utils import broadcast_all
 
 
 class Delta(Distribution):
@@ -32,11 +31,8 @@ class Delta(Distribution):
         return torch.zeros_like(self.loc)
 
     def __init__(self, loc, validate_args=None):
-        self.loc = loc
-        if isinstance(loc, Number):
-            batch_shape = torch.Size()
-        else:
-            batch_shape = self.loc.size()
+        (self.loc,) = broadcast_all(loc)
+        batch_shape = self.loc.size()
         super(Delta, self).__init__(batch_shape, validate_args=validate_args)
 
     def expand(self, batch_shape, _instance=None):
